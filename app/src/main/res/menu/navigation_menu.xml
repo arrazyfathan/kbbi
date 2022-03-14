@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <item
+        android:id="@+id/homeFragment"
+        android:icon="@drawable/ic_menu_home"
+        android:enabled="true"
+        android:title="@string/home_title" />
+
+    <item
+        android:id="@+id/wordFragment"
+        android:enabled="true"
+        android:icon="@drawable/ic_menu_word"
+        android:title="@string/kosa_kata_title" />
+
+    <item
+        android:id="@+id/savedFragment"
+        android:enabled="true"
+        android:icon="@drawable/ic_men_saved"
+        android:title="@string/favorit_title" />
+
+</menu>

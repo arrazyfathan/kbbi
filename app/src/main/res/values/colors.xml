@@ -10,6 +10,12 @@
 
     <!--Custom Color-->
     <color name="blue_primary">#303E9F</color>
+    <color name="blue_secondary">#5763B1</color>
+    <color name="blue_bg">#E8F0F1</color>
+    <color name="blue_accent">#D7E8EA</color>
+    <color name="text_h1">#2E494C</color>
+    <color name="text_p">#7C8796</color>
+    <color name="text_accent">#76A6AB</color>
 
     <color name="custom_button">#0B0D15</color>
 </resources>

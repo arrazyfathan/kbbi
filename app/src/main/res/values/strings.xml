@@ -1,4 +1,9 @@
 <resources>
     <string name="app_name">KBBI Kamus Besar Bahasa Indonesia</string>
     <string name="logo_desc">logo_kbbi</string>
+    <!-- TODO: Remove or change this placeholder text -->
+    <string name="hello_blank_fragment">Hello blank fragment</string>
+    <string name="home_title">Home</string>
+    <string name="kosa_kata_title">Kosa Kata</string>
+    <string name="favorit_title">Favorit</string>
 </resources>
