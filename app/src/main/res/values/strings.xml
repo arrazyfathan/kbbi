@@ -1,9 +1,14 @@
 <resources>
     <string name="app_name">KBBI Kamus Besar Bahasa Indonesia</string>
     <string name="logo_desc">logo_kbbi</string>
-    <!-- TODO: Remove or change this placeholder text -->
     <string name="hello_blank_fragment">Hello blank fragment</string>
     <string name="home_title">Home</string>
     <string name="kosa_kata_title">Kosa Kata</string>
     <string name="favorit_title">Favorit</string>
+    <string name="welcom_text">Selamat\ndatang di KBBI</string>
+    <string name="subtitle_text">Temukan definisi kata sesuai dengan\nKamus besar bahasa indonesia.</string>
+    <string name="swipe_label">Geser ke atas</string>
+    <string name="hero_image_text">home_hero_image</string>
+    <string name="cari_kosa_kata">Cari kosa kata ...</string>
+    <string name="button_search">button_search</string>
 </resources>

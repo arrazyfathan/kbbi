@@ -3,14 +3,25 @@
   <component name="DesignSurface">
     <option name="filePathToZoomLevelMap">
       <map>
+        <entry key="..\:/Android/AndroidWithKotlin/Project/KBBI/app/src/main/res/drawable/custom_cursor_color.xml" value="0.1" />
+        <entry key="..\:/Android/AndroidWithKotlin/Project/KBBI/app/src/main/res/drawable/custom_text_input.xml" value="0.1" />
+        <entry key="..\:/Android/AndroidWithKotlin/Project/KBBI/app/src/main/res/drawable/home.xml" value="0.1" />
+        <entry key="..\:/Android/AndroidWithKotlin/Project/KBBI/app/src/main/res/drawable/home_selected.xml" value="0.1" />
         <entry key="..\:/Android/AndroidWithKotlin/Project/KBBI/app/src/main/res/drawable/ic_add.xml" value="0.1" />
         <entry key="..\:/Android/AndroidWithKotlin/Project/KBBI/app/src/main/res/drawable/ic_launcher_background.xml" value="0.1" />
         <entry key="..\:/Android/AndroidWithKotlin/Project/KBBI/app/src/main/res/drawable/ic_men_saved.xml" value="0.1" />
         <entry key="..\:/Android/AndroidWithKotlin/Project/KBBI/app/src/main/res/drawable/ic_menu_home.xml" value="0.1" />
         <entry key="..\:/Android/AndroidWithKotlin/Project/KBBI/app/src/main/res/drawable/ic_menu_word.xml" value="0.1" />
-        <entry key="..\:/Android/AndroidWithKotlin/Project/KBBI/app/src/main/res/layout/activity_main.xml" value="0.1" />
+        <entry key="..\:/Android/AndroidWithKotlin/Project/KBBI/app/src/main/res/drawable/ic_search.xml" value="0.1" />
+        <entry key="..\:/Android/AndroidWithKotlin/Project/KBBI/app/src/main/res/drawable/ic_search_focused.xml" value="0.1" />
+        <entry key="..\:/Android/AndroidWithKotlin/Project/KBBI/app/src/main/res/drawable/ic_search_state.xml" value="0.1" />
+        <entry key="..\:/Android/AndroidWithKotlin/Project/KBBI/app/src/main/res/drawable/saved.xml" value="0.1" />
+        <entry key="..\:/Android/AndroidWithKotlin/Project/KBBI/app/src/main/res/drawable/saved_selected.xml" value="0.1" />
+        <entry key="..\:/Android/AndroidWithKotlin/Project/KBBI/app/src/main/res/drawable/word.xml" value="0.1" />
+        <entry key="..\:/Android/AndroidWithKotlin/Project/KBBI/app/src/main/res/drawable/word_selected.xml" value="0.1" />
+        <entry key="..\:/Android/AndroidWithKotlin/Project/KBBI/app/src/main/res/layout/activity_main.xml" value="0.18" />
         <entry key="..\:/Android/AndroidWithKotlin/Project/KBBI/app/src/main/res/layout/activity_splash_screen.xml" value="0.21041666666666667" />
-        <entry key="..\:/Android/AndroidWithKotlin/Project/KBBI/app/src/main/res/layout/fragment_home.xml" value="0.21041666666666667" />
+        <entry key="..\:/Android/AndroidWithKotlin/Project/KBBI/app/src/main/res/layout/fragment_home.xml" value="0.22" />
         <entry key="..\:/Android/AndroidWithKotlin/Project/KBBI/app/src/main/res/layout/fragment_saved.xml" value="0.21041666666666667" />
         <entry key="..\:/Android/AndroidWithKotlin/Project/KBBI/app/src/main/res/layout/fragment_word.xml" value="0.21041666666666667" />
         <entry key="..\:/Android/AndroidWithKotlin/Project/KBBI/app/src/main/res/menu/navigation_menu.xml" value="0.21041666666666667" />
