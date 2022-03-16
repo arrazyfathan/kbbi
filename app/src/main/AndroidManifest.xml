@@ -2,7 +2,11 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="com.example.kbbikamusbesarbahasaindonesia">
 
+    <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+
     <application
+        android:name=".BaseApplication"
         android:allowBackup="true"
         android:icon="@mipmap/ic_launcher"
         android:label="@string/app_name"
@@ -10,12 +14,16 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.KBBIKamusBesarBahasaIndonesia">
         <activity
+            android:name=".ui.detail.DetailActivity"
+            android:theme="@style/Detail.Theme"
+            android:exported="false" />
+        <activity
             android:name=".ui.home.MainActivity"
             android:exported="false" />
         <activity
             android:name=".ui.splash.SplashScreenActivity"
-            android:theme="@style/SplashTheme"
-            android:exported="true">
+            android:exported="true"
+            android:theme="@style/SplashTheme">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 

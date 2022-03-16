@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <style name="Detail.Theme" parent="Theme.Material3.Light.NoActionBar">
+        <item name="colorPrimary">@color/blue_bg</item>
+        <item name="android:windowLightStatusBar">true</item>
+    </style>
+</resources>

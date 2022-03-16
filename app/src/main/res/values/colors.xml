@@ -13,7 +13,9 @@
     <color name="blue_secondary">#5763B1</color>
     <color name="blue_bg">#E8F0F1</color>
     <color name="blue_accent">#D7E8EA</color>
+    <color name="text_primary">#090B1E</color>
     <color name="text_h1">#2E494C</color>
+    <color name="back_button">#BDD0D2</color>
     <color name="text_p">#7C8796</color>
     <color name="text_accent">#76A6AB</color>
 

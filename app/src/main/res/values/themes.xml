@@ -27,4 +27,10 @@
         <item name="android:minHeight">48dp</item>
     </style>
 
+    <style name="Detail.Theme" parent="Theme.Material3.Light.NoActionBar">
+        <item name="colorPrimary">@color/blue_bg</item>
+    </style>
+
+
+
 </resources>

@@ -3,6 +3,8 @@
   <component name="DesignSurface">
     <option name="filePathToZoomLevelMap">
       <map>
+        <entry key="..\:/Android/AndroidWithKotlin/Project/KBBI/app/src/main/res/drawable/back.xml" value="0.1465" />
+        <entry key="..\:/Android/AndroidWithKotlin/Project/KBBI/app/src/main/res/drawable/custom_bottom_sheet.xml" value="0.15" />
         <entry key="..\:/Android/AndroidWithKotlin/Project/KBBI/app/src/main/res/drawable/custom_cursor_color.xml" value="0.1" />
         <entry key="..\:/Android/AndroidWithKotlin/Project/KBBI/app/src/main/res/drawable/custom_text_input.xml" value="0.1" />
         <entry key="..\:/Android/AndroidWithKotlin/Project/KBBI/app/src/main/res/drawable/home.xml" value="0.1" />
@@ -19,11 +21,16 @@
         <entry key="..\:/Android/AndroidWithKotlin/Project/KBBI/app/src/main/res/drawable/saved_selected.xml" value="0.1" />
         <entry key="..\:/Android/AndroidWithKotlin/Project/KBBI/app/src/main/res/drawable/word.xml" value="0.1" />
         <entry key="..\:/Android/AndroidWithKotlin/Project/KBBI/app/src/main/res/drawable/word_selected.xml" value="0.1" />
+        <entry key="..\:/Android/AndroidWithKotlin/Project/KBBI/app/src/main/res/layout/activity_detail.xml" value="0.25" />
         <entry key="..\:/Android/AndroidWithKotlin/Project/KBBI/app/src/main/res/layout/activity_main.xml" value="0.18" />
         <entry key="..\:/Android/AndroidWithKotlin/Project/KBBI/app/src/main/res/layout/activity_splash_screen.xml" value="0.21041666666666667" />
+        <entry key="..\:/Android/AndroidWithKotlin/Project/KBBI/app/src/main/res/layout/fragment_detail_meaning.xml" value="0.21041666666666667" />
         <entry key="..\:/Android/AndroidWithKotlin/Project/KBBI/app/src/main/res/layout/fragment_home.xml" value="0.22" />
         <entry key="..\:/Android/AndroidWithKotlin/Project/KBBI/app/src/main/res/layout/fragment_saved.xml" value="0.21041666666666667" />
-        <entry key="..\:/Android/AndroidWithKotlin/Project/KBBI/app/src/main/res/layout/fragment_word.xml" value="0.21041666666666667" />
+        <entry key="..\:/Android/AndroidWithKotlin/Project/KBBI/app/src/main/res/layout/fragment_word.xml" value="0.17" />
+        <entry key="..\:/Android/AndroidWithKotlin/Project/KBBI/app/src/main/res/layout/home_bottom_sheet_dialog.xml" value="0.25" />
+        <entry key="..\:/Android/AndroidWithKotlin/Project/KBBI/app/src/main/res/layout/item_list_arti.xml" value="0.25" />
+        <entry key="..\:/Android/AndroidWithKotlin/Project/KBBI/app/src/main/res/layout/item_list_child_arti.xml" value="0.33" />
         <entry key="..\:/Android/AndroidWithKotlin/Project/KBBI/app/src/main/res/menu/navigation_menu.xml" value="0.21041666666666667" />
         <entry key="..\:/Android/AndroidWithKotlin/Project/KBBI/app/src/main/res/menu/sample_menu.xml" value="0.17222222222222222" />
       </map>

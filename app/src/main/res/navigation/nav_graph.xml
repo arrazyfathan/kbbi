@@ -10,6 +10,7 @@
         android:name="com.example.kbbikamusbesarbahasaindonesia.ui.home.HomeFragment"
         android:label="fragment_home"
         tools:layout="@layout/fragment_home" />
+
     <fragment
         android:id="@+id/savedFragment"
         android:name="com.example.kbbikamusbesarbahasaindonesia.ui.saved.SavedFragment"
@@ -20,4 +21,5 @@
         android:name="com.example.kbbikamusbesarbahasaindonesia.ui.word.WordFragment"
         android:label="fragment_word"
         tools:layout="@layout/fragment_word" />
+
 </navigation>

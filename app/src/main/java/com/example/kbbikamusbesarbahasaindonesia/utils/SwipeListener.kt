@@ -56,10 +56,10 @@ open class SwipeListener(context: Context?) : OnTouchListener {
         }
     }
 
-    fun onSwipeRight() {}
-    fun onSwipeLeft() {}
+    open fun onSwipeRight() {}
+    open fun onSwipeLeft() {}
     open fun onSwipeTop() {}
-    fun onSwipeBottom() {}
+    open fun onSwipeBottom() {}
 
     init {
         gestureDetector = GestureDetector(context, GestureListener())

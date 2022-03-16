@@ -1,0 +1,101 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/bottomSheet"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:background="@drawable/custom_bottom_sheet"
+    android:orientation="vertical"
+    android:paddingBottom="16dp"
+    app:behavior_hideable="true"
+    app:behavior_peekHeight="16dp"
+    app:layout_behavior="com.google.android.material.bottomsheet.BottomSheetBehavior">
+
+    <TextView
+        android:id="@+id/menu_text"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="16dp"
+        android:layout_marginTop="16dp"
+        android:fontFamily="@font/inter_bold"
+        android:text="Menu"
+        android:textColor="@color/text_h1"
+        android:textSize="20sp" />
+
+
+    <TextView
+        android:id="@+id/menu_sub_text"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="16dp"
+        android:layout_marginTop="4dp"
+        android:fontFamily="@font/inter_regular"
+        android:text="Temukan fitur lainnya"
+        android:textColor="@color/text_p"
+        android:textSize="14sp" />
+
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="16dp"
+        android:layout_marginTop="16dp"
+        android:layout_marginEnd="16dp"
+        android:layout_marginBottom="16dp">
+
+        <com.google.android.material.card.MaterialCardView
+            android:id="@+id/menu_1"
+            android:layout_width="0dp"
+            android:layout_height="120dp"
+            android:layout_marginEnd="4dp"
+            app:strokeWidth="0dp"
+            android:focusable="true"
+            android:clickable="true"
+            app:cardBackgroundColor="@color/blue_bg"
+            app:layout_constraintEnd_toStartOf="@+id/menu_2"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent">
+
+
+        </com.google.android.material.card.MaterialCardView>
+
+        <com.google.android.material.card.MaterialCardView
+            android:id="@+id/menu_2"
+            android:layout_width="0dp"
+            android:layout_height="120dp"
+            android:layout_marginStart="4dp"
+            android:layout_marginEnd="4dp"
+            app:strokeWidth="0dp"
+            android:focusable="true"
+            android:clickable="true"
+            app:cardBackgroundColor="@color/blue_bg"
+            app:layout_constraintBottom_toBottomOf="@+id/menu_1"
+            app:layout_constraintEnd_toStartOf="@+id/menu_3"
+            app:layout_constraintStart_toEndOf="@+id/menu_1"
+            app:layout_constraintTop_toTopOf="@id/menu_1">
+
+
+        </com.google.android.material.card.MaterialCardView>
+
+        <com.google.android.material.card.MaterialCardView
+            android:id="@+id/menu_3"
+            android:layout_width="0dp"
+            android:layout_height="120dp"
+            android:layout_marginStart="4dp"
+            app:strokeWidth="0dp"
+            android:focusable="true"
+            android:clickable="true"
+            app:cardBackgroundColor="@color/blue_bg"
+            app:layout_constraintBottom_toBottomOf="@id/menu_2"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toEndOf="@+id/menu_2"
+            app:layout_constraintTop_toTopOf="@id/menu_2">
+
+
+        </com.google.android.material.card.MaterialCardView>
+
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
+
+
+</LinearLayout>
