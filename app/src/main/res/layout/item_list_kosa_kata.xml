@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<com.google.android.material.card.MaterialCardView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_marginTop="4dp"
+    android:layout_marginStart="4dp"
+    android:layout_marginEnd="4dp"
+    android:backgroundTint="@color/white"
+    app:cardCornerRadius="10dp"
+    app:strokeWidth="0dp">
+
+        <TextView
+            android:id="@+id/kosa_kata_list"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:fontFamily="@font/inter_regular"
+            android:textSize="16sp"
+            android:textColor="@color/text_primary"
+            tools:text="Aaaa"
+            android:paddingStart="14dp"
+            android:paddingEnd="14dp"
+            android:paddingTop="18dp"
+            android:paddingBottom="18dp"
+            />
+</com.google.android.material.card.MaterialCardView>

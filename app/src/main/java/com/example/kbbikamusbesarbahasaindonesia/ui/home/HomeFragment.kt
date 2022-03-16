@@ -44,8 +44,6 @@ class HomeFragment : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        bottomNavigationView = (activity as MainActivity).findViewById(R.id.bottom_navigation_view)
-        bottomNavigationView.visibility = View.VISIBLE
 
         var word = ""
 
@@ -76,7 +74,7 @@ class HomeFragment : Fragment() {
                     }
 
                     override fun onFailure(call: Call<Kata>, t: Throwable) {
-                        TODO("Not yet implemented")
+                        Toast.makeText(requireContext(), t.message, Toast.LENGTH_SHORT).show()
                     }
 
                 })
