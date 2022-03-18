@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:background="@color/blue_primary"
     tools:context=".ui.saved.SavedFragment">
 
@@ -11,34 +11,47 @@
         android:id="@+id/kosa_kata_favorit_title"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:layout_marginStart="16dp"
+        android:layout_marginTop="24dp"
+        android:fontFamily="@font/metropolis_extrabold"
         android:text="Kosa Kata\nFavorit"
         android:textColor="@color/white"
-        android:fontFamily="@font/metropolis_extrabold"
         android:textSize="24sp"
-        android:layout_marginTop="24dp"
-        android:layout_marginStart="16dp"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent"/>
+        app:layout_constraintTop_toTopOf="parent" />
 
     <TextView
         android:id="@+id/kosa_kata_favorit_subtitle"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:layout_marginStart="16dp"
+        android:layout_marginTop="8dp"
+        android:fontFamily="@font/spacegrotesk_regular"
         android:text="Daftar kosa kata fovorit kamu."
         android:textColor="@color/white"
-        android:fontFamily="@font/spacegrotesk_regular"
         android:textSize="16sp"
-        android:layout_marginTop="8dp"
-        android:layout_marginStart="16dp"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/kosa_kata_favorit_title"/>
+        app:layout_constraintTop_toBottomOf="@id/kosa_kata_favorit_title" />
 
     <ImageView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:src="@drawable/hero_saved"
-        app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintBottom_toBottomOf="parent"
-        />
+        app:layout_constraintEnd_toEndOf="parent" />
+
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/rv_favorit_kata"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_margin="8dp"
+        android:orientation="vertical"
+        app:layoutManager="androidx.recyclerview.widget.GridLayoutManager"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/kosa_kata_favorit_subtitle"
+        app:spanCount="2"
+        tools:listitem="@layout/item_list_favorite" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

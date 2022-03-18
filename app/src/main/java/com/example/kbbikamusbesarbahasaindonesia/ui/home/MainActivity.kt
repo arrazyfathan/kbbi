@@ -2,15 +2,18 @@ package com.example.kbbikamusbesarbahasaindonesia.ui.home
 
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
+import androidx.activity.viewModels
 import androidx.navigation.fragment.NavHostFragment
 import androidx.navigation.ui.setupWithNavController
+import com.example.kbbikamusbesarbahasaindonesia.BaseApplication
 import com.example.kbbikamusbesarbahasaindonesia.R
 import com.example.kbbikamusbesarbahasaindonesia.databinding.ActivityMainBinding
+import com.example.kbbikamusbesarbahasaindonesia.ui.saved.SavedViewModel
+import com.example.kbbikamusbesarbahasaindonesia.ui.saved.SavedViewModelFactory
 
 class MainActivity : AppCompatActivity() {
 
     private lateinit var binding: ActivityMainBinding
-
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
