@@ -23,6 +23,8 @@
     <com.google.android.material.card.MaterialCardView
         android:id="@+id/btn_book_container"
         android:layout_width="40dp"
+        android:focusable="true"
+        android:clickable="true"
         android:layout_height="40dp"
         android:layout_marginTop="16dp"
         app:cardCornerRadius="100dp"
