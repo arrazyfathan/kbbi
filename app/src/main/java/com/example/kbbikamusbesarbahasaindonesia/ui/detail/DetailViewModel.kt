@@ -1,10 +1,10 @@
 package com.example.kbbikamusbesarbahasaindonesia.ui.detail
 
-import androidx.lifecycle.ViewModel
-import androidx.lifecycle.ViewModelProvider
-import androidx.lifecycle.viewModelScope
+import androidx.lifecycle.*
 import com.example.kbbikamusbesarbahasaindonesia.model.Kata
 import com.example.kbbikamusbesarbahasaindonesia.repository.KataRepository
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.launch
 import java.lang.IllegalArgumentException
 
@@ -12,8 +12,18 @@ class DetailViewModel(
     private val repository: KataRepository
 ) : ViewModel() {
 
-    fun insert(kata: Kata?) = viewModelScope.launch {
+
+
+    fun isSaved(id: String): Boolean {
+        return repository.kataIsExists(id)
+    }
+
+    fun insert(kata: Kata?) = viewModelScope.launch(Dispatchers.IO) {
         repository.insert(kata)
+    }
+
+    fun delete(kata: Kata) = viewModelScope.launch(Dispatchers.IO) {
+        repository.delete(kata)
     }
 
 
@@ -22,7 +32,7 @@ class DetailViewModel(
 
 class DetailViewModelFactory(private val repository: KataRepository) : ViewModelProvider.Factory {
     override fun <T : ViewModel> create(modelClass: Class<T>): T {
-        if(modelClass.isAssignableFrom(DetailViewModel::class.java)) {
+        if (modelClass.isAssignableFrom(DetailViewModel::class.java)) {
             @Suppress("UNCHECKED_CAST")
             return DetailViewModel(repository) as T
         }

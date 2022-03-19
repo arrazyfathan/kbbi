@@ -9,6 +9,8 @@ class KataRepository(private val kataDao: KataDao) {
 
     val allSavedKata: Flow<List<Kata>> = kataDao.getAllKata()
 
+    @WorkerThread
+    fun kataIsExists(kata: String) = kataDao.isExists(kata)
 
     @WorkerThread
     suspend fun insert(kata: Kata?) {

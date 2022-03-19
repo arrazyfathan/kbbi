@@ -16,4 +16,7 @@ interface KataDao {
     @Delete
     suspend fun delete(kata: Kata)
 
+    @Query("SELECT EXISTS (SELECT * FROM table_kata WHERE id = :id)")
+    fun isExists(id: String): Boolean
+
 }

@@ -5,22 +5,15 @@ import android.content.ClipboardManager
 import android.content.Context
 import android.view.LayoutInflater
 import android.view.ViewGroup
-import android.widget.LinearLayout
 import android.widget.Toast
-import androidx.recyclerview.widget.AsyncListDiffer
-import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.example.kbbikamusbesarbahasaindonesia.databinding.ItemListArtiBinding
-import com.example.kbbikamusbesarbahasaindonesia.model.Arti
 import com.example.kbbikamusbesarbahasaindonesia.model.Data
-import com.example.kbbikamusbesarbahasaindonesia.model.Kata
 
 class KataAdapter(
     private val listData: List<Data>
 ) : RecyclerView.Adapter<KataAdapter.ArtiKataViewHolder>() {
-
-    private val viewPool = RecyclerView.RecycledViewPool()
 
     inner class ArtiKataViewHolder(val binding: ItemListArtiBinding) : RecyclerView.ViewHolder(binding.root)
 
