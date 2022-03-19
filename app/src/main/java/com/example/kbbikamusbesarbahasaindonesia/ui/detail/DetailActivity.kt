@@ -5,7 +5,6 @@ import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import androidx.activity.viewModels
 import androidx.core.content.ContextCompat
-import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.kbbikamusbesarbahasaindonesia.BaseApplication
@@ -25,7 +24,6 @@ class DetailActivity : AppCompatActivity() {
     private val viewModel: DetailViewModel by viewModels {
         DetailViewModelFactory((application as BaseApplication).repository)
     }
-    private val bookmarkState = MutableLiveData<Boolean>()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -42,11 +40,10 @@ class DetailActivity : AppCompatActivity() {
 
         if (kata != null && word != null) {
             lifecycleScope.launch(Dispatchers.IO) {
-                val isSaved = viewModel.isSaved(kata.id)
-                bookmarkState.postValue(isSaved)
+                viewModel.isSaved(kata.id)
             }
 
-            bookmarkState.observe(this) {
+            viewModel.saveState.observe(this) {
                 if (it) {
                     binding.bookmark.setImageDrawable(
                         ContextCompat.getDrawable(
@@ -71,7 +68,6 @@ class DetailActivity : AppCompatActivity() {
                             "${word.replaceFirstChar { it.uppercase() }} dihapus dari favorit.",
                             Snackbar.LENGTH_SHORT
                         ).show()
-                        bookmarkState.postValue(false)
                     } else {
                         val newKata = Kata(
                             kata = word,
@@ -86,7 +82,6 @@ class DetailActivity : AppCompatActivity() {
                             "${word.replaceFirstChar { it.uppercase() }} berhasil disimpan.",
                             Snackbar.LENGTH_SHORT
                         ).show()
-                        bookmarkState.postValue(true)
                     }
                 }
             }
