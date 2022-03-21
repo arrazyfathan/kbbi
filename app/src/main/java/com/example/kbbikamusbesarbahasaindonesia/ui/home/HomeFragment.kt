@@ -60,6 +60,8 @@ class HomeFragment : Fragment() {
             }
         })
 
+
+
     }
 
     private fun getResponse() {

@@ -42,6 +42,7 @@
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/rv_list_kosa_kata"
         android:layout_width="match_parent"
+        android:layoutAnimation="@anim/layout_animation_down_to_up"
         android:layout_height="0dp"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"

@@ -44,6 +44,7 @@
         android:id="@+id/rv_favorit_kata"
         android:layout_width="match_parent"
         android:layout_height="0dp"
+        android:layoutAnimation="@anim/layout_animation_down_to_up"
         android:layout_margin="8dp"
         android:orientation="vertical"
         app:layoutManager="androidx.recyclerview.widget.GridLayoutManager"

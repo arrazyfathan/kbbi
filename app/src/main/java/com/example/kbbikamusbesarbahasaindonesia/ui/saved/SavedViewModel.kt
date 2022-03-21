@@ -9,7 +9,7 @@ import com.example.kbbikamusbesarbahasaindonesia.repository.KataRepository
 import java.lang.IllegalArgumentException
 
 class SavedViewModel(
-    private val repository: KataRepository
+    repository: KataRepository
 ) : ViewModel() {
 
     val savedKata: LiveData<List<Kata>> = repository.allSavedKata.asLiveData()

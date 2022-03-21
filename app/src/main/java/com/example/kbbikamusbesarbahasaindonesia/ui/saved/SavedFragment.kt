@@ -8,12 +8,15 @@ import android.view.ViewGroup
 import androidx.activity.viewModels
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.GridLayoutManager
 import com.example.kbbikamusbesarbahasaindonesia.BaseApplication
 import com.example.kbbikamusbesarbahasaindonesia.R
 import com.example.kbbikamusbesarbahasaindonesia.adapter.FavoriteAdapter
 import com.example.kbbikamusbesarbahasaindonesia.databinding.FragmentSavedBinding
 import com.example.kbbikamusbesarbahasaindonesia.repository.KataRepository
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 
 class SavedFragment : Fragment() {
 
@@ -44,6 +47,11 @@ class SavedFragment : Fragment() {
         }
 
 
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        _binding = null
     }
 
 
