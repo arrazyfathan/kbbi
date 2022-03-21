@@ -26,7 +26,20 @@ class KosaKataAdapter(
     override fun onBindViewHolder(holder: KosaKataViewHolder, position: Int) {
         val data = listKosaKata[position]
         holder.binding.kosaKataList.text = data
+
+        holder.itemView.setOnClickListener {
+            onItemClickListener?.let {
+                it(data)
+            }
+        }
     }
 
     override fun getItemCount(): Int = listKosaKata.size
+
+    /* OnClick Listener */
+    private var onItemClickListener:((String) -> Unit)? = null
+
+    fun setOnItemClickListener(listener: (String) -> Unit) {
+        onItemClickListener = listener
+    }
 }

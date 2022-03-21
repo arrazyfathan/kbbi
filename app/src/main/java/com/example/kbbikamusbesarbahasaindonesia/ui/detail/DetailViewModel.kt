@@ -15,9 +15,10 @@ class DetailViewModel(
     private val _saveState = MutableLiveData<Boolean>()
     val saveState: LiveData<Boolean> get() = _saveState
 
+
     fun isSaved(id: String) {
         val state = repository.kataIsExists(id)
-        return _saveState.postValue(state)
+        _saveState.postValue(state)
     }
 
     fun insert(kata: Kata?) = viewModelScope.launch(Dispatchers.IO) {

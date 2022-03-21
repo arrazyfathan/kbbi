@@ -50,5 +50,4 @@ class KataAdapter(
     override fun getItemCount(): Int = listData.size
 
 
-
 }

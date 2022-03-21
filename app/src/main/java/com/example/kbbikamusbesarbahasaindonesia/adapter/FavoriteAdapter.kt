@@ -7,7 +7,8 @@ import com.example.kbbikamusbesarbahasaindonesia.databinding.ItemListFavoriteBin
 import com.example.kbbikamusbesarbahasaindonesia.model.Kata
 
 class FavoriteAdapter(
-    private val listSavedKata: List<Kata>
+    private val listSavedKata: List<Kata>,
+    private val clickListener: (Kata) -> Unit
 ) : RecyclerView.Adapter<FavoriteAdapter.ViewHolder>() {
 
     inner class ViewHolder(val binding: ItemListFavoriteBinding) :
@@ -21,13 +22,19 @@ class FavoriteAdapter(
 
     override fun onBindViewHolder(holder: FavoriteAdapter.ViewHolder, position: Int) {
         val curretList = listSavedKata[position]
-        holder.binding.apply {
-            kataSaved.text = curretList.kata.replaceFirstChar { it.uppercase() }
-            lemmaSaved.text = curretList.data[0].lema
+
+        holder.binding.kataSaved.text = curretList.kata.replaceFirstChar { it.uppercase() }
+        holder.binding.lemmaSaved.text = curretList.data[0].lema
+
+        holder.itemView.setOnClickListener {
+            clickListener(curretList)
         }
+
     }
+
 
     override fun getItemCount(): Int {
         return listSavedKata.size
     }
+
 }

@@ -1,22 +1,19 @@
 package com.example.kbbikamusbesarbahasaindonesia.ui.saved
 
+import android.content.Intent
 import android.os.Bundle
 import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import androidx.activity.viewModels
+import android.widget.Toast
 import androidx.fragment.app.viewModels
-import androidx.lifecycle.ViewModelProvider
-import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.GridLayoutManager
 import com.example.kbbikamusbesarbahasaindonesia.BaseApplication
-import com.example.kbbikamusbesarbahasaindonesia.R
 import com.example.kbbikamusbesarbahasaindonesia.adapter.FavoriteAdapter
 import com.example.kbbikamusbesarbahasaindonesia.databinding.FragmentSavedBinding
-import com.example.kbbikamusbesarbahasaindonesia.repository.KataRepository
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
+import com.example.kbbikamusbesarbahasaindonesia.model.Kata
+import com.example.kbbikamusbesarbahasaindonesia.ui.detail.DetailActivity
 
 class SavedFragment : Fragment() {
 
@@ -40,10 +37,17 @@ class SavedFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
+
         viewModel.savedKata.observe(viewLifecycleOwner) { kata ->
-            adapter = FavoriteAdapter(kata)
+            adapter = FavoriteAdapter(kata) {
+                val intent = Intent(requireActivity(), DetailActivity::class.java)
+                intent.putExtra("word", it.kata)
+                intent.putExtra("kata", it)
+                startActivity(intent)
+            }
             binding.rvFavoritKata.adapter = adapter
-            binding.rvFavoritKata.layoutManager = GridLayoutManager(requireContext(), 2)
+            binding.rvFavoritKata.layoutManager = GridLayoutManager(requireActivity(), 2)
+
         }
 
 
