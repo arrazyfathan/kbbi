@@ -7,6 +7,7 @@
         <entry key="..\:/Android/AndroidWithKotlin/Project/KBBI/app/src/main/res/drawable/custom_bottom_sheet.xml" value="0.15" />
         <entry key="..\:/Android/AndroidWithKotlin/Project/KBBI/app/src/main/res/drawable/custom_cursor_color.xml" value="0.1" />
         <entry key="..\:/Android/AndroidWithKotlin/Project/KBBI/app/src/main/res/drawable/custom_text_input.xml" value="0.1" />
+        <entry key="..\:/Android/AndroidWithKotlin/Project/KBBI/app/src/main/res/drawable/custom_text_input_search.xml" value="0.1515" />
         <entry key="..\:/Android/AndroidWithKotlin/Project/KBBI/app/src/main/res/drawable/home.xml" value="0.1" />
         <entry key="..\:/Android/AndroidWithKotlin/Project/KBBI/app/src/main/res/drawable/home_selected.xml" value="0.1" />
         <entry key="..\:/Android/AndroidWithKotlin/Project/KBBI/app/src/main/res/drawable/ic_add.xml" value="0.1" />
@@ -27,12 +28,13 @@
         <entry key="..\:/Android/AndroidWithKotlin/Project/KBBI/app/src/main/res/layout/fragment_detail_meaning.xml" value="0.21041666666666667" />
         <entry key="..\:/Android/AndroidWithKotlin/Project/KBBI/app/src/main/res/layout/fragment_home.xml" value="0.25" />
         <entry key="..\:/Android/AndroidWithKotlin/Project/KBBI/app/src/main/res/layout/fragment_saved.xml" value="0.21041666666666667" />
-        <entry key="..\:/Android/AndroidWithKotlin/Project/KBBI/app/src/main/res/layout/fragment_word.xml" value="0.17" />
+        <entry key="..\:/Android/AndroidWithKotlin/Project/KBBI/app/src/main/res/layout/fragment_word.xml" value="0.25" />
         <entry key="..\:/Android/AndroidWithKotlin/Project/KBBI/app/src/main/res/layout/home_bottom_sheet_dialog.xml" value="0.25" />
         <entry key="..\:/Android/AndroidWithKotlin/Project/KBBI/app/src/main/res/layout/item_list_arti.xml" value="0.25" />
         <entry key="..\:/Android/AndroidWithKotlin/Project/KBBI/app/src/main/res/layout/item_list_child_arti.xml" value="0.33" />
         <entry key="..\:/Android/AndroidWithKotlin/Project/KBBI/app/src/main/res/layout/item_list_favorite.xml" value="0.25" />
         <entry key="..\:/Android/AndroidWithKotlin/Project/KBBI/app/src/main/res/layout/item_list_kosa_kata.xml" value="0.22" />
+        <entry key="..\:/Android/AndroidWithKotlin/Project/KBBI/app/src/main/res/menu/menu_search.xml" value="0.21041666666666667" />
         <entry key="..\:/Android/AndroidWithKotlin/Project/KBBI/app/src/main/res/menu/navigation_menu.xml" value="0.21041666666666667" />
         <entry key="..\:/Android/AndroidWithKotlin/Project/KBBI/app/src/main/res/menu/sample_menu.xml" value="0.17222222222222222" />
         <entry key="..\:/Android/AndroidWithKotlin/Project/KBBI/app/src/main/res/mipmap-anydpi-v26/ic_new_icon.xml" value="0.1" />

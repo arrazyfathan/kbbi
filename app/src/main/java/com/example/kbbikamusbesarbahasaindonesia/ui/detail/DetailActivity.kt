@@ -40,11 +40,11 @@ class DetailActivity : AppCompatActivity() {
 
         if (kata != null && word != null) {
             lifecycleScope.launch(Dispatchers.IO) {
-                viewModel.isSaved(kata.id)
+                viewModel.isSaved(kata.id.lowercase())
             }
 
-            viewModel.saveState.observe(this) {
-                if (it) {
+            viewModel.saveState.observe(this) { saveState ->
+                if (saveState) {
                     binding.bookmark.setImageDrawable(
                         ContextCompat.getDrawable(
                             this@DetailActivity,
@@ -61,7 +61,7 @@ class DetailActivity : AppCompatActivity() {
                 }
 
                 binding.btnBookContainer.setOnClickListener { view ->
-                    if (it) {
+                    if (saveState) {
                         viewModel.delete(kata)
                         Snackbar.make(
                             view,
@@ -70,7 +70,7 @@ class DetailActivity : AppCompatActivity() {
                         ).show()
                     } else {
                         val newKata = Kata(
-                            kata = word,
+                            kata = word.lowercase(),
                             data = kata.data,
                             message = kata.message,
                             status = kata.status,

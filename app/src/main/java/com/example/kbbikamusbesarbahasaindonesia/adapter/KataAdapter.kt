@@ -41,7 +41,15 @@ class KataAdapter(
 
         holder.binding.btnSalin.setOnClickListener {
             val clipboarManager = holder.itemView.context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
-            val clip: ClipData = ClipData.newPlainText("arti", data.lema)
+            var arti = ""
+            for((index, item) in data.arti.withIndex()) {
+                arti += """
+                    ${index + 1}. ${item.kelas_kata}
+                    ${item.deskripsi}
+                    
+                """.trimIndent()
+            }
+            val clip: ClipData = ClipData.newPlainText("arti", arti)
             clipboarManager.setPrimaryClip(clip)
             Toast.makeText(holder.itemView.context, "Berhasil menyalin teks.", Toast.LENGTH_SHORT).show()
         }
