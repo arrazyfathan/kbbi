@@ -14,7 +14,7 @@ KBBI, aplikasi unofficial kamus besar bahasa indonesia.
 </p>
 
 ## Download
-Go to the [Releases](https://github.com/arrazyfathan/Lerun/releases) to download the latest APK.
+Go to the [Releases](https://github.com/arrazyfathan/kbbi/releases/download/1.0/app-release.apk) to download the latest APK.
 
 <img src="/media/preview.gif" align="right" width="32%"/>
 
