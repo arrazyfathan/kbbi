@@ -8,6 +8,14 @@ plugins {
 }
 
 android {
+    signingConfigs {
+        release {
+            storeFile file('/Users/gamatechno/Personal/Android/Project/kbbi/kbbi_keystore')
+            storePassword 'kbbi123'
+            keyAlias 'kbbi_key'
+            keyPassword 'kbbi123'
+        }
+    }
     compileSdk 32
 
     defaultConfig {
@@ -18,9 +26,15 @@ android {
         versionName "1.0"
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
+        signingConfig signingConfigs.release
     }
 
     buildTypes {
+        debug {
+            minifyEnabled false
+            shrinkResources false
+            applicationIdSuffix ".dev"
+        }
         release {
             // Enables code shrinking, obfuscation and optimization for only your project release build
             minifyEnabled true
