@@ -10,6 +10,15 @@ plugins {
 android {
     compileSdk 32
 
+    signingConfigs {
+        release {
+            storeFile file('../kbbi_keystore')
+            storePassword 'kbbi123'
+            keyAlias 'kbbi_key'
+            keyPassword 'kbbi123'
+        }
+    }
+
     defaultConfig {
         applicationId "com.example.kbbikamusbesarbahasaindonesia"
         minSdk 21
@@ -20,11 +29,26 @@ android {
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
     }
 
+    flavorDimensions("stage")
+    productFlavors {
+        development {
+            applicationIdSuffix ".dev"
+            dimension "stage"
+            versionNameSuffix "-dev"
+        }
+    }
+
     buildTypes {
+        debug {
+            minifyEnabled false
+            shrinkResources false
+            applicationIdSuffix ".dev"
+        }
         release {
             // Enables code shrinking, obfuscation and optimization for only your project release build
             minifyEnabled true
             shrinkResources true
+            signingConfig signingConfigs.release
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
         }
     }
