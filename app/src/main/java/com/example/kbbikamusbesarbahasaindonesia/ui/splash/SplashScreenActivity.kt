@@ -2,12 +2,13 @@ package com.example.kbbikamusbesarbahasaindonesia.ui.splash
 
 import android.annotation.SuppressLint
 import android.content.Intent
-import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
 import android.view.WindowManager
 import android.view.animation.LinearInterpolator
+import androidx.appcompat.app.AppCompatActivity
+import com.example.kbbikamusbesarbahasaindonesia.R
 import com.example.kbbikamusbesarbahasaindonesia.databinding.ActivitySplashScreenBinding
 import com.example.kbbikamusbesarbahasaindonesia.ui.home.MainActivity
 
@@ -27,6 +28,7 @@ class SplashScreenActivity : AppCompatActivity() {
         animateLogo()
         beginSplash()
 
+        binding.version.text = "Version ${getString(R.string.version_name)}"
     }
 
     private fun animateLogo() {
@@ -65,6 +67,4 @@ class SplashScreenActivity : AppCompatActivity() {
             finish()
         }, 3000)
     }
-
-
 }

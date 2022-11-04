@@ -10,6 +10,104 @@ plugins {
 android {
     compileSdk 32
 
+    defaultConfig {
+        applicationId "com.example.kbbikamusbesarbahasaindonesia"
+        minSdk 21
+        targetSdk 32
+
+        testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
+    }
+
+    def packageName = "com.example.kbbikamusbesarbahasaindonesia"
+    def appAliasName = "KBBI"
+    def versionPropertiesFile = file('version.properties')
+
+    if(versionPropertiesFile.canRead()) {
+        Properties versionProperties = new Properties()
+
+        versionProperties.load(new FileInputStream(versionPropertiesFile))
+        def runTasks = gradle.startParameter.taskNames
+
+        if (runTasks.grep(':app:assembleRelease')) {
+            applicationVariants.all { variant ->
+                variant.outputs.each { output ->
+                    output.outputFile = new File(
+                            output.outputFile.parent,
+                            output.outputFile.name.replace(".apk", "-${variant.versionName}.apk"))
+                }
+            }
+
+        }
+
+        def versionMajor = versionProperties['VERSION_MAJOR'].toInteger()
+        def versionMinor = versionProperties['VERSION_MINOR'].toInteger()
+        def versionMaintenance = versionProperties['VERSION_MAINTENANCE'].toInteger()
+        // def version_build = versionProps['VERSION_BUILD'].toInteger() + 1
+        def versionDev = versionProperties['VERSION_DEV'].toInteger()
+        def versionBeta = versionProperties['VERSION_BETA'].toInteger()
+        def versionAlpha = versionProperties['VERSION_ALPHA'].toInteger()
+        def versionCode = versionProperties['VERSION_CODE'].toInteger()
+
+        versionProperties['VERSION_MAJOR'] = versionMajor.toString()
+        versionProperties['VERSION_MINOR'] = versionMinor.toString()
+        versionProperties['VERSION_MAINTENANCE'] = versionMaintenance.toString()
+        versionProperties['VERSION_DEV'] = versionDev.toString()
+        versionProperties['VERSION_BETA'] = versionBeta.toString()
+        versionProperties['VERSION_ALPHA'] = versionAlpha.toString()
+        versionProperties['VERSION_CODE'] = versionCode.toString()
+
+        versionProperties.store(versionPropertiesFile.newWriter(), null)
+
+        flavorDimensions("stage")
+        productFlavors {
+            development {
+                applicationId packageName + ".dev"
+                dimension "stage"
+
+                if(versionDev == 0) {
+                    versionName "${versionMajor}.${versionMinor}.${versionMaintenance}-dev"
+                    resValue "string", "version_name", "${versionMajor}.${versionMinor}.${versionMaintenance}-dev"
+                } else {
+                    versionName "${versionMajor}.${versionMinor}.${versionMaintenance}-dev.${versionDev}"
+                    resValue "string", "version_name", "${versionMajor}.${versionMinor}.${versionMaintenance}-dev.${versionDev}"
+                }
+
+                resValue "string", "version_code", "${versionCode}"
+                resValue "string", "package_name", "${packageName}"
+                def makeAConstant = { constantName, constantValue ->
+                    manifestPlaceholders += [(constantName): constantValue]
+                    buildConfigField "String", "${constantName}", "\"${constantValue}\""
+                }
+                resValue "string", "app_name", "Dev " + appAliasName
+                makeAConstant("application_name", "Dev " + appAliasName)
+            }
+
+            production {
+                applicationId packageName
+                dimension = "stage"
+                resValue "string", "version_code", "${versionCode}"
+                if(versionMaintenance == 0){
+                    versionName "${versionMajor}.${versionMinor}"
+                    resValue "string", "version_name", "${versionMajor}.${versionMinor}"
+                } else {
+                    versionName "${versionMajor}.${versionMinor}.${versionMaintenace}"
+                    resValue "string", "version_name", "${versionMajor}.${versionMinor}.${versionMaintenace}"
+                }
+                resValue "string", "package_name", "${packageName}"
+
+
+                def makeAConstant = { constantName, constantValue ->
+                    manifestPlaceholders += [(constantName): constantValue]
+                    buildConfigField "String", "${constantName}", "\"${constantValue}\""
+                }
+                makeAConstant("application_name", appAliasName)
+                resValue "string", "app_name", appAliasName
+            }
+        }
+    } else {
+        throw new GradleException("Could not read version.properties!")
+    }
+
     signingConfigs {
         release {
             storeFile file('../kbbi_keystore')
@@ -19,35 +117,16 @@ android {
         }
     }
 
-    defaultConfig {
-        applicationId "com.example.kbbikamusbesarbahasaindonesia"
-        minSdk 21
-        targetSdk 32
-        versionCode 1
-        versionName "1.0"
-
-        testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
-    }
-
-    flavorDimensions("stage")
-    productFlavors {
-        development {
-            applicationIdSuffix ".dev"
-            dimension "stage"
-            versionNameSuffix "-dev"
-        }
-    }
-
     buildTypes {
         debug {
             minifyEnabled false
             shrinkResources false
-            applicationIdSuffix ".dev"
+            debuggable true
         }
         release {
-            // Enables code shrinking, obfuscation and optimization for only your project release build
             minifyEnabled true
             shrinkResources true
+            debuggable false
             signingConfig signingConfigs.release
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
         }
