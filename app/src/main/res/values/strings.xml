@@ -1,5 +1,4 @@
 <resources>
-    <string name="app_name">KBBI</string>
     <string name="logo_desc">logo_kbbi</string>
     <string name="home_title">Home</string>
     <string name="kosa_kata_title">Kosa Kata</string>
