@@ -1,0 +1,68 @@
+{
+  "project_info": {
+    "project_number": "144483162212",
+    "project_id": "kbbi-ce13f",
+    "storage_bucket": "kbbi-ce13f.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:144483162212:android:41f925127e4c4740692771",
+        "android_client_info": {
+          "package_name": "com.example.kbbikamusbesarbahasaindonesia"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "144483162212-8jmckv657e3mblca64a50lbt8gmupiiv.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBoK0ZhPXuL9L9Dmin3-8D7TIqOt7BX54g"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "144483162212-8jmckv657e3mblca64a50lbt8gmupiiv.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:144483162212:android:91048b87c79644f6692771",
+        "android_client_info": {
+          "package_name": "com.example.kbbikamusbesarbahasaindonesia.dev"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "144483162212-8jmckv657e3mblca64a50lbt8gmupiiv.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBoK0ZhPXuL9L9Dmin3-8D7TIqOt7BX54g"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "144483162212-8jmckv657e3mblca64a50lbt8gmupiiv.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
