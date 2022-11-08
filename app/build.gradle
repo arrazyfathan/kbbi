@@ -2,9 +2,9 @@ plugins {
     id 'com.android.application'
     id 'org.jetbrains.kotlin.android'
     id 'androidx.navigation.safeargs'
-    id 'dagger.hilt.android.plugin' version '2.41'
     id 'kotlin-kapt'
     id 'kotlin-parcelize'
+    id 'com.google.gms.google-services'
 }
 
 android {
@@ -191,5 +191,8 @@ dependencies {
     implementation "androidx.lifecycle:lifecycle-runtime-ktx:2.4.1"
     implementation "androidx.lifecycle:lifecycle-viewmodel-ktx:2.4.1"
     implementation "androidx.lifecycle:lifecycle-livedata-ktx:2.4.1"
+
+    // Firebase
+    implementation platform('com.google.firebase:firebase-bom:31.0.2')
 
 }
