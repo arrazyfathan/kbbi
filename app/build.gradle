@@ -100,8 +100,8 @@ android {
                     manifestPlaceholders += [(constantName): constantValue]
                     buildConfigField "String", "${constantName}", "\"${constantValue}\""
                 }
-                makeAConstant("application_name", appAliasName)
                 resValue "string", "app_name", appAliasName
+                makeAConstant("application_name", appAliasName)
             }
         }
     } else {
@@ -124,9 +124,6 @@ android {
             debuggable true
         }
         release {
-            minifyEnabled true
-            shrinkResources true
-            debuggable false
             signingConfig signingConfigs.release
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
         }
