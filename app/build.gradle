@@ -90,8 +90,8 @@ android {
                     versionName "${versionMajor}.${versionMinor}"
                     resValue "string", "version_name", "${versionMajor}.${versionMinor}"
                 } else {
-                    versionName "${versionMajor}.${versionMinor}.${versionMaintenace}"
-                    resValue "string", "version_name", "${versionMajor}.${versionMinor}.${versionMaintenace}"
+                    versionName "${versionMajor}.${versionMinor}.${versionMaintenance}"
+                    resValue "string", "version_name", "${versionMajor}.${versionMinor}.${versionMaintenance}"
                 }
                 resValue "string", "package_name", "${packageName}"
 
