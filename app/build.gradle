@@ -2,7 +2,6 @@ plugins {
     id 'com.android.application'
     id 'org.jetbrains.kotlin.android'
     id 'androidx.navigation.safeargs'
-    id 'dagger.hilt.android.plugin' version '2.41'
     id 'kotlin-kapt'
     id 'kotlin-parcelize'
     id 'com.google.gms.google-services'
@@ -91,8 +90,8 @@ android {
                     versionName "${versionMajor}.${versionMinor}"
                     resValue "string", "version_name", "${versionMajor}.${versionMinor}"
                 } else {
-                    versionName "${versionMajor}.${versionMinor}.${versionMaintenace}"
-                    resValue "string", "version_name", "${versionMajor}.${versionMinor}.${versionMaintenace}"
+                    versionName "${versionMajor}.${versionMinor}.${versionMaintenance}"
+                    resValue "string", "version_name", "${versionMajor}.${versionMinor}.${versionMaintenance}"
                 }
                 resValue "string", "package_name", "${packageName}"
 
@@ -101,8 +100,8 @@ android {
                     manifestPlaceholders += [(constantName): constantValue]
                     buildConfigField "String", "${constantName}", "\"${constantValue}\""
                 }
-                makeAConstant("application_name", appAliasName)
                 resValue "string", "app_name", appAliasName
+                makeAConstant("application_name", appAliasName)
             }
         }
     } else {
@@ -125,9 +124,6 @@ android {
             debuggable true
         }
         release {
-            minifyEnabled true
-            shrinkResources true
-            debuggable false
             signingConfig signingConfigs.release
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
         }
