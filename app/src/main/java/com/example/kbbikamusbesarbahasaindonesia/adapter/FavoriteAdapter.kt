@@ -29,12 +29,11 @@ class FavoriteAdapter(
         holder.itemView.setOnClickListener {
             clickListener(curretList)
         }
-
     }
 
+    fun isEmpty(): Boolean = listSavedKata.isEmpty()
 
     override fun getItemCount(): Int {
         return listSavedKata.size
     }
-
 }

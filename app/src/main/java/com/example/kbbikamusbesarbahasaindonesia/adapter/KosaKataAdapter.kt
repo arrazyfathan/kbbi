@@ -3,28 +3,32 @@ package com.example.kbbikamusbesarbahasaindonesia.adapter
 import android.view.LayoutInflater
 import android.view.ViewGroup
 import android.widget.Filter
+import android.widget.Filterable
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.RecyclerView
 import com.example.kbbikamusbesarbahasaindonesia.data.KosaKata
 import com.example.kbbikamusbesarbahasaindonesia.databinding.ItemListKosaKataBinding
-import com.example.kbbikamusbesarbahasaindonesia.model.Kata
-import kotlin.math.sign
-
 
 class KosaKataAdapter(
-    private var listKosaKata: KosaKata,
+    private var listKosaKata: ArrayList<String>,
     private val clickListener: (String) -> Unit
-) : RecyclerView.Adapter<KosaKataAdapter.KosaKataViewHolder>() {
+) : RecyclerView.Adapter<KosaKataAdapter.KosaKataViewHolder>(), Filterable {
 
+    var kataFilterList = ArrayList<String>()
 
+    init {
+        kataFilterList = listKosaKata
+    }
 
-    inner class KosaKataViewHolder(val binding: ItemListKosaKataBinding) : RecyclerView.ViewHolder(binding.root)
+    inner class KosaKataViewHolder(val binding: ItemListKosaKataBinding) :
+        RecyclerView.ViewHolder(binding.root)
 
     override fun onCreateViewHolder(
         parent: ViewGroup,
         viewType: Int
-    ): KosaKataViewHolder{
-        val binding = ItemListKosaKataBinding.inflate(LayoutInflater.from(parent.context), parent, false)
+    ): KosaKataViewHolder {
+        val binding =
+            ItemListKosaKataBinding.inflate(LayoutInflater.from(parent.context), parent, false)
         return KosaKataViewHolder(binding)
     }
 
@@ -33,28 +37,16 @@ class KosaKataAdapter(
         holder.binding.kosaKataList.text = data
 
         holder.itemView.setOnClickListener {
-           clickListener(data)
+            clickListener(data)
         }
     }
 
-    override fun getItemCount(): Int = listKosaKata.size
-
-    /*fun submitList(kosaKata: KosaKata) {
-        val oldList = listKosaKata
-        val diffResult: DiffUtil.DiffResult = DiffUtil.calculateDiff(
-            KosaKataDiffCallback(
-                oldList,
-                kosaKata
-            )
-        )
-        listKosaKata = kosaKata
-        diffResult.dispatchUpdatesTo(this)
-    }*/
+    override fun getItemCount(): Int = kataFilterList.size
 
     class KosaKataDiffCallback(
         private var oldData: KosaKata,
         private var newData: KosaKata
-    ): DiffUtil.Callback() {
+    ) : DiffUtil.Callback() {
         override fun getOldListSize(): Int {
             return oldData.size
         }
@@ -72,10 +64,30 @@ class KosaKataAdapter(
         }
     }
 
-    /* OnClick Listener */
-  /*  private var onItemClickListener:((String) -> Unit)? = null
+    override fun getFilter(): Filter {
+        return object : Filter() {
+            override fun performFiltering(constraint: CharSequence?): FilterResults {
+                val charSearch = constraint.toString()
+                if (charSearch.isEmpty()) {
+                    kataFilterList = listKosaKata
+                } else {
+                    val resultList = ArrayList<String>()
+                    for (row in listKosaKata) {
+                        if (row.lowercase().contains(constraint.toString().lowercase())) {
+                            resultList.add(row)
+                        }
+                    }
+                    kataFilterList = resultList
+                }
+                val filterResults = FilterResults()
+                filterResults.values = kataFilterList
+                return filterResults
+            }
 
-    fun setOnItemClickListener(listener: (String) -> Unit) {
-        onItemClickListener = listener
-    }*/
+            override fun publishResults(constraint: CharSequence?, results: FilterResults?) {
+                kataFilterList = results?.values as ArrayList<String>
+                notifyDataSetChanged()
+            }
+        }
+    }
 }

@@ -34,22 +34,58 @@
         app:layout_constraintTop_toBottomOf="@id/kosa_kata_favorit_title" />
 
     <ImageView
+        android:id="@+id/reading_people"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:src="@drawable/hero_saved"
+        android:visibility="gone"
         app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent" />
+        app:layout_constraintEnd_toEndOf="parent"
+        tools:visibility="visible" />
+
+    <LinearLayout
+        android:id="@+id/empty_layout"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:gravity="center"
+        android:orientation="vertical"
+        android:visibility="gone"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        tools:visibility="visible">
+
+        <com.airbnb.lottie.LottieAnimationView
+            android:layout_width="80dp"
+            android:layout_height="80dp"
+            app:lottie_autoPlay="true"
+            app:lottie_rawRes="@raw/empty"
+            app:lottie_repeatCount="-1" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            android:fontFamily="@font/inter_medium"
+            android:gravity="center"
+            android:text="Yahh..\n belum ada kata favorit nih"
+            android:textColor="@color/white"
+            android:textSize="14sp" />
+
+    </LinearLayout>
 
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/rv_favorit_kata"
         android:layout_width="match_parent"
         android:layout_height="0dp"
-        android:layoutAnimation="@anim/layout_animation_down_to_up"
         android:layout_margin="8dp"
+        android:layoutAnimation="@anim/layout_animation_down_to_up"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@id/kosa_kata_favorit_subtitle"
+        app:layout_constraintVertical_bias="0.0"
         tools:listitem="@layout/item_list_favorite" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>
