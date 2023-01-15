@@ -6,8 +6,8 @@ import android.os.Bundle
 import android.text.Editable
 import android.text.TextWatcher
 import android.view.*
-import androidx.fragment.app.Fragment
 import android.widget.Toast
+import androidx.fragment.app.Fragment
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.kbbikamusbesarbahasaindonesia.adapter.KosaKataAdapter
 import com.example.kbbikamusbesarbahasaindonesia.data.KosaKata
@@ -21,7 +21,6 @@ import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
 import java.io.IOException
-
 
 class WordFragment : Fragment() {
 
@@ -38,7 +37,8 @@ class WordFragment : Fragment() {
     }
 
     override fun onCreateView(
-        inflater: LayoutInflater, container: ViewGroup?,
+        inflater: LayoutInflater,
+        container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View? {
         _binding = FragmentWordBinding.inflate(inflater, container, false)
@@ -49,63 +49,48 @@ class WordFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-
         val jsonFileString = getJsonDataFromAsset(requireActivity(), "entries.json")
         val gson = GsonBuilder().create()
-        val listKosaKata = object : TypeToken<KosaKata>(){}.type
+        val listKosaKata = object : TypeToken<KosaKata>() {}.type
         val list: KosaKata = gson.fromJson(jsonFileString, listKosaKata)
 
         binding.rvListKosaKata.layoutManager = LinearLayoutManager(requireContext())
-        adapter = KosaKataAdapter(list){
+        adapter = KosaKataAdapter(list) {
             getResponse(it)
         }
         binding.rvListKosaKata.adapter = adapter
 
-        binding.editTextSearchWord.addTextChangedListener(object : TextWatcher{
+        binding.editTextSearchWord.addTextChangedListener(object : TextWatcher {
             override fun beforeTextChanged(p0: CharSequence?, p1: Int, p2: Int, p3: Int) {
-
             }
 
             override fun onTextChanged(char: CharSequence?, p1: Int, p2: Int, p3: Int) {
-
             }
 
             override fun afterTextChanged(char: Editable?) {
-
-                filtered.clear()
                 if (char.toString().isEmpty()) {
                     binding.rvListKosaKata.adapter = KosaKataAdapter(list) {
                         getResponse(it)
                     }
                     adapter.notifyDataSetChanged()
                 } else {
-                    for (item in list) {
-                        if (item == char.toString()) {
-                            filtered.add(item)
-                        }
-                    }
-                    binding.rvListKosaKata.adapter = KosaKataAdapter(filtered) {
+                    adapter.filter.filter(char)
+                    binding.rvListKosaKata.adapter = KosaKataAdapter(adapter.kataFilterList) {
                         getResponse(it)
                     }
-                    adapter.notifyDataSetChanged()
                 }
             }
-
         })
 
-
-
-       /* adapter.setOnItemClickListener {
-            getResponse(it)
-        }*/
-
+        /* adapter.setOnItemClickListener {
+             getResponse(it)
+         }*/
     }
-
 
     private fun getResponse(word: String) {
         val request = ServiceBuilder.retrofit.getArtiKata(word)
         showLoadingState(true)
-        request.enqueue(object : Callback<Kata>{
+        request.enqueue(object : Callback<Kata> {
             override fun onResponse(call: Call<Kata>, response: Response<Kata>) {
                 if (response.isSuccessful) {
                     val responseKata = response.body()!!
@@ -121,7 +106,6 @@ class WordFragment : Fragment() {
                     intent.putExtra("kata", kata)
                     startActivity(intent)
                     showLoadingState(false)
-
                 } else {
                     showLoadingState(false)
                     Toast.makeText(requireContext(), response.message(), Toast.LENGTH_SHORT).show()
@@ -132,7 +116,6 @@ class WordFragment : Fragment() {
                 showLoadingState(false)
                 Toast.makeText(requireContext(), t.message, Toast.LENGTH_SHORT).show()
             }
-
         })
     }
 
@@ -152,11 +135,8 @@ class WordFragment : Fragment() {
             View.VISIBLE else binding.loadingState.visibility = View.GONE
     }
 
-
     override fun onDestroy() {
         super.onDestroy()
         _binding = null
     }
-
-
 }
