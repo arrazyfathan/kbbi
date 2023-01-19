@@ -7,11 +7,11 @@ env:
 on:
   # Triggers the workflow on push or pull request events but only for default and protected branches
   push:
-    branches: [ "main" ]
+    #branches: [ "main" ]
     tags:
-     - "v*"
-  pull_request:
-    branches: [ "main" ]
+     - "*.*"
+  #pull_request:
+    #branches: [ "main" ]
     
   # Allows you to run this workflow manually from the Actions tab
   workflow_dispatch:
@@ -54,7 +54,7 @@ jobs:
          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
        with:
          tag_name: ${{ github.ref }}
-         release_name: New Release ${{ github.ref }}
+         release_name: New Release v${{ github.ref }}
      - name: Upload Release APK
        id: upload_release_asset
        uses: actions/upload-release-asset@v1.0.1
