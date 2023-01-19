@@ -5,10 +5,11 @@ import androidx.room.Database
 import androidx.room.Room
 import androidx.room.RoomDatabase
 import androidx.room.TypeConverters
+import com.example.kbbikamusbesarbahasaindonesia.model.History
 import com.example.kbbikamusbesarbahasaindonesia.model.Kata
 
 @Database(
-    entities = [Kata::class],
+    entities = [Kata::class, History::class],
     version = 3
 )
 @TypeConverters(Converters::class)

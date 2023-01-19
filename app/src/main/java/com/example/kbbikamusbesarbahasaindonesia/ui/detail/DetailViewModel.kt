@@ -1,10 +1,10 @@
 package com.example.kbbikamusbesarbahasaindonesia.ui.detail
 
 import androidx.lifecycle.*
+import com.example.kbbikamusbesarbahasaindonesia.model.History
 import com.example.kbbikamusbesarbahasaindonesia.model.Kata
 import com.example.kbbikamusbesarbahasaindonesia.repository.KataRepository
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.launch
 import java.lang.IllegalArgumentException
 
@@ -15,6 +15,13 @@ class DetailViewModel(
     private val _saveState = MutableLiveData<Boolean>()
     val saveState: LiveData<Boolean> get() = _saveState
 
+    private val _isHistoryExist = MutableLiveData<Boolean>()
+    val isHistoryExist: LiveData<Boolean> get() = _isHistoryExist
+
+    fun isHistoryExist(kata: String) {
+        val isExist = repository.historyIsExist(kata)
+        _isHistoryExist.postValue(isExist)
+    }
 
     fun isSaved(id: String) {
         val state = repository.kataIsExists(id)
@@ -31,9 +38,10 @@ class DetailViewModel(
         _saveState.postValue(false)
     }
 
-
+    fun insertHistory(history: History) = viewModelScope.launch(Dispatchers.IO) {
+        repository.insertHistory(history)
+    }
 }
-
 
 class DetailViewModelFactory(private val repository: KataRepository) : ViewModelProvider.Factory {
     override fun <T : ViewModel> create(modelClass: Class<T>): T {
