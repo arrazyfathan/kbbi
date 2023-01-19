@@ -1,9 +1,9 @@
 package com.example.kbbikamusbesarbahasaindonesia.ui.detail
 
-
-import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
+import android.widget.Toast
 import androidx.activity.viewModels
+import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
@@ -11,6 +11,7 @@ import com.example.kbbikamusbesarbahasaindonesia.BaseApplication
 import com.example.kbbikamusbesarbahasaindonesia.R
 import com.example.kbbikamusbesarbahasaindonesia.adapter.KataAdapter
 import com.example.kbbikamusbesarbahasaindonesia.databinding.ActivityDetailBinding
+import com.example.kbbikamusbesarbahasaindonesia.model.History
 import com.example.kbbikamusbesarbahasaindonesia.model.Kata
 import com.google.android.material.snackbar.Snackbar
 import kotlinx.coroutines.Dispatchers
@@ -18,12 +19,13 @@ import kotlinx.coroutines.launch
 
 class DetailActivity : AppCompatActivity() {
 
-
     private lateinit var adapter: KataAdapter
     private lateinit var binding: ActivityDetailBinding
     private val viewModel: DetailViewModel by viewModels {
         DetailViewModelFactory((application as BaseApplication).repository)
     }
+
+    private var wordForHistory: String? = ""
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -35,10 +37,14 @@ class DetailActivity : AppCompatActivity() {
 
         val kata: Kata? = intent.getParcelableExtra("kata") as Kata?
         val word: String? = intent.getStringExtra("word")
-
+        wordForHistory = word
         setupRecyclerView(kata, word)
 
         if (kata != null && word != null) {
+            lifecycleScope.launch(Dispatchers.IO) {
+                viewModel.isHistoryExist(word)
+            }
+
             lifecycleScope.launch(Dispatchers.IO) {
                 viewModel.isSaved(kata.id.lowercase())
             }
@@ -86,6 +92,12 @@ class DetailActivity : AppCompatActivity() {
                 }
             }
         }
+
+        viewModel.isHistoryExist.observe(this) {
+            if (it == false) {
+                viewModel.insertHistory(History(kata = wordForHistory!!))
+            }
+        }
     }
 
     private fun setupRecyclerView(kata: Kata?, word: String?) {
@@ -97,4 +109,3 @@ class DetailActivity : AppCompatActivity() {
         }
     }
 }
-
