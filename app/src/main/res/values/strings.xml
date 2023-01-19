@@ -9,4 +9,5 @@
     <string name="hero_image_text">home_hero_image</string>
     <string name="cari_kosa_kata">Cari kosa kata ...</string>
     <string name="button_search">button_search</string>
+    <string name="history_label">History :</string>
 </resources>
