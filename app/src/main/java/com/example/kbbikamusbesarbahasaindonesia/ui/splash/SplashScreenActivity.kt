@@ -24,7 +24,7 @@ class SplashScreenActivity : AppCompatActivity() {
         val view = binding.root
         setContentView(view)
 
-        setFullScreen()
+        // setFullScreen()
         animateLogo()
         beginSplash()
 

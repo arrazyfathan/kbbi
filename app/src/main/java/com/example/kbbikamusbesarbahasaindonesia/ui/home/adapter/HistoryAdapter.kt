@@ -36,6 +36,6 @@ class HistoryAdapter(
     fun isEmpty(): Boolean = listHistory.isEmpty()
 
     override fun getItemCount(): Int {
-        return listHistory.size
+        return listHistory.size.coerceAtMost(7)
     }
 }
