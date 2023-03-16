@@ -9,12 +9,14 @@ import android.view.*
 import android.widget.Toast
 import androidx.fragment.app.Fragment
 import androidx.recyclerview.widget.LinearLayoutManager
+import com.example.kbbikamusbesarbahasaindonesia.R
 import com.example.kbbikamusbesarbahasaindonesia.adapter.KosaKataAdapter
 import com.example.kbbikamusbesarbahasaindonesia.data.KosaKata
 import com.example.kbbikamusbesarbahasaindonesia.databinding.FragmentWordBinding
 import com.example.kbbikamusbesarbahasaindonesia.model.Kata
 import com.example.kbbikamusbesarbahasaindonesia.services.ServiceBuilder
 import com.example.kbbikamusbesarbahasaindonesia.ui.detail.DetailActivity
+import com.example.kbbikamusbesarbahasaindonesia.utils.viewBinding
 import com.google.gson.GsonBuilder
 import com.google.gson.reflect.TypeToken
 import retrofit2.Call
@@ -22,10 +24,9 @@ import retrofit2.Callback
 import retrofit2.Response
 import java.io.IOException
 
-class WordFragment : Fragment() {
+class WordFragment : Fragment(R.layout.fragment_word) {
 
-    private var _binding: FragmentWordBinding? = null
-    private val binding get() = _binding!!
+    private val binding by viewBinding(FragmentWordBinding::bind)
 
     private lateinit var adapter: KosaKataAdapter
 
@@ -34,16 +35,6 @@ class WordFragment : Fragment() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setHasOptionsMenu(true)
-    }
-
-    override fun onCreateView(
-        inflater: LayoutInflater,
-        container: ViewGroup?,
-        savedInstanceState: Bundle?
-    ): View? {
-        _binding = FragmentWordBinding.inflate(inflater, container, false)
-        val view = binding.root
-        return view
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
@@ -99,7 +90,7 @@ class WordFragment : Fragment() {
                         data = responseKata.data,
                         message = responseKata.message,
                         status = responseKata.status,
-                        isSaved = false
+                        isSaved = false,
                     )
                     val intent = Intent(requireActivity(), DetailActivity::class.java)
                     intent.putExtra("word", word)
@@ -131,12 +122,11 @@ class WordFragment : Fragment() {
     }
 
     fun showLoadingState(state: Boolean) {
-        if (state) binding.loadingState.visibility =
-            View.VISIBLE else binding.loadingState.visibility = View.GONE
-    }
-
-    override fun onDestroy() {
-        super.onDestroy()
-        _binding = null
+        if (state) {
+            binding.loadingState.visibility =
+                View.VISIBLE
+        } else {
+            binding.loadingState.visibility = View.GONE
+        }
     }
 }

@@ -13,6 +13,7 @@ import com.example.kbbikamusbesarbahasaindonesia.adapter.KataAdapter
 import com.example.kbbikamusbesarbahasaindonesia.databinding.ActivityDetailBinding
 import com.example.kbbikamusbesarbahasaindonesia.model.History
 import com.example.kbbikamusbesarbahasaindonesia.model.Kata
+import com.example.kbbikamusbesarbahasaindonesia.utils.viewBinding
 import com.google.android.material.snackbar.Snackbar
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -20,7 +21,7 @@ import kotlinx.coroutines.launch
 class DetailActivity : AppCompatActivity() {
 
     private lateinit var adapter: KataAdapter
-    private lateinit var binding: ActivityDetailBinding
+    private val binding by viewBinding(ActivityDetailBinding::inflate)
     private val viewModel: DetailViewModel by viewModels {
         DetailViewModelFactory((application as BaseApplication).repository)
     }
@@ -29,9 +30,7 @@ class DetailActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        binding = ActivityDetailBinding.inflate(layoutInflater)
-        val view = binding.root
-        setContentView(view)
+        setContentView(binding.root)
 
         val intent = intent
 

@@ -11,18 +11,17 @@ import androidx.appcompat.app.AppCompatActivity
 import com.example.kbbikamusbesarbahasaindonesia.R
 import com.example.kbbikamusbesarbahasaindonesia.databinding.ActivitySplashScreenBinding
 import com.example.kbbikamusbesarbahasaindonesia.ui.home.MainActivity
+import com.example.kbbikamusbesarbahasaindonesia.utils.viewBinding
 
 @SuppressLint("CustomSplashScreen")
 @Suppress("DEPRECATION")
 class SplashScreenActivity : AppCompatActivity() {
 
-    private lateinit var binding: ActivitySplashScreenBinding
+    private val binding by viewBinding(ActivitySplashScreenBinding::inflate)
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        binding = ActivitySplashScreenBinding.inflate(layoutInflater)
-        val view = binding.root
-        setContentView(view)
+        setContentView(binding.root)
 
         // setFullScreen()
         animateLogo()
@@ -55,7 +54,7 @@ class SplashScreenActivity : AppCompatActivity() {
     private fun setFullScreen() {
         window.setFlags(
             WindowManager.LayoutParams.FLAG_FULLSCREEN,
-            WindowManager.LayoutParams.FLAG_FULLSCREEN
+            WindowManager.LayoutParams.FLAG_FULLSCREEN,
         )
     }
 

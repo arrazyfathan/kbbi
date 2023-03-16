@@ -17,30 +17,20 @@ import com.example.kbbikamusbesarbahasaindonesia.services.ServiceBuilder
 import com.example.kbbikamusbesarbahasaindonesia.ui.detail.DetailActivity
 import com.example.kbbikamusbesarbahasaindonesia.ui.home.adapter.HistoryAdapter
 import com.example.kbbikamusbesarbahasaindonesia.utils.SwipeListener
+import com.example.kbbikamusbesarbahasaindonesia.utils.viewBinding
 import com.google.android.material.bottomsheet.BottomSheetDialog
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
 
-class HomeFragment : Fragment() {
+class HomeFragment : Fragment(R.layout.fragment_home) {
 
-    private var _binding: FragmentHomeBinding? = null
-    private val binding get() = _binding!!
+    private val binding by viewBinding(FragmentHomeBinding::bind)
     private lateinit var bottomSheetDialog: BottomSheetDialog
     private lateinit var adapter: HistoryAdapter
 
     private val viewModel: HomeViewModel by viewModels {
         HomeViewModelFactory((activity?.applicationContext as BaseApplication).repository)
-    }
-
-    override fun onCreateView(
-        inflater: LayoutInflater,
-        container: ViewGroup?,
-        savedInstanceState: Bundle?
-    ): View {
-        _binding = FragmentHomeBinding.inflate(inflater, container, false)
-        val view = binding.root
-        return view
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
@@ -96,7 +86,7 @@ class HomeFragment : Fragment() {
                             data = responseKata.data,
                             message = responseKata.message,
                             status = responseKata.status,
-                            isSaved = false
+                            isSaved = false,
                         )
                         val intent = Intent(requireActivity(), DetailActivity::class.java)
                         intent.putExtra("word", word)
@@ -122,18 +112,17 @@ class HomeFragment : Fragment() {
     }
 
     fun showLoadingState(state: Boolean) {
-        if (state) binding.loadingState.visibility =
-            View.VISIBLE else binding.loadingState.visibility = View.GONE
+        if (state) {
+            binding.loadingState.visibility =
+                View.VISIBLE
+        } else {
+            binding.loadingState.visibility = View.GONE
+        }
     }
 
     private fun showBottomDialog() {
         bottomSheetDialog = BottomSheetDialog(requireContext())
         bottomSheetDialog.setContentView(R.layout.home_bottom_sheet_dialog)
         bottomSheetDialog.show()
-    }
-
-    override fun onDestroy() {
-        super.onDestroy()
-        _binding = null
     }
 }
