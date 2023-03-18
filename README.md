@@ -29,6 +29,8 @@ Go to the [Releases](https://github.com/arrazyfathan/kbbi/releases/download/1.0/
     - MVVM Architecture
     - Repository pattern
 - [Material-Components](https://github.com/material-components/material-components-android) - Material design components for building ripple animation, and CardView.
+- Koin Dependencies Injection
+- Kotlin Flow
 
 ## API by [@btrianurdin](https://github.com/btrianurdin)
 ```
