@@ -3,6 +3,7 @@ plugins {
     id 'org.jetbrains.kotlin.android'
     id 'androidx.navigation.safeargs'
     id 'kotlin-kapt'
+    id 'kotlin-android'
     id 'kotlin-parcelize'
     id 'com.google.gms.google-services'
 }
@@ -186,5 +187,9 @@ dependencies {
 
     // Firebase
     implementation platform('com.google.firebase:firebase-bom:31.0.2')
+
+    // Koin
+    implementation "io.insert-koin:koin-core:3.3.3"
+    implementation "io.insert-koin:koin-android:3.3.3"
 
 }

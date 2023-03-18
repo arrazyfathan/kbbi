@@ -10,24 +10,24 @@ import android.widget.Toast
 import androidx.fragment.app.Fragment
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.kbbikamusbesarbahasaindonesia.R
-import com.example.kbbikamusbesarbahasaindonesia.adapter.KosaKataAdapter
+import com.example.kbbikamusbesarbahasaindonesia.core.data.Resource
+import com.example.kbbikamusbesarbahasaindonesia.core.domain.model.ListWordModel
+import com.example.kbbikamusbesarbahasaindonesia.core.domain.model.WordModel
 import com.example.kbbikamusbesarbahasaindonesia.data.KosaKata
 import com.example.kbbikamusbesarbahasaindonesia.databinding.FragmentWordBinding
-import com.example.kbbikamusbesarbahasaindonesia.model.Kata
-import com.example.kbbikamusbesarbahasaindonesia.services.ServiceBuilder
+import com.example.kbbikamusbesarbahasaindonesia.ui.adapter.KosaKataAdapter
 import com.example.kbbikamusbesarbahasaindonesia.ui.detail.DetailActivity
 import com.example.kbbikamusbesarbahasaindonesia.utils.viewBinding
+import com.google.gson.Gson
 import com.google.gson.GsonBuilder
 import com.google.gson.reflect.TypeToken
-import retrofit2.Call
-import retrofit2.Callback
-import retrofit2.Response
+import org.koin.androidx.viewmodel.ext.android.viewModel
 import java.io.IOException
 
 class WordFragment : Fragment(R.layout.fragment_word) {
 
     private val binding by viewBinding(FragmentWordBinding::bind)
-
+    private val viewModel: WordViewModel by viewModel()
     private lateinit var adapter: KosaKataAdapter
 
     private var filtered = KosaKata()
@@ -47,7 +47,7 @@ class WordFragment : Fragment(R.layout.fragment_word) {
 
         binding.rvListKosaKata.layoutManager = LinearLayoutManager(requireContext())
         adapter = KosaKataAdapter(list) {
-            getResponse(it)
+            getMeaningOfWord(it)
         }
         binding.rvListKosaKata.adapter = adapter
 
@@ -61,53 +61,50 @@ class WordFragment : Fragment(R.layout.fragment_word) {
             override fun afterTextChanged(char: Editable?) {
                 if (char.toString().isEmpty()) {
                     binding.rvListKosaKata.adapter = KosaKataAdapter(list) {
-                        getResponse(it)
+                        getMeaningOfWord(it)
                     }
                     adapter.notifyDataSetChanged()
                 } else {
                     adapter.filter.filter(char)
                     binding.rvListKosaKata.adapter = KosaKataAdapter(adapter.kataFilterList) {
-                        getResponse(it)
+                        getMeaningOfWord(it)
                     }
                 }
             }
         })
-
-        /* adapter.setOnItemClickListener {
-             getResponse(it)
-         }*/
     }
 
-    private fun getResponse(word: String) {
-        val request = ServiceBuilder.retrofit.getArtiKata(word)
-        showLoadingState(true)
-        request.enqueue(object : Callback<Kata> {
-            override fun onResponse(call: Call<Kata>, response: Response<Kata>) {
-                if (response.isSuccessful) {
-                    val responseKata = response.body()!!
-                    val kata = Kata(
-                        kata = word,
-                        data = responseKata.data,
-                        message = responseKata.message,
-                        status = responseKata.status,
-                        isSaved = false,
-                    )
-                    val intent = Intent(requireActivity(), DetailActivity::class.java)
-                    intent.putExtra("word", word)
-                    intent.putExtra("kata", kata)
-                    startActivity(intent)
-                    showLoadingState(false)
-                } else {
-                    showLoadingState(false)
-                    Toast.makeText(requireContext(), response.message(), Toast.LENGTH_SHORT).show()
+    private fun getMeaningOfWord(word: String) {
+        viewModel.getMeaningOfWord(word).observe(viewLifecycleOwner) { result ->
+            if (result != null) {
+                when (result) {
+                    is Resource.Loading -> showLoadingState(true)
+                    is Resource.Success -> {
+                        showLoadingState(false)
+                        navigateToDetail(result, word)
+                    }
+                    is Resource.Error -> {
+                        binding.loadingState.visibility = View.GONE
+                        Toast.makeText(
+                            requireContext(),
+                            "${result.message}",
+                            Toast.LENGTH_SHORT,
+                        ).show()
+                    }
                 }
             }
+        }
+    }
 
-            override fun onFailure(call: Call<Kata>, t: Throwable) {
-                showLoadingState(false)
-                Toast.makeText(requireContext(), t.message, Toast.LENGTH_SHORT).show()
-            }
-        })
+    private fun navigateToDetail(result: Resource.Success<List<WordModel>>, word: String) {
+        val listWordModel = ListWordModel(
+            word = word,
+            listWords = result.data!!,
+        )
+        val dataJson = Gson().toJson(listWordModel)
+        val intent = Intent(requireActivity(), DetailActivity::class.java)
+        intent.putExtra("data", dataJson)
+        startActivity(intent)
     }
 
     private fun getJsonDataFromAsset(context: Context, fileName: String): String? {

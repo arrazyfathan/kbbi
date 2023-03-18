@@ -3,25 +3,21 @@ package com.example.kbbikamusbesarbahasaindonesia.ui.home
 import android.content.Intent
 import android.os.Bundle
 import android.view.*
-import android.view.inputmethod.EditorInfo
 import android.widget.Toast
-import androidx.core.view.isVisible
 import androidx.fragment.app.Fragment
-import androidx.fragment.app.viewModels
-import com.example.kbbikamusbesarbahasaindonesia.BaseApplication
 import com.example.kbbikamusbesarbahasaindonesia.R
+import com.example.kbbikamusbesarbahasaindonesia.core.data.Resource
+import com.example.kbbikamusbesarbahasaindonesia.core.data.source.local.entity.HistoryEntity
+import com.example.kbbikamusbesarbahasaindonesia.core.domain.model.ListWordModel
+import com.example.kbbikamusbesarbahasaindonesia.core.domain.model.WordModel
 import com.example.kbbikamusbesarbahasaindonesia.databinding.FragmentHomeBinding
-import com.example.kbbikamusbesarbahasaindonesia.model.History
-import com.example.kbbikamusbesarbahasaindonesia.model.Kata
-import com.example.kbbikamusbesarbahasaindonesia.services.ServiceBuilder
 import com.example.kbbikamusbesarbahasaindonesia.ui.detail.DetailActivity
 import com.example.kbbikamusbesarbahasaindonesia.ui.home.adapter.HistoryAdapter
 import com.example.kbbikamusbesarbahasaindonesia.utils.SwipeListener
 import com.example.kbbikamusbesarbahasaindonesia.utils.viewBinding
 import com.google.android.material.bottomsheet.BottomSheetDialog
-import retrofit2.Call
-import retrofit2.Callback
-import retrofit2.Response
+import com.google.gson.Gson
+import org.koin.androidx.viewmodel.ext.android.viewModel
 
 class HomeFragment : Fragment(R.layout.fragment_home) {
 
@@ -29,95 +25,74 @@ class HomeFragment : Fragment(R.layout.fragment_home) {
     private lateinit var bottomSheetDialog: BottomSheetDialog
     private lateinit var adapter: HistoryAdapter
 
-    private val viewModel: HomeViewModel by viewModels {
-        HomeViewModelFactory((activity?.applicationContext as BaseApplication).repository)
-    }
+    private val viewModel: HomeViewModel by viewModel()
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+        setupView()
+        observe()
+    }
 
-        /*binding.editTextSearch.addTextChangedListener { editable ->
-            editable?.let {
-                word = editable.toString()
-            }
-        }*/
+    private fun observe() {
+        viewModel.getAllHistories().observe(viewLifecycleOwner) { histories ->
+            adapter.differ.submitList(histories)
+        }
+    }
 
+    private fun setupView() {
         binding.homeButtonSearch.setOnClickListener {
-            getResponse(binding.editTextSearch.text.toString())
+            getMeaningOfWord(binding.editTextSearch.text.toString())
         }
 
-        view.setOnTouchListener(object : SwipeListener(requireActivity()) {
+        view?.setOnTouchListener(object : SwipeListener(requireActivity()) {
             override fun onSwipeTop() {
                 showBottomDialog()
             }
         })
 
-        observe()
-    }
-
-    private fun observe() {
-        viewModel.historyList.observe(viewLifecycleOwner) {
-            initHistoryUI(it)
+        adapter = HistoryAdapter { word ->
+            getMeaningOfWord(word)
         }
+        binding.rvHistory.adapter = adapter
     }
 
-    private fun initHistoryUI(data: List<History>?) {
-        data?.let { histories ->
-            adapter = HistoryAdapter(histories) {
-                getResponse(it.kata)
-            }
-            binding.rvHistory.adapter = adapter
-            binding.historyLabel.isVisible = !adapter.isEmpty()
-            binding.rvHistory.isVisible = !adapter.isEmpty()
-        }
-    }
-
-    private fun getResponse(word: String) {
-        binding.editTextSearch.onEditorAction(EditorInfo.IME_ACTION_DONE)
-        if (word.isNotEmpty() && word.isNotBlank()) {
-            val requestWord = ServiceBuilder.retrofit.getArtiKata(word)
-            showLoadingState(true)
-            requestWord.enqueue(object : Callback<Kata> {
-                override fun onResponse(call: Call<Kata>, response: Response<Kata>) {
-                    if (response.isSuccessful) {
-                        val responseKata = response.body()!!
-                        val kata = Kata(
-                            kata = word,
-                            data = responseKata.data,
-                            message = responseKata.message,
-                            status = responseKata.status,
-                            isSaved = false,
-                        )
-                        val intent = Intent(requireActivity(), DetailActivity::class.java)
-                        intent.putExtra("word", word)
-                        intent.putExtra("kata", kata)
-                        startActivity(intent)
-                        showLoadingState(false)
-                    } else {
-                        showLoadingState(false)
-                        Toast.makeText(requireContext(), response.message(), Toast.LENGTH_SHORT)
-                            .show()
+    private fun getMeaningOfWord(word: String) {
+        viewModel.getMeaningOfWord(word)
+            .observe(viewLifecycleOwner) { result ->
+                if (result != null) {
+                    when (result) {
+                        is Resource.Loading -> binding.loadingState.visibility = View.VISIBLE
+                        is Resource.Success -> {
+                            binding.loadingState.visibility = View.GONE
+                            navigateToDetail(result)
+                            saveWordToHistory(word)
+                        }
+                        is Resource.Error -> {
+                            binding.loadingState.visibility = View.GONE
+                            Toast.makeText(
+                                requireContext(),
+                                "${result.message}",
+                                Toast.LENGTH_SHORT,
+                            ).show()
+                        }
                     }
                 }
-
-                override fun onFailure(call: Call<Kata>, t: Throwable) {
-                    showLoadingState(false)
-                    Toast.makeText(requireContext(), t.message, Toast.LENGTH_SHORT).show()
-                }
-            })
-        } else {
-            showLoadingState(false)
-            Toast.makeText(requireContext(), "Kata tidak boleh kossong", Toast.LENGTH_SHORT).show()
-        }
+            }
     }
 
-    fun showLoadingState(state: Boolean) {
-        if (state) {
-            binding.loadingState.visibility =
-                View.VISIBLE
-        } else {
-            binding.loadingState.visibility = View.GONE
-        }
+    private fun saveWordToHistory(word: String) {
+        viewModel.addToHistory(HistoryEntity(word.lowercase()))
+    }
+
+    private fun navigateToDetail(result: Resource<List<WordModel>>?) {
+        val listWordModel = ListWordModel(
+            word = binding.editTextSearch.text.toString(),
+            listWords = result?.data!!,
+        )
+        val dataJson = Gson().toJson(listWordModel)
+        val intent = Intent(requireActivity(), DetailActivity::class.java)
+        intent.putExtra("data", dataJson)
+        startActivity(intent)
     }
 
     private fun showBottomDialog() {

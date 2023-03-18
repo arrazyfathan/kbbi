@@ -2,27 +2,36 @@ package com.example.kbbikamusbesarbahasaindonesia.ui.home
 
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.ViewModel
-import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.asLiveData
-import com.example.kbbikamusbesarbahasaindonesia.model.History
-import com.example.kbbikamusbesarbahasaindonesia.repository.KataRepository
-import com.example.kbbikamusbesarbahasaindonesia.ui.detail.DetailViewModel
-import java.lang.IllegalArgumentException
+import androidx.lifecycle.viewModelScope
+import com.example.kbbikamusbesarbahasaindonesia.core.data.Resource
+import com.example.kbbikamusbesarbahasaindonesia.core.data.source.local.entity.HistoryEntity
+import com.example.kbbikamusbesarbahasaindonesia.core.domain.model.WordModel
+import com.example.kbbikamusbesarbahasaindonesia.core.domain.usecase.WordUseCase
+import kotlinx.coroutines.launch
 
 /**
  * Created by Ar Razy Fathan Rabbani on 19/01/23.
  */
-class HomeViewModel(private val repository: KataRepository) : ViewModel() {
+class HomeViewModel(
+    private val wordUseCase: WordUseCase,
+) : ViewModel() {
 
-    val historyList: LiveData<List<History>> = repository.listHistory.asLiveData()
-}
+    fun getAllHistories() = wordUseCase.getAllHistories().asLiveData()
 
-class HomeViewModelFactory(private val repository: KataRepository) : ViewModelProvider.Factory {
-    override fun <T : ViewModel> create(modelClass: Class<T>): T {
-        if (modelClass.isAssignableFrom(HomeViewModel::class.java)) {
-            @Suppress("UNCHECKED_CAST")
-            return HomeViewModel(repository) as T
+    fun getMeaningOfWord(word: String): LiveData<Resource<List<WordModel>>> {
+        return wordUseCase.getMeaningOfWord(word).asLiveData()
+    }
+
+    fun bookmarkWord(word: String, wordList: List<WordModel>, isSaved: Boolean) {
+        viewModelScope.launch {
+            wordUseCase.bookmarkWord(word, wordList, isSaved)
         }
-        throw IllegalArgumentException("Unknown ViewModel class")
+    }
+
+    fun addToHistory(historyEntity: HistoryEntity) {
+        viewModelScope.launch {
+            wordUseCase.addToHistory(historyEntity)
+        }
     }
 }

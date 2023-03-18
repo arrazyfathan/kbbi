@@ -54,6 +54,7 @@
             android:layout_width="0dp"
             android:layout_marginTop="8dp"
             android:layout_marginEnd="16dp"
+            app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
             android:layout_height="wrap_content"
             tools:listitem="@layout/item_list_child_arti"
             app:layout_constraintEnd_toEndOf="parent"

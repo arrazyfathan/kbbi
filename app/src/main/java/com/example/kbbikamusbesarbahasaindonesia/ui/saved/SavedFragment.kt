@@ -5,23 +5,20 @@ import android.os.Bundle
 import android.view.View
 import androidx.core.view.isVisible
 import androidx.fragment.app.Fragment
-import androidx.fragment.app.viewModels
 import androidx.recyclerview.widget.GridLayoutManager
-import com.example.kbbikamusbesarbahasaindonesia.BaseApplication
 import com.example.kbbikamusbesarbahasaindonesia.R
-import com.example.kbbikamusbesarbahasaindonesia.adapter.FavoriteAdapter
+import com.example.kbbikamusbesarbahasaindonesia.ui.adapter.FavoriteAdapter
 import com.example.kbbikamusbesarbahasaindonesia.databinding.FragmentSavedBinding
 import com.example.kbbikamusbesarbahasaindonesia.ui.detail.DetailActivity
 import com.example.kbbikamusbesarbahasaindonesia.utils.viewBinding
+import org.koin.androidx.viewmodel.ext.android.viewModel
 
 class SavedFragment : Fragment(R.layout.fragment_saved) {
 
     private val binding by viewBinding(FragmentSavedBinding::bind)
     private lateinit var adapter: FavoriteAdapter
 
-    private val viewModel: SavedViewModel by viewModels {
-        SavedViewModelFactory((activity?.applicationContext as BaseApplication).repository)
-    }
+    private val viewModel: SavedViewModel by viewModel()
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)

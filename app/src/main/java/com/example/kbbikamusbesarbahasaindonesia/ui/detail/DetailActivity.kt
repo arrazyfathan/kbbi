@@ -1,45 +1,30 @@
 package com.example.kbbikamusbesarbahasaindonesia.ui.detail
 
 import android.os.Bundle
-import android.widget.Toast
-import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
-import androidx.core.content.ContextCompat
-import androidx.lifecycle.lifecycleScope
-import androidx.recyclerview.widget.LinearLayoutManager
-import com.example.kbbikamusbesarbahasaindonesia.BaseApplication
-import com.example.kbbikamusbesarbahasaindonesia.R
-import com.example.kbbikamusbesarbahasaindonesia.adapter.KataAdapter
+import com.example.kbbikamusbesarbahasaindonesia.core.domain.model.ListWordModel
 import com.example.kbbikamusbesarbahasaindonesia.databinding.ActivityDetailBinding
-import com.example.kbbikamusbesarbahasaindonesia.model.History
-import com.example.kbbikamusbesarbahasaindonesia.model.Kata
+import com.example.kbbikamusbesarbahasaindonesia.ui.adapter.WordAdapter
 import com.example.kbbikamusbesarbahasaindonesia.utils.viewBinding
-import com.google.android.material.snackbar.Snackbar
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
+import com.google.gson.Gson
+import org.koin.androidx.viewmodel.ext.android.viewModel
 
 class DetailActivity : AppCompatActivity() {
 
-    private lateinit var adapter: KataAdapter
     private val binding by viewBinding(ActivityDetailBinding::inflate)
-    private val viewModel: DetailViewModel by viewModels {
-        DetailViewModelFactory((application as BaseApplication).repository)
-    }
-
+    private val viewModel: DetailViewModel by viewModel()
+    private lateinit var wordAdapter: WordAdapter
     private var wordForHistory: String? = ""
+    private lateinit var listWordModel: ListWordModel
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(binding.root)
+        handleIntent()
+        setupRecyclerView()
+        setupView()
 
-        val intent = intent
-
-        val kata: Kata? = intent.getParcelableExtra("kata") as Kata?
-        val word: String? = intent.getStringExtra("word")
-        wordForHistory = word
-        setupRecyclerView(kata, word)
-
-        if (kata != null && word != null) {
+        /*if (kata != null && word != null) {
             lifecycleScope.launch(Dispatchers.IO) {
                 viewModel.isHistoryExist(word)
             }
@@ -53,15 +38,15 @@ class DetailActivity : AppCompatActivity() {
                     binding.bookmark.setImageDrawable(
                         ContextCompat.getDrawable(
                             this@DetailActivity,
-                            R.drawable.book_solid
-                        )
+                            R.drawable.book_solid,
+                        ),
                     )
                 } else {
                     binding.bookmark.setImageDrawable(
                         ContextCompat.getDrawable(
                             this@DetailActivity,
-                            R.drawable.book
-                        )
+                            R.drawable.book,
+                        ),
                     )
                 }
 
@@ -71,7 +56,7 @@ class DetailActivity : AppCompatActivity() {
                         Snackbar.make(
                             view,
                             "${word.replaceFirstChar { it.uppercase() }} dihapus dari favorit.",
-                            Snackbar.LENGTH_SHORT
+                            Snackbar.LENGTH_SHORT,
                         ).show()
                     } else {
                         val newKata = Kata(
@@ -79,13 +64,13 @@ class DetailActivity : AppCompatActivity() {
                             data = kata.data,
                             message = kata.message,
                             status = kata.status,
-                            isSaved = true
+                            isSaved = true,
                         )
                         viewModel.insert(newKata)
                         Snackbar.make(
                             view,
                             "${word.replaceFirstChar { it.uppercase() }} berhasil disimpan.",
-                            Snackbar.LENGTH_SHORT
+                            Snackbar.LENGTH_SHORT,
                         ).show()
                     }
                 }
@@ -96,15 +81,26 @@ class DetailActivity : AppCompatActivity() {
             if (it == false) {
                 viewModel.insertHistory(History(kata = wordForHistory!!))
             }
+        }*/
+    }
+
+    private fun setupView() {
+        with(binding) {
+            kosaKata.text = listWordModel.word
         }
     }
 
-    private fun setupRecyclerView(kata: Kata?, word: String?) {
-        if (kata != null && word != null) {
-            binding.kosaKata.text = word.replaceFirstChar { it.uppercase() }
-            binding.rvArtiKata.layoutManager = LinearLayoutManager(this)
-            adapter = KataAdapter(kata.data)
-            binding.rvArtiKata.adapter = adapter
-        }
+    private fun handleIntent() {
+        val intent = intent
+        val dataFromIntent = intent.getStringExtra("data")
+        listWordModel = Gson().fromJson(dataFromIntent, ListWordModel::class.java)
+        val word: String? = intent.getStringExtra("word")
+        wordForHistory = word
+    }
+
+    private fun setupRecyclerView() {
+        wordAdapter = WordAdapter(this)
+        binding.rvArtiKata.adapter = wordAdapter
+        wordAdapter.submitList(listWordModel.listWords)
     }
 }

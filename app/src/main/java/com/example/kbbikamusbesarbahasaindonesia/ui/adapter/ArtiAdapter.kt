@@ -1,4 +1,4 @@
-package com.example.kbbikamusbesarbahasaindonesia.adapter
+package com.example.kbbikamusbesarbahasaindonesia.ui.adapter
 
 import android.graphics.Color
 import android.graphics.Typeface
@@ -28,7 +28,7 @@ class ArtiAdapter(
         return ViewHolder(view)
     }
 
-    override fun onBindViewHolder(holder: ArtiAdapter.ViewHolder, position: Int) {
+    override fun onBindViewHolder(holder: ViewHolder, position: Int) {
         val arti = listArti[position]
 
         val number = "${position + 1}. "

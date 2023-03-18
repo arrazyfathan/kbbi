@@ -1,4 +1,4 @@
-package com.example.kbbikamusbesarbahasaindonesia.adapter
+package com.example.kbbikamusbesarbahasaindonesia.ui.adapter
 
 import android.view.LayoutInflater
 import android.view.ViewGroup
@@ -20,7 +20,7 @@ class FavoriteAdapter(
         return ViewHolder(view)
     }
 
-    override fun onBindViewHolder(holder: FavoriteAdapter.ViewHolder, position: Int) {
+    override fun onBindViewHolder(holder: ViewHolder, position: Int) {
         val curretList = listSavedKata[position]
 
         holder.binding.kataSaved.text = curretList.kata.replaceFirstChar { it.uppercase() }

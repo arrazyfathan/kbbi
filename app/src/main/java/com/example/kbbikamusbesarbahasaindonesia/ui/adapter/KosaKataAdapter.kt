@@ -1,4 +1,4 @@
-package com.example.kbbikamusbesarbahasaindonesia.adapter
+package com.example.kbbikamusbesarbahasaindonesia.ui.adapter
 
 import android.view.LayoutInflater
 import android.view.ViewGroup
