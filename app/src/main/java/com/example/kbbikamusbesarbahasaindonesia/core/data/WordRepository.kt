@@ -55,4 +55,12 @@ class WordRepository(
     override fun getAllHistories(): Flow<List<HistoryEntity>> {
         return localDataSource.getAllHistories()
     }
+
+    override suspend fun deleteWord(word: String) = withContext(Dispatchers.IO) {
+        return@withContext localDataSource.deleteWord(word)
+    }
+
+    override fun checkIfWordIsSaved(word: String): Flow<Boolean> {
+        return localDataSource.checkWordIsExist(word)
+    }
 }

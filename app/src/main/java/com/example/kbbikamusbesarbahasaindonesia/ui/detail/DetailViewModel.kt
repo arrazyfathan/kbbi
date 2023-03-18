@@ -1,54 +1,33 @@
 package com.example.kbbikamusbesarbahasaindonesia.ui.detail
 
-import androidx.lifecycle.*
-import com.example.kbbikamusbesarbahasaindonesia.model.History
-import com.example.kbbikamusbesarbahasaindonesia.model.Kata
-import com.example.kbbikamusbesarbahasaindonesia.repository.KataRepository
-import kotlinx.coroutines.Dispatchers
+import androidx.lifecycle.* // ktlint-disable no-wildcard-imports
+import com.example.kbbikamusbesarbahasaindonesia.core.domain.model.WordModel
+import com.example.kbbikamusbesarbahasaindonesia.core.domain.usecase.WordUseCase
 import kotlinx.coroutines.launch
-import java.lang.IllegalArgumentException
 
 class DetailViewModel(
-    private val repository: KataRepository
+    private val wordUseCase: WordUseCase,
 ) : ViewModel() {
 
-    private val _saveState = MutableLiveData<Boolean>()
-    val saveState: LiveData<Boolean> get() = _saveState
+    private var _resultBookmark = MutableLiveData<Long>()
+    val resultBookmark: LiveData<Long> get() = _resultBookmark
 
-    private val _isHistoryExist = MutableLiveData<Boolean>()
-    val isHistoryExist: LiveData<Boolean> get() = _isHistoryExist
+    private var _resultDelete = MutableLiveData<Boolean>()
+    val resultDelete: LiveData<Boolean> get() = _resultDelete
 
-    fun isHistoryExist(kata: String) {
-        val isExist = repository.historyIsExist(kata)
-        _isHistoryExist.postValue(isExist)
-    }
+    fun checkIsWordSaved(word: String) = wordUseCase.checkIfWordIsSaved(word).asLiveData()
 
-    fun isSaved(id: String) {
-        val state = repository.kataIsExists(id)
-        _saveState.postValue(state)
-    }
-
-    fun insert(kata: Kata?) = viewModelScope.launch(Dispatchers.IO) {
-        repository.insert(kata)
-        _saveState.postValue(true)
-    }
-
-    fun delete(kata: Kata) = viewModelScope.launch(Dispatchers.IO) {
-        repository.delete(kata)
-        _saveState.postValue(false)
-    }
-
-    fun insertHistory(history: History) = viewModelScope.launch(Dispatchers.IO) {
-        repository.insertHistory(history)
-    }
-}
-
-class DetailViewModelFactory(private val repository: KataRepository) : ViewModelProvider.Factory {
-    override fun <T : ViewModel> create(modelClass: Class<T>): T {
-        if (modelClass.isAssignableFrom(DetailViewModel::class.java)) {
-            @Suppress("UNCHECKED_CAST")
-            return DetailViewModel(repository) as T
+    fun bookmark(word: String, wordList: List<WordModel>, isSaved: Boolean) {
+        viewModelScope.launch {
+            val result = wordUseCase.bookmarkWord(word, wordList, isSaved)
+            _resultBookmark.postValue(result)
         }
-        throw IllegalArgumentException("Unknown ViewModel class")
+    }
+
+    fun delete(word: String) {
+        viewModelScope.launch {
+            wordUseCase.deleteWord(word)
+            _resultDelete.postValue(true)
+        }
     }
 }

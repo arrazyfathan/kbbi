@@ -9,10 +9,8 @@ import androidx.room.PrimaryKey
 
 @Entity(tableName = "word_table")
 data class ListWordEntity(
+    @PrimaryKey(autoGenerate = false)
     val word: String = "",
     val listWords: List<WordEntity>,
     var isSaved: Boolean = false,
-) {
-    @PrimaryKey(autoGenerate = false)
-    var id: String = word
-}
+)

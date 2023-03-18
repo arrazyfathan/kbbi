@@ -15,8 +15,8 @@ class WordInteractor(private val wordRepository: IWordRepository) : WordUseCase 
         return wordRepository.getMeaningOfWord(word)
     }
 
-    override suspend fun bookmarkWord(word: String, wordList: List<WordModel>, isSaved: Boolean) {
-        wordRepository.bookmarkWord(word, wordList, isSaved)
+    override suspend fun bookmarkWord(word: String, wordList: List<WordModel>, isSaved: Boolean): Long {
+        return wordRepository.bookmarkWord(word, wordList, isSaved)
     }
 
     override suspend fun addToHistory(historyEntity: HistoryEntity) {
@@ -25,5 +25,13 @@ class WordInteractor(private val wordRepository: IWordRepository) : WordUseCase 
 
     override fun getAllHistories(): Flow<List<HistoryEntity>> {
         return wordRepository.getAllHistories()
+    }
+
+    override suspend fun deleteWord(word: String) {
+        wordRepository.deleteWord(word)
+    }
+
+    override fun checkIfWordIsSaved(word: String): Flow<Boolean> {
+        return wordRepository.checkIfWordIsSaved(word)
     }
 }

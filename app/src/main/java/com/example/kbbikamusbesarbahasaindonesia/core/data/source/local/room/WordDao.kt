@@ -16,13 +16,13 @@ interface WordDao {
     fun getAllWords(): Flow<List<ListWordEntity>>
 
     @Upsert
-    suspend fun insertWord(listWordEntity: ListWordEntity)
+    suspend fun insertWord(listWordEntity: ListWordEntity): Long
 
-    @Delete
-    suspend fun deleteWord(listWordEntity: ListWordEntity)
+    @Query("DELETE FROM word_table WHERE word = :word")
+    suspend fun deleteWord(word: String)
 
-    @Query("SELECT EXISTS (SELECT * FROM word_table WHERE id = :id)")
-    fun checkWordIsExist(id: String): Boolean
+    @Query("SELECT EXISTS (SELECT * FROM word_table WHERE word = :word)")
+    fun checkWordIsExist(word: String): Flow<Boolean>
 
     @Upsert
     suspend fun insertHistory(historyEntity: HistoryEntity)

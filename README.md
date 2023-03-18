@@ -34,7 +34,7 @@ Go to the [Releases](https://github.com/arrazyfathan/kbbi/releases/download/1.0/
 
 ## API by [@btrianurdin](https://github.com/btrianurdin)
 ```
-https://new-kbbi-api.herokuapp.com
+https://new-kbbi-api.up.railway.app/
 ``` 
 
 ## MAD Score

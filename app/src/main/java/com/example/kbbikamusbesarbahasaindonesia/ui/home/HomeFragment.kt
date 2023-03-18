@@ -14,7 +14,9 @@ import com.example.kbbikamusbesarbahasaindonesia.databinding.FragmentHomeBinding
 import com.example.kbbikamusbesarbahasaindonesia.ui.detail.DetailActivity
 import com.example.kbbikamusbesarbahasaindonesia.ui.home.adapter.HistoryAdapter
 import com.example.kbbikamusbesarbahasaindonesia.utils.SwipeListener
+import com.example.kbbikamusbesarbahasaindonesia.utils.gone
 import com.example.kbbikamusbesarbahasaindonesia.utils.viewBinding
+import com.example.kbbikamusbesarbahasaindonesia.utils.visible
 import com.google.android.material.bottomsheet.BottomSheetDialog
 import com.google.gson.Gson
 import org.koin.androidx.viewmodel.ext.android.viewModel
@@ -36,6 +38,7 @@ class HomeFragment : Fragment(R.layout.fragment_home) {
     private fun observe() {
         viewModel.getAllHistories().observe(viewLifecycleOwner) { histories ->
             adapter.differ.submitList(histories)
+            if (adapter.differ.currentList.isEmpty()) binding.historyLabel.gone() else binding.historyLabel.visible()
         }
     }
 
@@ -57,36 +60,35 @@ class HomeFragment : Fragment(R.layout.fragment_home) {
     }
 
     private fun getMeaningOfWord(word: String) {
-        viewModel.getMeaningOfWord(word)
-            .observe(viewLifecycleOwner) { result ->
-                if (result != null) {
-                    when (result) {
-                        is Resource.Loading -> binding.loadingState.visibility = View.VISIBLE
-                        is Resource.Success -> {
-                            binding.loadingState.visibility = View.GONE
-                            navigateToDetail(result)
-                            saveWordToHistory(word)
-                        }
-                        is Resource.Error -> {
-                            binding.loadingState.visibility = View.GONE
-                            Toast.makeText(
-                                requireContext(),
-                                "${result.message}",
-                                Toast.LENGTH_SHORT,
-                            ).show()
-                        }
+        viewModel.getMeaningOfWord(word).observe(viewLifecycleOwner) { result ->
+            if (result != null) {
+                when (result) {
+                    is Resource.Loading -> binding.loadingState.visibility = View.VISIBLE
+                    is Resource.Success -> {
+                        binding.loadingState.visibility = View.GONE
+                        navigateToDetail(result, word)
+                        saveWordToHistory(word)
+                    }
+                    is Resource.Error -> {
+                        binding.loadingState.visibility = View.GONE
+                        Toast.makeText(
+                            requireContext(),
+                            "${result.message}",
+                            Toast.LENGTH_SHORT,
+                        ).show()
                     }
                 }
             }
+        }
     }
 
     private fun saveWordToHistory(word: String) {
         viewModel.addToHistory(HistoryEntity(word.lowercase()))
     }
 
-    private fun navigateToDetail(result: Resource<List<WordModel>>?) {
+    private fun navigateToDetail(result: Resource<List<WordModel>>?, word: String) {
         val listWordModel = ListWordModel(
-            word = binding.editTextSearch.text.toString(),
+            word = word,
             listWords = result?.data!!,
         )
         val dataJson = Gson().toJson(listWordModel)

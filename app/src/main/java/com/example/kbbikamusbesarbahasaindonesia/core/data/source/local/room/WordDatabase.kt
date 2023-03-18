@@ -10,7 +10,7 @@ import com.example.kbbikamusbesarbahasaindonesia.core.data.source.local.entity.L
     entities = [
         ListWordEntity::class, HistoryEntity::class,
     ],
-    version = 5,
+    version = 7,
 )
 @TypeConverters(Converters::class)
 abstract class WordDatabase : RoomDatabase() {
