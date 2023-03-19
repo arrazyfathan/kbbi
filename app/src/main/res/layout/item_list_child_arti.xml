@@ -17,15 +17,16 @@
             android:layout_height="wrap_content"
             android:layout_gravity="center"
             android:fontFamily="@font/inter_regular"
-            android:justificationMode="inter_word"
-            android:textColor="@color/text_p"
+            android:layout_margin="4dp"
+            android:textColor="@color/text_selection_state"
             android:textSize="16sp"
             android:textIsSelectable="true"
+            android:textColorHighlight="@color/text_primary"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent"
-            android:text="(bentuk atau sistem) pemerintahan yang seluruh rakyatnya turut serta memerintah dengan perantaraan wakilnya; pemerintahan rakyat" />
+            tools:text="(bentuk atau sistem) pemerintahan yang seluruh rakyatnya turut serta memerintah dengan perantaraan wakilnya; pemerintahan rakyat" />
 
 
     </androidx.constraintlayout.widget.ConstraintLayout>

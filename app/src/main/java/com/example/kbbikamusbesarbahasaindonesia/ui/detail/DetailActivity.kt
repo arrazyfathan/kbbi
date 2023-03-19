@@ -28,8 +28,8 @@ class DetailActivity : AppCompatActivity() {
         handleIntent()
         setupRecyclerView()
         checkIfWordSaved()
-        observe()
         setupView()
+        observe()
     }
 
     private fun observe() {

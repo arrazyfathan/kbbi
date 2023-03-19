@@ -95,8 +95,9 @@ class HomeFragment : Fragment(R.layout.fragment_home) {
                     is Resource.Loading -> showLoading(true)
                     is Resource.Success -> {
                         showLoading(false)
-                        navigateToDetail(result, word)
                         saveWordToHistory(word)
+                        binding.editTextSearch.setText("")
+                        navigateToDetail(result, word)
                     }
                     is Resource.Error -> {
                         showLoading(false)

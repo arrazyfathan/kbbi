@@ -51,5 +51,5 @@ class HistoryAdapter(
 
     fun isEmpty(): Boolean = differ.currentList.isEmpty()
 
-    override fun getItemCount() = differ.currentList.size.coerceAtMost(7)
+    override fun getItemCount() = differ.currentList.size
 }

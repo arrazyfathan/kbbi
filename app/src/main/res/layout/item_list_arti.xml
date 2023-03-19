@@ -37,12 +37,14 @@
 
         <TextView
             android:id="@+id/lemma"
-            android:layout_width="wrap_content"
+            android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:layout_gravity="center"
+            android:layout_marginEnd="16dp"
+            app:layout_constraintEnd_toEndOf="parent"
             android:layout_marginStart="16dp"
+            android:paddingVertical="4dp"
             android:fontFamily="@font/inter_semibold"
-            android:text="de.mo.kra.si /démokrasi/"
+            tools:text="de.mo.kra.si /démokrasi/"
             android:textColor="@color/text_h1"
             android:textSize="18sp"
             app:layout_constraintBottom_toBottomOf="@id/container_number"
