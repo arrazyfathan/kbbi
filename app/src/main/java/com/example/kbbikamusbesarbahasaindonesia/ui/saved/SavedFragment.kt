@@ -7,42 +7,50 @@ import androidx.core.view.isVisible
 import androidx.fragment.app.Fragment
 import androidx.recyclerview.widget.GridLayoutManager
 import com.example.kbbikamusbesarbahasaindonesia.R
-import com.example.kbbikamusbesarbahasaindonesia.ui.adapter.FavoriteAdapter
+import com.example.kbbikamusbesarbahasaindonesia.core.domain.model.ListWordModel
+import com.example.kbbikamusbesarbahasaindonesia.core.utils.DataMapper
 import com.example.kbbikamusbesarbahasaindonesia.databinding.FragmentSavedBinding
+import com.example.kbbikamusbesarbahasaindonesia.ui.adapter.FavoriteAdapter
 import com.example.kbbikamusbesarbahasaindonesia.ui.detail.DetailActivity
+import com.example.kbbikamusbesarbahasaindonesia.utils.toJson
 import com.example.kbbikamusbesarbahasaindonesia.utils.viewBinding
 import org.koin.androidx.viewmodel.ext.android.viewModel
 
 class SavedFragment : Fragment(R.layout.fragment_saved) {
 
     private val binding by viewBinding(FragmentSavedBinding::bind)
-    private lateinit var adapter: FavoriteAdapter
-
     private val viewModel: SavedViewModel by viewModel()
+    private lateinit var adapter: FavoriteAdapter
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-
+        setupView()
         observe()
     }
 
-    private fun observe() {
-        viewModel.savedKata.observe(viewLifecycleOwner) { kata ->
-            adapter = FavoriteAdapter(kata) {
-                val intent = Intent(requireActivity(), DetailActivity::class.java)
-                intent.putExtra("word", it.kata)
-                intent.putExtra("kata", it)
-                startActivity(intent)
-            }
-            binding.rvFavoritKata.adapter = adapter
-            binding.rvFavoritKata.layoutManager = GridLayoutManager(requireActivity(), 2)
+    private fun setupView() = with(binding) {
+        adapter = FavoriteAdapter { items ->
+            val listWordModel = ListWordModel(
+                word = items.word,
+                listWords = DataMapper.mapEntitiesToDomain(items.listWords),
+            ).toJson()
+            val intent = Intent(requireActivity(), DetailActivity::class.java)
+            intent.putExtra("data", listWordModel)
+            startActivity(intent)
+        }
+        rvFavoritKata.adapter = adapter
+        rvFavoritKata.layoutManager = GridLayoutManager(requireActivity(), 2)
+    }
 
+    private fun observe() = with(binding) {
+        viewModel.getBookmarks().observe(viewLifecycleOwner) {
+            adapter.differ.submitList(it)
             if (adapter.isEmpty()) {
-                binding.emptyLayout.isVisible = true
-                binding.readingPeople.isVisible = false
+                emptyLayout.isVisible = true
+                readingPeople.isVisible = false
             } else {
-                binding.emptyLayout.isVisible = false
-                binding.readingPeople.isVisible = true
+                emptyLayout.isVisible = false
+                readingPeople.isVisible = true
             }
         }
     }

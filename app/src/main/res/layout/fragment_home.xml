@@ -47,6 +47,7 @@
         android:inputType="text"
         android:paddingStart="12dp"
         android:paddingEnd="12dp"
+        android:imeOptions="actionSearch"
         android:textCursorDrawable="@drawable/custom_cursor_color"
         android:textSize="14sp"
         app:layout_constraintEnd_toStartOf="@id/home_button_search"

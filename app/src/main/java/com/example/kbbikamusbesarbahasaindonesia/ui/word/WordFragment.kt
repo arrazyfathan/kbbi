@@ -13,7 +13,7 @@ import com.example.kbbikamusbesarbahasaindonesia.R
 import com.example.kbbikamusbesarbahasaindonesia.core.data.Resource
 import com.example.kbbikamusbesarbahasaindonesia.core.domain.model.ListWordModel
 import com.example.kbbikamusbesarbahasaindonesia.core.domain.model.WordModel
-import com.example.kbbikamusbesarbahasaindonesia.data.KosaKata
+import com.example.kbbikamusbesarbahasaindonesia.core.data.source.local.KosaKata
 import com.example.kbbikamusbesarbahasaindonesia.databinding.FragmentWordBinding
 import com.example.kbbikamusbesarbahasaindonesia.ui.adapter.KosaKataAdapter
 import com.example.kbbikamusbesarbahasaindonesia.ui.detail.DetailActivity

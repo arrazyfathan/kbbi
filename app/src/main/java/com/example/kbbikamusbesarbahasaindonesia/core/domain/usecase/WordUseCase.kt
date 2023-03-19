@@ -2,6 +2,7 @@ package com.example.kbbikamusbesarbahasaindonesia.core.domain.usecase
 
 import com.example.kbbikamusbesarbahasaindonesia.core.data.Resource
 import com.example.kbbikamusbesarbahasaindonesia.core.data.source.local.entity.HistoryEntity
+import com.example.kbbikamusbesarbahasaindonesia.core.data.source.local.entity.ListWordEntity
 import com.example.kbbikamusbesarbahasaindonesia.core.domain.model.WordModel
 import kotlinx.coroutines.flow.Flow
 
@@ -15,4 +16,5 @@ interface WordUseCase {
     fun getAllHistories(): Flow<List<HistoryEntity>>
     suspend fun deleteWord(word: String)
     fun checkIfWordIsSaved(word: String): Flow<Boolean>
+    fun getBookmarks(): Flow<List<ListWordEntity>>
 }

@@ -3,6 +3,7 @@ package com.example.kbbikamusbesarbahasaindonesia.ui.home
 import android.content.Intent
 import android.os.Bundle
 import android.view.*
+import android.view.inputmethod.EditorInfo
 import android.widget.Toast
 import androidx.fragment.app.Fragment
 import com.example.kbbikamusbesarbahasaindonesia.R
@@ -13,12 +14,8 @@ import com.example.kbbikamusbesarbahasaindonesia.core.domain.model.WordModel
 import com.example.kbbikamusbesarbahasaindonesia.databinding.FragmentHomeBinding
 import com.example.kbbikamusbesarbahasaindonesia.ui.detail.DetailActivity
 import com.example.kbbikamusbesarbahasaindonesia.ui.home.adapter.HistoryAdapter
-import com.example.kbbikamusbesarbahasaindonesia.utils.SwipeListener
-import com.example.kbbikamusbesarbahasaindonesia.utils.gone
-import com.example.kbbikamusbesarbahasaindonesia.utils.viewBinding
-import com.example.kbbikamusbesarbahasaindonesia.utils.visible
+import com.example.kbbikamusbesarbahasaindonesia.utils.*
 import com.google.android.material.bottomsheet.BottomSheetDialog
-import com.google.gson.Gson
 import org.koin.androidx.viewmodel.ext.android.viewModel
 
 class HomeFragment : Fragment(R.layout.fragment_home) {
@@ -42,9 +39,18 @@ class HomeFragment : Fragment(R.layout.fragment_home) {
         }
     }
 
-    private fun setupView() {
-        binding.homeButtonSearch.setOnClickListener {
-            getMeaningOfWord(binding.editTextSearch.text.toString())
+    private fun setupView() = with(binding) {
+        homeButtonSearch.setOnClickListener {
+            getMeaningOfWord(editTextSearch.text.toString())
+            hideKeyboard()
+        }
+
+        editTextSearch.setOnEditorActionListener { _, actionId, _ ->
+            if (editTextSearch.text.isNotBlank()) {
+                if (actionId == EditorInfo.IME_ACTION_SEARCH) getMeaningOfWord(editTextSearch.text.toString())
+                hideKeyboard()
+            }
+            true
         }
 
         view?.setOnTouchListener(object : SwipeListener(requireActivity()) {
@@ -56,21 +62,21 @@ class HomeFragment : Fragment(R.layout.fragment_home) {
         adapter = HistoryAdapter { word ->
             getMeaningOfWord(word)
         }
-        binding.rvHistory.adapter = adapter
+        rvHistory.adapter = adapter
     }
 
     private fun getMeaningOfWord(word: String) {
         viewModel.getMeaningOfWord(word).observe(viewLifecycleOwner) { result ->
             if (result != null) {
                 when (result) {
-                    is Resource.Loading -> binding.loadingState.visibility = View.VISIBLE
+                    is Resource.Loading -> showLoading(true)
                     is Resource.Success -> {
-                        binding.loadingState.visibility = View.GONE
+                        showLoading(false)
                         navigateToDetail(result, word)
                         saveWordToHistory(word)
                     }
                     is Resource.Error -> {
-                        binding.loadingState.visibility = View.GONE
+                        showLoading(false)
                         Toast.makeText(
                             requireContext(),
                             "${result.message}",
@@ -82,6 +88,10 @@ class HomeFragment : Fragment(R.layout.fragment_home) {
         }
     }
 
+    fun showLoading(isLoading: Boolean) {
+        if (isLoading) binding.loadingState.visible() else binding.loadingState.gone()
+    }
+
     private fun saveWordToHistory(word: String) {
         viewModel.addToHistory(HistoryEntity(word.lowercase()))
     }
@@ -90,11 +100,13 @@ class HomeFragment : Fragment(R.layout.fragment_home) {
         val listWordModel = ListWordModel(
             word = word,
             listWords = result?.data!!,
+        ).toJson()
+        startActivity(
+            Intent(requireActivity(), DetailActivity::class.java).putExtra(
+                "data",
+                listWordModel,
+            ),
         )
-        val dataJson = Gson().toJson(listWordModel)
-        val intent = Intent(requireActivity(), DetailActivity::class.java)
-        intent.putExtra("data", dataJson)
-        startActivity(intent)
     }
 
     private fun showBottomDialog() {

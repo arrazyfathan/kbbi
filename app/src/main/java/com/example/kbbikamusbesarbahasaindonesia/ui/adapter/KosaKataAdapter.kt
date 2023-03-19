@@ -6,7 +6,7 @@ import android.widget.Filter
 import android.widget.Filterable
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.RecyclerView
-import com.example.kbbikamusbesarbahasaindonesia.data.KosaKata
+import com.example.kbbikamusbesarbahasaindonesia.core.data.source.local.KosaKata
 import com.example.kbbikamusbesarbahasaindonesia.databinding.ItemListKosaKataBinding
 
 class KosaKataAdapter(

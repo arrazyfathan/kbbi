@@ -2,27 +2,13 @@ package com.example.kbbikamusbesarbahasaindonesia.ui.saved
 
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.ViewModel
-import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.asLiveData
-import com.example.kbbikamusbesarbahasaindonesia.model.Kata
-import com.example.kbbikamusbesarbahasaindonesia.repository.KataRepository
-import java.lang.IllegalArgumentException
+import com.example.kbbikamusbesarbahasaindonesia.core.data.source.local.entity.ListWordEntity
+import com.example.kbbikamusbesarbahasaindonesia.core.domain.usecase.WordUseCase
 
 class SavedViewModel(
-    repository: KataRepository
+    private val wordUseCase: WordUseCase,
 ) : ViewModel() {
 
-    val savedKata: LiveData<List<Kata>> = repository.allSavedKata.asLiveData()
-
-}
-
-
-class SavedViewModelFactory(private val repository: KataRepository) : ViewModelProvider.Factory {
-    override fun <T : ViewModel> create(modelClass: Class<T>): T {
-        if (modelClass.isAssignableFrom(SavedViewModel::class.java)) {
-            @Suppress("UNCHECKED_CAST")
-            return SavedViewModel(repository) as T
-        }
-        throw IllegalArgumentException("Unknown ViewModel class")
-    }
+    fun getBookmarks(): LiveData<List<ListWordEntity>> = wordUseCase.getBookmarks().asLiveData()
 }

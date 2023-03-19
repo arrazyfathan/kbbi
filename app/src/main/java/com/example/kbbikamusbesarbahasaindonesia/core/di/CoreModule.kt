@@ -8,7 +8,6 @@ import com.example.kbbikamusbesarbahasaindonesia.core.data.source.remote.RemoteD
 import com.example.kbbikamusbesarbahasaindonesia.core.data.source.remote.network.ApiService
 import com.example.kbbikamusbesarbahasaindonesia.core.domain.repository.IWordRepository
 import com.example.kbbikamusbesarbahasaindonesia.core.utils.AppExecutors
-import com.example.kbbikamusbesarbahasaindonesia.repository.KataRepository
 import com.example.kbbikamusbesarbahasaindonesia.utils.Constant
 import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
@@ -53,7 +52,6 @@ val networkModule = module {
 }
 
 val repositoryModule = module {
-    single { KataRepository(get()) }
     single { RemoteDataSource(get()) }
     single { LocalDataSource(get()) }
     factory { AppExecutors() }

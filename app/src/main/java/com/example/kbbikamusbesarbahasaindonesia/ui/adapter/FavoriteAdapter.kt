@@ -2,17 +2,29 @@ package com.example.kbbikamusbesarbahasaindonesia.ui.adapter
 
 import android.view.LayoutInflater
 import android.view.ViewGroup
+import androidx.recyclerview.widget.AsyncListDiffer
+import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.RecyclerView
+import com.example.kbbikamusbesarbahasaindonesia.core.data.source.local.entity.ListWordEntity
 import com.example.kbbikamusbesarbahasaindonesia.databinding.ItemListFavoriteBinding
-import com.example.kbbikamusbesarbahasaindonesia.model.Kata
 
 class FavoriteAdapter(
-    private val listSavedKata: List<Kata>,
-    private val clickListener: (Kata) -> Unit
+    private val listener: (ListWordEntity) -> Unit,
 ) : RecyclerView.Adapter<FavoriteAdapter.ViewHolder>() {
 
     inner class ViewHolder(val binding: ItemListFavoriteBinding) :
-        RecyclerView.ViewHolder(binding.root)
+        RecyclerView.ViewHolder(binding.root) {
+        fun bind(data: ListWordEntity) {
+            with(binding) {
+                kataSaved.text = data.word.replaceFirstChar { it.uppercase() }
+                lemmaSaved.text = data.listWords[0].entry
+
+                root.setOnClickListener {
+                    listener(data)
+                }
+            }
+        }
+    }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
         val view =
@@ -21,19 +33,24 @@ class FavoriteAdapter(
     }
 
     override fun onBindViewHolder(holder: ViewHolder, position: Int) {
-        val curretList = listSavedKata[position]
+        holder.bind(differ.currentList[position])
+    }
 
-        holder.binding.kataSaved.text = curretList.kata.replaceFirstChar { it.uppercase() }
-        holder.binding.lemmaSaved.text = curretList.data[0].lema
+    val diffCallback = object : DiffUtil.ItemCallback<ListWordEntity>() {
+        override fun areItemsTheSame(oldItem: ListWordEntity, newItem: ListWordEntity): Boolean {
+            return oldItem.word == newItem.word
+        }
 
-        holder.itemView.setOnClickListener {
-            clickListener(curretList)
+        override fun areContentsTheSame(oldItem: ListWordEntity, newItem: ListWordEntity): Boolean {
+            return oldItem == newItem
         }
     }
 
-    fun isEmpty(): Boolean = listSavedKata.isEmpty()
+    val differ = AsyncListDiffer(this, diffCallback)
+
+    fun isEmpty(): Boolean = differ.currentList.isEmpty()
 
     override fun getItemCount(): Int {
-        return listSavedKata.size
+        return differ.currentList.size
     }
 }

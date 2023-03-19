@@ -1,10 +1,9 @@
 package com.example.kbbikamusbesarbahasaindonesia.core.data.source.local.room
 
 import androidx.room.TypeConverter
+import com.example.kbbikamusbesarbahasaindonesia.core.data.source.local.entity.ListWordEntity
 import com.example.kbbikamusbesarbahasaindonesia.core.data.source.local.entity.MeaningEntity
 import com.example.kbbikamusbesarbahasaindonesia.core.data.source.local.entity.WordEntity
-import com.example.kbbikamusbesarbahasaindonesia.model.Arti
-import com.example.kbbikamusbesarbahasaindonesia.model.Data
 import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
 
@@ -14,10 +13,10 @@ class Converters {
 
         @JvmStatic
         @TypeConverter
-        fun toListData(string: String?): List<Data>? {
-            val listType = object : TypeToken<List<Data>>() {}.type
+        fun toWordList(string: String?): List<ListWordEntity>? {
+            val listType = object : TypeToken<List<ListWordEntity>>() {}.type
             return if (string != null) {
-                Gson().fromJson<List<Data>>(string, listType)
+                Gson().fromJson<List<ListWordEntity>>(string, listType)
             } else {
                 null
             }
@@ -26,20 +25,9 @@ class Converters {
         @JvmStatic
         @TypeConverter
         fun toListWord(string: String?): List<WordEntity>? {
-            val listType = object : TypeToken<List<Data>>() {}.type
+            val listType = object : TypeToken<List<WordEntity>>() {}.type
             return if (string != null) {
                 Gson().fromJson<List<WordEntity>>(string, listType)
-            } else {
-                null
-            }
-        }
-
-        @JvmStatic
-        @TypeConverter
-        fun fromListData(list: List<Data>?): String? {
-            val type = object : TypeToken<List<Data>>() {}.type
-            return if (list != null) {
-                Gson().toJson(list, type)
             } else {
                 null
             }
@@ -58,10 +46,10 @@ class Converters {
 
         @JvmStatic
         @TypeConverter
-        fun toListArti(string: String?): List<Arti>? {
-            val listType = object : TypeToken<List<Arti>>() {}.type
-            return if (string != null) {
-                Gson().fromJson<List<Arti>>(string, listType)
+        fun fromWordList(list: List<ListWordEntity>?): String? {
+            val type = object : TypeToken<List<ListWordEntity>>() {}.type
+            return if (list != null) {
+                Gson().toJson(list, type)
             } else {
                 null
             }
@@ -73,17 +61,6 @@ class Converters {
             val listType = object : TypeToken<List<MeaningEntity>>() {}.type
             return if (string != null) {
                 Gson().fromJson<List<MeaningEntity>>(string, listType)
-            } else {
-                null
-            }
-        }
-
-        @JvmStatic
-        @TypeConverter
-        fun fromListArti(list: List<Arti>?): String? {
-            val type = object : TypeToken<List<Arti>>() {}.type
-            return if (list != null) {
-                Gson().toJson(list, type)
             } else {
                 null
             }

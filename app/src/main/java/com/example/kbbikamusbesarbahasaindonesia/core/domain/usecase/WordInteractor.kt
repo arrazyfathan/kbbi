@@ -2,6 +2,7 @@ package com.example.kbbikamusbesarbahasaindonesia.core.domain.usecase
 
 import com.example.kbbikamusbesarbahasaindonesia.core.data.Resource
 import com.example.kbbikamusbesarbahasaindonesia.core.data.source.local.entity.HistoryEntity
+import com.example.kbbikamusbesarbahasaindonesia.core.data.source.local.entity.ListWordEntity
 import com.example.kbbikamusbesarbahasaindonesia.core.domain.model.WordModel
 import com.example.kbbikamusbesarbahasaindonesia.core.domain.repository.IWordRepository
 import kotlinx.coroutines.flow.Flow
@@ -33,5 +34,9 @@ class WordInteractor(private val wordRepository: IWordRepository) : WordUseCase 
 
     override fun checkIfWordIsSaved(word: String): Flow<Boolean> {
         return wordRepository.checkIfWordIsSaved(word)
+    }
+
+    override fun getBookmarks(): Flow<List<ListWordEntity>> {
+        return wordRepository.getBookmarks()
     }
 }

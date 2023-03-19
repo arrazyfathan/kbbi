@@ -63,4 +63,8 @@ class WordRepository(
     override fun checkIfWordIsSaved(word: String): Flow<Boolean> {
         return localDataSource.checkWordIsExist(word)
     }
+
+    override fun getBookmarks(): Flow<List<ListWordEntity>> {
+        return localDataSource.getAllWords()
+    }
 }
