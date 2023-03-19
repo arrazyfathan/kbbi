@@ -1,9 +1,11 @@
 package com.example.kbbikamusbesarbahasaindonesia.core.utils
 
+import com.example.kbbikamusbesarbahasaindonesia.core.data.source.local.entity.ListWordEntity
 import com.example.kbbikamusbesarbahasaindonesia.core.data.source.local.entity.MeaningEntity
 import com.example.kbbikamusbesarbahasaindonesia.core.data.source.local.entity.WordEntity
 import com.example.kbbikamusbesarbahasaindonesia.core.data.source.remote.response.Meaning
 import com.example.kbbikamusbesarbahasaindonesia.core.data.source.remote.response.WordResponse
+import com.example.kbbikamusbesarbahasaindonesia.core.domain.model.ListWordModel
 import com.example.kbbikamusbesarbahasaindonesia.core.domain.model.MeaningModel
 import com.example.kbbikamusbesarbahasaindonesia.core.domain.model.WordModel
 
@@ -47,6 +49,15 @@ object DataMapper {
             MeaningModel(
                 it.wordClass,
                 it.description,
+            )
+        }
+    }
+
+    fun mapListWordEntityToDomain(input: List<ListWordEntity>): List<ListWordModel> {
+        return input.map {
+            ListWordModel(
+                word = it.word,
+                listWords = mapEntitiesToDomain(it.listWords)
             )
         }
     }

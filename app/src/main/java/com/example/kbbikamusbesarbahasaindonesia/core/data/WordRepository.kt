@@ -5,6 +5,7 @@ import com.example.kbbikamusbesarbahasaindonesia.core.data.source.local.entity.H
 import com.example.kbbikamusbesarbahasaindonesia.core.data.source.local.entity.ListWordEntity
 import com.example.kbbikamusbesarbahasaindonesia.core.data.source.remote.RemoteDataSource
 import com.example.kbbikamusbesarbahasaindonesia.core.data.source.remote.network.ApiResponse
+import com.example.kbbikamusbesarbahasaindonesia.core.domain.model.ListWordModel
 import com.example.kbbikamusbesarbahasaindonesia.core.domain.model.WordModel
 import com.example.kbbikamusbesarbahasaindonesia.core.domain.repository.IWordRepository
 import com.example.kbbikamusbesarbahasaindonesia.core.utils.DataMapper
@@ -12,6 +13,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.withContext
 
 /**
@@ -64,7 +66,9 @@ class WordRepository(
         return localDataSource.checkWordIsExist(word)
     }
 
-    override fun getBookmarks(): Flow<List<ListWordEntity>> {
-        return localDataSource.getAllWords()
+    override fun getBookmarks(): Flow<List<ListWordModel>> {
+        return localDataSource.getAllWords().map {
+            DataMapper.mapListWordEntityToDomain(it)
+        }
     }
 }

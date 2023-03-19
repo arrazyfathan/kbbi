@@ -7,8 +7,6 @@ import androidx.core.view.isVisible
 import androidx.fragment.app.Fragment
 import androidx.recyclerview.widget.GridLayoutManager
 import com.example.kbbikamusbesarbahasaindonesia.R
-import com.example.kbbikamusbesarbahasaindonesia.core.domain.model.ListWordModel
-import com.example.kbbikamusbesarbahasaindonesia.core.utils.DataMapper
 import com.example.kbbikamusbesarbahasaindonesia.databinding.FragmentSavedBinding
 import com.example.kbbikamusbesarbahasaindonesia.ui.adapter.FavoriteAdapter
 import com.example.kbbikamusbesarbahasaindonesia.ui.detail.DetailActivity
@@ -30,13 +28,12 @@ class SavedFragment : Fragment(R.layout.fragment_saved) {
 
     private fun setupView() = with(binding) {
         adapter = FavoriteAdapter { items ->
-            val listWordModel = ListWordModel(
-                word = items.word,
-                listWords = DataMapper.mapEntitiesToDomain(items.listWords),
-            ).toJson()
-            val intent = Intent(requireActivity(), DetailActivity::class.java)
-            intent.putExtra("data", listWordModel)
-            startActivity(intent)
+            startActivity(
+                Intent(requireActivity(), DetailActivity::class.java).putExtra(
+                    "data",
+                    items.toJson(),
+                ),
+            )
         }
         rvFavoritKata.adapter = adapter
         rvFavoritKata.layoutManager = GridLayoutManager(requireActivity(), 2)

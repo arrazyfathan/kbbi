@@ -1,5 +1,6 @@
 package com.example.kbbikamusbesarbahasaindonesia.ui.home
 
+import android.annotation.SuppressLint
 import android.content.Intent
 import android.os.Bundle
 import android.view.*
@@ -16,6 +17,7 @@ import com.example.kbbikamusbesarbahasaindonesia.ui.detail.DetailActivity
 import com.example.kbbikamusbesarbahasaindonesia.ui.home.adapter.HistoryAdapter
 import com.example.kbbikamusbesarbahasaindonesia.utils.*
 import com.google.android.material.bottomsheet.BottomSheetDialog
+import com.jakewharton.rxbinding4.widget.textChanges
 import org.koin.androidx.viewmodel.ext.android.viewModel
 
 class HomeFragment : Fragment(R.layout.fragment_home) {
@@ -39,6 +41,7 @@ class HomeFragment : Fragment(R.layout.fragment_home) {
         }
     }
 
+    @SuppressLint("CheckResult")
     private fun setupView() = with(binding) {
         homeButtonSearch.setOnClickListener {
             getMeaningOfWord(editTextSearch.text.toString())
@@ -53,6 +56,15 @@ class HomeFragment : Fragment(R.layout.fragment_home) {
             true
         }
 
+        editTextSearch.textChanges()
+            .skipInitialValue()
+            .map { text ->
+                text.isNotBlank()
+            }
+            .subscribe {
+                enableSearchButton(it)
+            }
+
         view?.setOnTouchListener(object : SwipeListener(requireActivity()) {
             override fun onSwipeTop() {
                 showBottomDialog()
@@ -63,6 +75,12 @@ class HomeFragment : Fragment(R.layout.fragment_home) {
             getMeaningOfWord(word)
         }
         rvHistory.adapter = adapter
+    }
+
+    private fun enableSearchButton(isEnable: Boolean) {
+        if (isEnable) {
+        } else {
+        }
     }
 
     private fun getMeaningOfWord(word: String) {

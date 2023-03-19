@@ -23,7 +23,7 @@ android {
     def appAliasName = "KBBI"
     def versionPropertiesFile = file('version.properties')
 
-    if(versionPropertiesFile.canRead()) {
+    if (versionPropertiesFile.canRead()) {
         Properties versionProperties = new Properties()
 
         versionProperties.load(new FileInputStream(versionPropertiesFile))
@@ -65,7 +65,7 @@ android {
                 applicationId packageName + ".dev"
                 dimension "stage"
 
-                if(versionDev == 0) {
+                if (versionDev == 0) {
                     versionName "${versionMajor}.${versionMinor}.${versionMaintenance}-dev"
                     resValue "string", "version_name", "${versionMajor}.${versionMinor}.${versionMaintenance}-dev"
                 } else {
@@ -87,7 +87,7 @@ android {
                 applicationId packageName
                 dimension = "stage"
                 resValue "string", "version_code", "${versionCode}"
-                if(versionMaintenance == 0){
+                if (versionMaintenance == 0) {
                     versionName "${versionMajor}.${versionMinor}"
                     resValue "string", "version_name", "${versionMajor}.${versionMinor}"
                 } else {
@@ -191,5 +191,10 @@ dependencies {
     // Koin
     implementation "io.insert-koin:koin-core:3.3.3"
     implementation "io.insert-koin:koin-android:3.3.3"
+
+    //RxBinding
+    implementation 'com.jakewharton.rxbinding4:rxbinding:4.0.0'
+    implementation "io.reactivex.rxjava2:rxjava:2.2.19"
+
 
 }

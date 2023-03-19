@@ -5,16 +5,16 @@ import android.view.ViewGroup
 import androidx.recyclerview.widget.AsyncListDiffer
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.RecyclerView
-import com.example.kbbikamusbesarbahasaindonesia.core.data.source.local.entity.ListWordEntity
+import com.example.kbbikamusbesarbahasaindonesia.core.domain.model.ListWordModel
 import com.example.kbbikamusbesarbahasaindonesia.databinding.ItemListFavoriteBinding
 
 class FavoriteAdapter(
-    private val listener: (ListWordEntity) -> Unit,
+    private val listener: (ListWordModel) -> Unit,
 ) : RecyclerView.Adapter<FavoriteAdapter.ViewHolder>() {
 
     inner class ViewHolder(val binding: ItemListFavoriteBinding) :
         RecyclerView.ViewHolder(binding.root) {
-        fun bind(data: ListWordEntity) {
+        fun bind(data: ListWordModel) {
             with(binding) {
                 kataSaved.text = data.word.replaceFirstChar { it.uppercase() }
                 lemmaSaved.text = data.listWords[0].entry
@@ -36,12 +36,12 @@ class FavoriteAdapter(
         holder.bind(differ.currentList[position])
     }
 
-    val diffCallback = object : DiffUtil.ItemCallback<ListWordEntity>() {
-        override fun areItemsTheSame(oldItem: ListWordEntity, newItem: ListWordEntity): Boolean {
+    val diffCallback = object : DiffUtil.ItemCallback<ListWordModel>() {
+        override fun areItemsTheSame(oldItem: ListWordModel, newItem: ListWordModel): Boolean {
             return oldItem.word == newItem.word
         }
 
-        override fun areContentsTheSame(oldItem: ListWordEntity, newItem: ListWordEntity): Boolean {
+        override fun areContentsTheSame(oldItem: ListWordModel, newItem: ListWordModel): Boolean {
             return oldItem == newItem
         }
     }
