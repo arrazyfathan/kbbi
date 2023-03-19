@@ -1,4 +1,4 @@
-package com.example.kbbikamusbesarbahasaindonesia.ui.saved
+package com.example.kbbikamusbesarbahasaindonesia.ui.bookmark
 
 import android.content.Intent
 import android.os.Bundle

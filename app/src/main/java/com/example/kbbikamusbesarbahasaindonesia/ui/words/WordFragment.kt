@@ -1,4 +1,4 @@
-package com.example.kbbikamusbesarbahasaindonesia.ui.word
+package com.example.kbbikamusbesarbahasaindonesia.ui.words
 
 import android.content.Context
 import android.content.Intent

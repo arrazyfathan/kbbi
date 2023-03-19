@@ -13,12 +13,12 @@
 
     <fragment
         android:id="@+id/savedFragment"
-        android:name="com.example.kbbikamusbesarbahasaindonesia.ui.saved.SavedFragment"
+        android:name="com.example.kbbikamusbesarbahasaindonesia.ui.bookmark.SavedFragment"
         android:label="fragment_saved"
         tools:layout="@layout/fragment_saved" />
     <fragment
         android:id="@+id/wordFragment"
-        android:name="com.example.kbbikamusbesarbahasaindonesia.ui.word.WordFragment"
+        android:name="com.example.kbbikamusbesarbahasaindonesia.ui.words.WordFragment"
         android:label="fragment_word"
         tools:layout="@layout/fragment_word" />
 

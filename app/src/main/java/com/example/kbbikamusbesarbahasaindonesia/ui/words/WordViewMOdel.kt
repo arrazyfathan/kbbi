@@ -1,4 +1,4 @@
-package com.example.kbbikamusbesarbahasaindonesia.ui.word
+package com.example.kbbikamusbesarbahasaindonesia.ui.words
 
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.ViewModel

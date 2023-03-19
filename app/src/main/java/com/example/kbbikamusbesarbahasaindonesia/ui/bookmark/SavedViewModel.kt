@@ -1,9 +1,8 @@
-package com.example.kbbikamusbesarbahasaindonesia.ui.saved
+package com.example.kbbikamusbesarbahasaindonesia.ui.bookmark
 
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.asLiveData
-import com.example.kbbikamusbesarbahasaindonesia.core.data.source.local.entity.ListWordEntity
 import com.example.kbbikamusbesarbahasaindonesia.core.domain.model.ListWordModel
 import com.example.kbbikamusbesarbahasaindonesia.core.domain.usecase.WordUseCase
 

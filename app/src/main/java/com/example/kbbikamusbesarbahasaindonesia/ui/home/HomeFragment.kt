@@ -4,6 +4,7 @@ import android.annotation.SuppressLint
 import android.content.Intent
 import android.os.Bundle
 import android.view.*
+import android.view.animation.LinearInterpolator
 import android.view.inputmethod.EditorInfo
 import android.widget.Toast
 import androidx.fragment.app.Fragment
@@ -19,6 +20,7 @@ import com.example.kbbikamusbesarbahasaindonesia.utils.*
 import com.google.android.material.bottomsheet.BottomSheetDialog
 import com.jakewharton.rxbinding4.widget.textChanges
 import org.koin.androidx.viewmodel.ext.android.viewModel
+import kotlin.math.hypot
 
 class HomeFragment : Fragment(R.layout.fragment_home) {
 
@@ -58,11 +60,13 @@ class HomeFragment : Fragment(R.layout.fragment_home) {
 
         editTextSearch.textChanges()
             .skipInitialValue()
-            .map { text ->
-                text.isNotBlank()
-            }
-            .subscribe {
-                enableSearchButton(it)
+            .subscribe { text ->
+                val filteredText = text.toString().replace(" ", "")
+                if (editTextSearch.text.toString() != filteredText) {
+                    editTextSearch.setText(filteredText)
+                    editTextSearch.setSelection(filteredText.length)
+                }
+                enableSearchButton(text)
             }
 
         view?.setOnTouchListener(object : SwipeListener(requireActivity()) {
@@ -77,9 +81,10 @@ class HomeFragment : Fragment(R.layout.fragment_home) {
         rvHistory.adapter = adapter
     }
 
-    private fun enableSearchButton(isEnable: Boolean) {
-        if (isEnable) {
-        } else {
+    private fun enableSearchButton(text: CharSequence) {
+        when {
+            text.length == 2 && !text.contains(" ") -> revealButtonSearch()
+            text.length < 2 -> hideButtonSearch()
         }
     }
 
@@ -104,6 +109,33 @@ class HomeFragment : Fragment(R.layout.fragment_home) {
                 }
             }
         }
+    }
+
+    private fun revealButtonSearch() {
+        val button = binding.homeButtonSearch
+        val cx = button.width / 2
+        val cy = button.height / 2
+        val finalRadius = hypot(cx.toDouble(), cy.toDouble()).toFloat()
+        val anim = ViewAnimationUtils.createCircularReveal(button, cx, cy, 0F, finalRadius).apply {
+            duration = 300
+            interpolator = LinearInterpolator()
+        }
+        anim.start()
+        button.visible()
+    }
+
+    private fun hideButtonSearch() {
+        val button = binding.homeButtonSearch
+        val cx = button.width / 2
+        val cy = button.height / 2
+        val initialRadius = hypot(cx.toDouble(), cy.toDouble()).toFloat()
+        val anim =
+            ViewAnimationUtils.createCircularReveal(button, cx, cy, initialRadius, 0F).apply {
+                duration = 300
+                interpolator = LinearInterpolator()
+            }
+        button.invisible()
+        anim.start()
     }
 
     fun showLoading(isLoading: Boolean) {

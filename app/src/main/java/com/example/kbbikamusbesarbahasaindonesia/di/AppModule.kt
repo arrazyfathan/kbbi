@@ -4,8 +4,8 @@ import com.example.kbbikamusbesarbahasaindonesia.core.domain.usecase.WordInterac
 import com.example.kbbikamusbesarbahasaindonesia.core.domain.usecase.WordUseCase
 import com.example.kbbikamusbesarbahasaindonesia.ui.detail.DetailViewModel
 import com.example.kbbikamusbesarbahasaindonesia.ui.home.HomeViewModel
-import com.example.kbbikamusbesarbahasaindonesia.ui.saved.SavedViewModel
-import com.example.kbbikamusbesarbahasaindonesia.ui.word.WordViewModel
+import com.example.kbbikamusbesarbahasaindonesia.ui.bookmark.SavedViewModel
+import com.example.kbbikamusbesarbahasaindonesia.ui.words.WordViewModel
 import org.koin.androidx.viewmodel.dsl.viewModel
 import org.koin.dsl.module
 
