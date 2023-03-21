@@ -11,5 +11,7 @@
     <color name="text_primary">#090B1E</color>
     <color name="text_h1">#2E494C</color>
     <color name="text_p">#7C8796</color>
+    <color name="red">#F3254F</color>
+    <color name="more_red">#A60B2B</color>
 
 </resources>
