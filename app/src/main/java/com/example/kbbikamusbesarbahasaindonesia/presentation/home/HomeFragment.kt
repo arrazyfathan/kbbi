@@ -1,4 +1,4 @@
-package com.example.kbbikamusbesarbahasaindonesia.ui.home
+package com.example.kbbikamusbesarbahasaindonesia.presentation.home
 
 import android.annotation.SuppressLint
 import android.content.Intent
@@ -17,8 +17,8 @@ import com.example.kbbikamusbesarbahasaindonesia.core.data.source.local.entity.H
 import com.example.kbbikamusbesarbahasaindonesia.core.domain.model.ListWordModel
 import com.example.kbbikamusbesarbahasaindonesia.core.domain.model.WordModel
 import com.example.kbbikamusbesarbahasaindonesia.databinding.FragmentHomeBinding
-import com.example.kbbikamusbesarbahasaindonesia.ui.detail.DetailActivity
-import com.example.kbbikamusbesarbahasaindonesia.ui.home.adapter.HistoryAdapter
+import com.example.kbbikamusbesarbahasaindonesia.presentation.detail.DetailActivity
+import com.example.kbbikamusbesarbahasaindonesia.presentation.home.adapter.HistoryAdapter
 import com.example.kbbikamusbesarbahasaindonesia.utils.*
 import com.google.android.material.bottomsheet.BottomSheetDialog
 import com.jakewharton.rxbinding4.widget.textChanges

@@ -1,4 +1,4 @@
-package com.example.kbbikamusbesarbahasaindonesia.ui.bookmark
+package com.example.kbbikamusbesarbahasaindonesia.presentation.bookmark
 
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.ViewModel

@@ -1,4 +1,4 @@
-package com.example.kbbikamusbesarbahasaindonesia.ui.words
+package com.example.kbbikamusbesarbahasaindonesia.presentation.words
 
 import android.annotation.SuppressLint
 import android.content.Context
@@ -14,8 +14,8 @@ import com.example.kbbikamusbesarbahasaindonesia.core.data.source.local.KosaKata
 import com.example.kbbikamusbesarbahasaindonesia.core.domain.model.ListWordModel
 import com.example.kbbikamusbesarbahasaindonesia.core.domain.model.WordModel
 import com.example.kbbikamusbesarbahasaindonesia.databinding.FragmentWordBinding
-import com.example.kbbikamusbesarbahasaindonesia.ui.adapter.KosaKataAdapter
-import com.example.kbbikamusbesarbahasaindonesia.ui.detail.DetailActivity
+import com.example.kbbikamusbesarbahasaindonesia.presentation.adapter.KosaKataAdapter
+import com.example.kbbikamusbesarbahasaindonesia.presentation.detail.DetailActivity
 import com.example.kbbikamusbesarbahasaindonesia.utils.toJson
 import com.example.kbbikamusbesarbahasaindonesia.utils.viewBinding
 import com.google.gson.GsonBuilder

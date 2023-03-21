@@ -6,7 +6,7 @@
     android:layout_height="match_parent"
     android:background="@color/blue_bg"
     android:fitsSystemWindows="true"
-    tools:context=".ui.words.WordFragment">
+    tools:context=".presentation.words.WordFragment">
 
     <com.google.android.material.appbar.AppBarLayout
         android:layout_width="match_parent"

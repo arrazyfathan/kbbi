@@ -1,4 +1,4 @@
-package com.example.kbbikamusbesarbahasaindonesia.ui.detail
+package com.example.kbbikamusbesarbahasaindonesia.presentation.detail
 
 import android.os.Bundle
 import android.widget.Toast
@@ -7,7 +7,7 @@ import androidx.core.content.ContextCompat
 import com.example.kbbikamusbesarbahasaindonesia.R
 import com.example.kbbikamusbesarbahasaindonesia.core.domain.model.ListWordModel
 import com.example.kbbikamusbesarbahasaindonesia.databinding.ActivityDetailBinding
-import com.example.kbbikamusbesarbahasaindonesia.ui.adapter.WordAdapter
+import com.example.kbbikamusbesarbahasaindonesia.presentation.adapter.WordAdapter
 import com.example.kbbikamusbesarbahasaindonesia.utils.viewBinding
 import com.google.gson.Gson
 import org.koin.androidx.viewmodel.ext.android.viewModel

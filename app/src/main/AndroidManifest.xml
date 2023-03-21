@@ -15,15 +15,15 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.KBBIKamusBesarBahasaIndonesia">
         <activity
-            android:name=".ui.detail.DetailActivity"
+            android:name=".presentation.detail.DetailActivity"
             android:theme="@style/Detail.Theme"
             android:exported="false" />
         <activity
-            android:name=".ui.home.MainActivity"
+            android:name=".presentation.home.MainActivity"
             android:windowSoftInputMode="adjustNothing"
             android:exported="false" />
         <activity
-            android:name=".ui.splash.SplashScreenActivity"
+            android:name=".presentation.splash.SplashScreenActivity"
             android:exported="true"
             android:theme="@style/SplashTheme">
             <intent-filter>

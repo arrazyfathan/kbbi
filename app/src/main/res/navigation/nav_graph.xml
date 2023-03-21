@@ -7,18 +7,18 @@
 
     <fragment
         android:id="@+id/homeFragment"
-        android:name="com.example.kbbikamusbesarbahasaindonesia.ui.home.HomeFragment"
+        android:name="com.example.kbbikamusbesarbahasaindonesia.presentation.home.HomeFragment"
         android:label="fragment_home"
         tools:layout="@layout/fragment_home" />
 
     <fragment
         android:id="@+id/savedFragment"
-        android:name="com.example.kbbikamusbesarbahasaindonesia.ui.bookmark.SavedFragment"
+        android:name="com.example.kbbikamusbesarbahasaindonesia.presentation.bookmark.SavedFragment"
         android:label="fragment_saved"
         tools:layout="@layout/fragment_saved" />
     <fragment
         android:id="@+id/wordFragment"
-        android:name="com.example.kbbikamusbesarbahasaindonesia.ui.words.WordFragment"
+        android:name="com.example.kbbikamusbesarbahasaindonesia.presentation.words.WordFragment"
         android:label="fragment_word"
         tools:layout="@layout/fragment_word" />
 

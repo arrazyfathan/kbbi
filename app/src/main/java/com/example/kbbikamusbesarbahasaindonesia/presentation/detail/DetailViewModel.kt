@@ -1,4 +1,4 @@
-package com.example.kbbikamusbesarbahasaindonesia.ui.detail
+package com.example.kbbikamusbesarbahasaindonesia.presentation.detail
 
 import androidx.lifecycle.* // ktlint-disable no-wildcard-imports
 import com.example.kbbikamusbesarbahasaindonesia.core.domain.model.WordModel

@@ -1,4 +1,4 @@
-package com.example.kbbikamusbesarbahasaindonesia.ui.adapter
+package com.example.kbbikamusbesarbahasaindonesia.presentation.adapter
 
 import android.annotation.SuppressLint
 import android.content.ClipData

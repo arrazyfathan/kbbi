@@ -6,7 +6,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="@color/blue_primary"
-    tools:context=".ui.home.HomeFragment">
+    tools:context=".presentation.home.HomeFragment">
 
     <TextView
         android:id="@+id/welcome_label"

@@ -1,4 +1,4 @@
-package com.example.kbbikamusbesarbahasaindonesia.ui.bookmark
+package com.example.kbbikamusbesarbahasaindonesia.presentation.bookmark
 
 import android.content.Intent
 import android.os.Bundle
@@ -8,8 +8,9 @@ import androidx.fragment.app.Fragment
 import com.example.kbbikamusbesarbahasaindonesia.R
 import com.example.kbbikamusbesarbahasaindonesia.core.domain.model.ListWordModel
 import com.example.kbbikamusbesarbahasaindonesia.databinding.FragmentSavedBinding
-import com.example.kbbikamusbesarbahasaindonesia.ui.adapter.FavoriteAdapter
-import com.example.kbbikamusbesarbahasaindonesia.ui.detail.DetailActivity
+import com.example.kbbikamusbesarbahasaindonesia.presentation.adapter.FavoriteAdapter
+import com.example.kbbikamusbesarbahasaindonesia.presentation.customviews.CustomDialog
+import com.example.kbbikamusbesarbahasaindonesia.presentation.detail.DetailActivity
 import com.example.kbbikamusbesarbahasaindonesia.utils.toJson
 import com.example.kbbikamusbesarbahasaindonesia.utils.viewBinding
 import org.koin.androidx.viewmodel.ext.android.viewModel
@@ -40,11 +41,31 @@ class SavedFragment : Fragment(R.layout.fragment_saved) {
                 }
 
                 override fun onDeleteListener(model: ListWordModel) {
-                    viewModel.removeFromBookmark(model.word)
+                    showDialogDelete(model)
                 }
             },
         )
         rvFavoritKata.adapter = adapter
+    }
+
+    private fun showDialogDelete(model: ListWordModel) {
+        CustomDialog.Builder(requireContext())
+            .setTitle("Hapus kata?")
+            .setMessage("Anda yakin ingin menghapus kata?")
+            .isCancelable(false)
+            .setOkTitle("Hapus")
+            .setCancelTitle("Batal")
+            .onResponse { type ->
+                when (type) {
+                    CustomDialog.ResponseType.YES -> removeWordFromBookmark(word = model.word)
+                    CustomDialog.ResponseType.NO -> {}
+                }
+            }
+            .build()
+    }
+
+    private fun removeWordFromBookmark(word: String) {
+        viewModel.removeFromBookmark(word)
     }
 
     private fun observe() = with(binding) {

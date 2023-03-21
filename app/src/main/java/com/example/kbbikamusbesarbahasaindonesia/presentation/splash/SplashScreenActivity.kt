@@ -1,4 +1,4 @@
-package com.example.kbbikamusbesarbahasaindonesia.ui.splash
+package com.example.kbbikamusbesarbahasaindonesia.presentation.splash
 
 import android.annotation.SuppressLint
 import android.content.Intent
@@ -10,7 +10,7 @@ import android.view.animation.LinearInterpolator
 import androidx.appcompat.app.AppCompatActivity
 import com.example.kbbikamusbesarbahasaindonesia.R
 import com.example.kbbikamusbesarbahasaindonesia.databinding.ActivitySplashScreenBinding
-import com.example.kbbikamusbesarbahasaindonesia.ui.home.MainActivity
+import com.example.kbbikamusbesarbahasaindonesia.presentation.home.MainActivity
 import com.example.kbbikamusbesarbahasaindonesia.utils.viewBinding
 
 @SuppressLint("CustomSplashScreen")
