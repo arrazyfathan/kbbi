@@ -60,19 +60,39 @@ class DetailActivity : AppCompatActivity() {
         }
     }
 
-    private fun setBookmarkState(isSaved: Boolean) {
+    private fun setBookmarkState(isSaved: Boolean) = with(binding) {
         if (isSaved) {
-            binding.bookmark.setImageDrawable(
+            bookmark.setImageDrawable(
                 ContextCompat.getDrawable(
                     this@DetailActivity,
                     R.drawable.book_solid,
                 ),
             )
+            bookmark.imageTintList =
+                ContextCompat.getColorStateList(this@DetailActivity, R.color.white)
+            textBookmark.text = "Bookmarked"
+            textBookmark.setTextColor(ContextCompat.getColor(this@DetailActivity, R.color.white))
+            btnBookContainer.setCardBackgroundColor(
+                ContextCompat.getColor(
+                    this@DetailActivity,
+                    R.color.text_h1,
+                ),
+            )
         } else {
-            binding.bookmark.setImageDrawable(
+            bookmark.setImageDrawable(
                 ContextCompat.getDrawable(
                     this@DetailActivity,
                     R.drawable.book,
+                ),
+            )
+            textBookmark.text = "Bookmark"
+            bookmark.imageTintList =
+                ContextCompat.getColorStateList(this@DetailActivity, R.color.text_h1)
+            textBookmark.setTextColor(ContextCompat.getColor(this@DetailActivity, R.color.text_h1))
+            btnBookContainer.setCardBackgroundColor(
+                ContextCompat.getColor(
+                    this@DetailActivity,
+                    R.color.white,
                 ),
             )
         }
@@ -80,7 +100,8 @@ class DetailActivity : AppCompatActivity() {
 
     private fun setupView() {
         with(binding) {
-            kosaKata.text = listWordModel.word.replaceFirstChar { it.uppercase() }
+            expandedTitle.text = listWordModel.word.replaceFirstChar { it.uppercase() }
+            collapsedTitle.text = listWordModel.word.replaceFirstChar { it.uppercase() }
             btnBookContainer.setOnClickListener {
                 if (stateBookmark) deleteBookmark() else performBookmark()
             }
