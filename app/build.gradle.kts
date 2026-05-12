@@ -11,7 +11,7 @@ plugins {
     id("com.google.gms.google-services")
 }
 
-val packageName = "com.example.kbbikamusbesarbahasaindonesia"
+val packageName = "com.arrazyfathan.kbbi"
 val appAliasName = "KBBI"
 val versionPropertiesFile = file("version.properties")
 

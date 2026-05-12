@@ -7,13 +7,13 @@
     android:background="@color/blue_bg"
     tools:context=".presentation.detail.DetailActivity">
 
-    <com.example.kbbikamusbesarbahasaindonesia.presentation.customviews.CollapsibleAppbar
+    <com.arrazyfathan.kbbi.presentation.customviews.CollapsibleAppbar
         android:id="@+id/app_bar"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:background="@color/blue_bg">
 
-        <com.example.kbbikamusbesarbahasaindonesia.presentation.customviews.CollapsibleToolbar
+        <com.arrazyfathan.kbbi.presentation.customviews.CollapsibleToolbar
             android:id="@+id/motionLayout"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -57,9 +57,9 @@
                 app:layout_constraintTop_toTopOf="@+id/bgToolbar"
                 tools:text="Text" />
 
-        </com.example.kbbikamusbesarbahasaindonesia.presentation.customviews.CollapsibleToolbar>
+        </com.arrazyfathan.kbbi.presentation.customviews.CollapsibleToolbar>
 
-    </com.example.kbbikamusbesarbahasaindonesia.presentation.customviews.CollapsibleAppbar>
+    </com.arrazyfathan.kbbi.presentation.customviews.CollapsibleAppbar>
 
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/rv_arti_kata"
