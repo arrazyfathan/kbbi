@@ -5,8 +5,8 @@ import java.util.Properties
 
 plugins {
     id("com.android.application")
+    id("com.google.devtools.ksp")
     id("androidx.navigation.safeargs")
-    id("com.android.legacy-kapt")
     id("org.jetbrains.kotlin.plugin.parcelize")
     id("com.google.gms.google-services")
 }
@@ -19,9 +19,10 @@ if (!versionPropertiesFile.canRead()) {
     throw GradleException("Could not read version.properties!")
 }
 
-val versionProperties = Properties().apply {
-    FileInputStream(versionPropertiesFile).use(::load)
-}
+val versionProperties =
+    Properties().apply {
+        FileInputStream(versionPropertiesFile).use(::load)
+    }
 
 val versionMajor = versionProperties["VERSION_MAJOR"].toString().toInt()
 val versionMinor = versionProperties["VERSION_MINOR"].toString().toInt()
@@ -56,11 +57,12 @@ android {
         create("development") {
             applicationId = "$packageName.dev"
             dimension = "stage"
-            versionName = if (versionDev == 0) {
-                "$versionMajor.$versionMinor.$versionMaintenance-dev"
-            } else {
-                "$versionMajor.$versionMinor.$versionMaintenance-dev.$versionDev"
-            }
+            versionName =
+                if (versionDev == 0) {
+                    "$versionMajor.$versionMinor.$versionMaintenance-dev"
+                } else {
+                    "$versionMajor.$versionMinor.$versionMaintenance-dev.$versionDev"
+                }
             resValue("string", "version_name", versionName!!)
             configureAppMetadata("Dev $appAliasName")
         }
@@ -68,11 +70,12 @@ android {
         create("production") {
             applicationId = packageName
             dimension = "stage"
-            versionName = if (versionMaintenance == 0) {
-                "$versionMajor.$versionMinor"
-            } else {
-                "$versionMajor.$versionMinor.$versionMaintenance"
-            }
+            versionName =
+                if (versionMaintenance == 0) {
+                    "$versionMajor.$versionMinor"
+                } else {
+                    "$versionMajor.$versionMinor.$versionMaintenance"
+                }
             resValue("string", "version_name", versionName!!)
             configureAppMetadata(appAliasName)
         }
@@ -150,7 +153,7 @@ dependencies {
     implementation("androidx.navigation:navigation-ui-ktx:2.9.8")
 
     implementation("androidx.room:room-runtime:2.8.4")
-    kapt("androidx.room:room-compiler:2.8.4")
+    ksp("androidx.room:room-compiler:2.8.4")
     implementation("androidx.room:room-ktx:2.8.4")
 
     implementation("com.squareup.retrofit2:retrofit:3.0.0")
