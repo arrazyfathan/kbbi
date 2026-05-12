@@ -1,9 +1,9 @@
 plugins {
-    id("com.android.application") version "9.2.0" apply false
-    id("com.google.devtools.ksp") version "2.3.7" apply false
-    id("androidx.navigation.safeargs") version "2.9.8" apply false
-    id("com.google.gms.google-services") version "4.4.4" apply false
-    id("org.jetbrains.kotlin.plugin.parcelize") version "2.3.21" apply false
+    alias(libs.plugins.android.application) apply false
+    alias(libs.plugins.google.devtools.ksp) apply false
+    alias(libs.plugins.androidx.navigation.safeargs) apply false
+    alias(libs.plugins.google.gms.google.services) apply false
+    alias(libs.plugins.kotlin.parcelize) apply false
 }
 
 allprojects {
