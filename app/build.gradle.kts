@@ -14,7 +14,6 @@ plugins {
 val packageName = "com.arrazyfathan.kbbi"
 val appAliasName = "KBBI"
 val versionPropertiesFile = file("version.properties")
-val localPropertiesFile = rootProject.file("local.properties")
 
 if (!versionPropertiesFile.canRead()) {
     throw GradleException("Could not read version.properties!")
@@ -25,13 +24,6 @@ val versionProperties =
         FileInputStream(versionPropertiesFile).use(::load)
     }
 
-val localProperties =
-    Properties().apply {
-        if (localPropertiesFile.canRead()) {
-            FileInputStream(localPropertiesFile).use(::load)
-        }
-    }
-
 val versionMajor = versionProperties["VERSION_MAJOR"].toString().toInt()
 val versionMinor = versionProperties["VERSION_MINOR"].toString().toInt()
 val versionMaintenance = versionProperties["VERSION_MAINTENANCE"].toString().toInt()
@@ -39,14 +31,10 @@ val versionDev = versionProperties["VERSION_DEV"].toString().toInt()
 val versionBeta = versionProperties["VERSION_BETA"].toString().toInt()
 val versionAlpha = versionProperties["VERSION_ALPHA"].toString().toInt()
 val versionCodeValue = versionProperties["VERSION_CODE"].toString().toInt()
-
-fun localOrEnv(name: String, propertyName: String): String? =
-    System.getenv(name) ?: localProperties.getProperty(propertyName)
-
-val keystorePath = localOrEnv("ANDROID_KEYSTORE_PATH", "android.keystore.path")
-val storePassword = localOrEnv("ANDROID_KEYSTORE_PASSWORD", "android.keystore.password")
-val keyAlias = localOrEnv("ANDROID_KEY_ALIAS", "android.key.alias")
-val keyPassword = localOrEnv("ANDROID_KEY_PASSWORD", "android.key.password")
+val keystorePath = System.getenv("ANDROID_KEYSTORE_PATH")
+val storePassword = System.getenv("ANDROID_KEYSTORE_PASSWORD")
+val keyAlias = System.getenv("ANDROID_KEY_ALIAS")
+val keyPassword = System.getenv("ANDROID_KEY_PASSWORD")
 val isReleaseTaskRequested =
     gradle.startParameter.taskNames.any { taskName ->
         taskName.contains("release", ignoreCase = true)
@@ -105,16 +93,16 @@ android {
         create("release") {
             if (isReleaseTaskRequested) {
                 require(!keystorePath.isNullOrBlank()) {
-                    "Missing release signing config: ANDROID_KEYSTORE_PATH or android.keystore.path"
+                    "Missing release signing config: ANDROID_KEYSTORE_PATH"
                 }
                 require(!storePassword.isNullOrBlank()) {
-                    "Missing release signing config: ANDROID_KEYSTORE_PASSWORD or android.keystore.password"
+                    "Missing release signing config: ANDROID_KEYSTORE_PASSWORD"
                 }
                 require(!keyAlias.isNullOrBlank()) {
-                    "Missing release signing config: ANDROID_KEY_ALIAS or android.key.alias"
+                    "Missing release signing config: ANDROID_KEY_ALIAS"
                 }
                 require(!keyPassword.isNullOrBlank()) {
-                    "Missing release signing config: ANDROID_KEY_PASSWORD or android.key.password"
+                    "Missing release signing config: ANDROID_KEY_PASSWORD"
                 }
             }
             if (keystorePath != null) {
