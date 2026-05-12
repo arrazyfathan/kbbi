@@ -31,14 +31,18 @@ val versionDev = versionProperties["VERSION_DEV"].toString().toInt()
 val versionBeta = versionProperties["VERSION_BETA"].toString().toInt()
 val versionAlpha = versionProperties["VERSION_ALPHA"].toString().toInt()
 val versionCodeValue = versionProperties["VERSION_CODE"].toString().toInt()
-val keystorePath = System.getenv("ANDROID_KEYSTORE_PATH")
-val storePassword = System.getenv("ANDROID_KEYSTORE_PASSWORD")
-val keyAlias = System.getenv("ANDROID_KEY_ALIAS")
-val keyPassword = System.getenv("ANDROID_KEY_PASSWORD")
+val keystorePath = providers.environmentVariable("ANDROID_KEYSTORE_PATH").orNull
+val storePassword = providers.environmentVariable("ANDROID_KEYSTORE_PASSWORD").orNull
+val keyAlias = providers.environmentVariable("ANDROID_KEY_ALIAS").orNull
+val keyPassword = providers.environmentVariable("ANDROID_KEY_PASSWORD").orNull
+
 val isReleaseTaskRequested =
     gradle.startParameter.taskNames.any { taskName ->
-        taskName.contains("release", ignoreCase = true)
+        val name = taskName.lowercase()
+        name.contains("release") && !name.contains("debug")
     }
+
+val isReleaseBuild = providers.environmentVariable("IS_RELEASE_BUILD").getOrElse("false").toBoolean() || isReleaseTaskRequested
 
 fun ApplicationProductFlavor.configureAppMetadata(applicationName: String) {
     resValue("string", "version_code", versionCodeValue.toString())
@@ -91,7 +95,7 @@ android {
 
     signingConfigs {
         create("release") {
-            if (isReleaseTaskRequested) {
+            if (isReleaseBuild) {
                 require(!keystorePath.isNullOrBlank()) {
                     "Missing release signing config: ANDROID_KEYSTORE_PATH"
                 }
@@ -105,7 +109,7 @@ android {
                     "Missing release signing config: ANDROID_KEY_PASSWORD"
                 }
             }
-            if (keystorePath != null) {
+            if (!keystorePath.isNullOrBlank()) {
                 storeFile = file(keystorePath)
             }
             this.storePassword = storePassword
