@@ -11,6 +11,7 @@ import com.example.kbbikamusbesarbahasaindonesia.core.data.source.local.entity.L
         ListWordEntity::class, HistoryEntity::class,
     ],
     version = 7,
+    exportSchema = false,
 )
 @TypeConverters(Converters::class)
 abstract class WordDatabase : RoomDatabase() {

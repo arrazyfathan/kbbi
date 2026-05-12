@@ -19,10 +19,10 @@ open class SwipeListener(context: Context?) : OnTouchListener {
         }
 
         override fun onFling(
-            e1: MotionEvent,
+            e1: MotionEvent?,
             e2: MotionEvent,
             velocityX: Float,
-            velocityY: Float
+            velocityY: Float,
         ): Boolean {
             var result = false
 
@@ -30,8 +30,9 @@ open class SwipeListener(context: Context?) : OnTouchListener {
             val SWIPE_VELOCITY_THRESHOLD = 100
 
             try {
-                val diffY = e2.y - e1.y
-                val diffX = e2.x - e1.x
+                val startEvent = e1 ?: return false
+                val diffY = e2.y - startEvent.y
+                val diffX = e2.x - startEvent.x
                 if (Math.abs(diffX) > Math.abs(diffY)) {
                     if (Math.abs(diffX) > SWIPE_THRESHOLD && Math.abs(velocityX) > SWIPE_VELOCITY_THRESHOLD) {
                         if (diffX > 0) {
