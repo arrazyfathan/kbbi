@@ -1,67 +1,88 @@
 name: Android CI
 
-env:
-  # The name of the main module repository
-  main_project_module: app
-
 on:
-  # Triggers the workflow on push or pull request events but only for default and protected branches
   push:
-    #branches: [ "main" ]
+    branches:
+      - main
     tags:
-     - "*.*"
-  #pull_request:
-    #branches: [ "main" ]
-    
-  # Allows you to run this workflow manually from the Actions tab
+      - "*.*"
+  pull_request:
+    branches:
+      - main
   workflow_dispatch:
 
-jobs:
- apk:
-   name: Generate APK
-   runs-on: ubuntu-latest
-   steps:
-     - name: Checkout
-       uses: actions/checkout@v2.4.0
-     - name: Setup JDK
-       uses: actions/setup-java@v2.5.0
-       with:
-         distribution: temurin
-         java-version: "11"
-     - name: Set execution flag for gradlew
-       run: chmod +x gradlew
-     - name: Build APK
-       run: bash ./gradlew assembleProductionRelease --stacktrace
-     - name: Upload APK
-       uses: actions/upload-artifact@v1
-       with:
-         name: apk
-         path: app/build/outputs/apk/production/release/app-production-release.apk
+permissions:
+  contents: read
 
- release:
-   name: Release APK
-   needs: apk
-   runs-on: ubuntu-latest
-   steps:
-     - name: Download APK from build
-       uses: actions/download-artifact@v1
-       with:
-         name: apk
-     - name: Create Release
-       id: create_release
-       uses: actions/create-release@v1
-       env:
-         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-       with:
-         tag_name: ${{ github.ref }}
-         release_name: New Release v${{ github.ref }}
-     - name: Upload Release APK
-       id: upload_release_asset
-       uses: actions/upload-release-asset@v1.0.1
-       env:
-         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-       with:
-         upload_url: ${{ steps.create_release.outputs.upload_url }}
-         asset_path: apk/app-production-release.apk
-         asset_name: ${{ github.event.repository.name }}.apk
-         asset_content_type: application/zip
+jobs:
+  validate:
+    name: Validate Development Build
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout sources
+        uses: actions/checkout@v6
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: "17"
+
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@v6
+
+      - name: Make Gradle wrapper executable
+        run: chmod +x ./gradlew
+
+      - name: Run unit tests, lint, and development build
+        run: ./gradlew testDevelopmentDebugUnitTest lintDevelopmentDebug assembleDevelopmentDebug --stacktrace
+
+      - name: Upload development APK
+        if: success()
+        uses: actions/upload-artifact@v4
+        with:
+          name: development-debug-apk
+          path: app/build/outputs/apk/development/debug/*.apk
+          if-no-files-found: error
+          retention-days: 14
+
+  release:
+    name: Build And Publish Release
+    if: github.event_name == 'push' && github.ref_type == 'tag'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout sources
+        uses: actions/checkout@v6
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: "17"
+
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@v6
+
+      - name: Make Gradle wrapper executable
+        run: chmod +x ./gradlew
+
+      - name: Build production release APK
+        run: ./gradlew assembleProductionRelease --stacktrace
+
+      - name: Upload release APK artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: production-release-apk
+          path: app/build/outputs/apk/production/release/*.apk
+          if-no-files-found: error
+          retention-days: 30
+
+      - name: Publish GitHub release
+        uses: softprops/action-gh-release@v3
+        with:
+          files: app/build/outputs/apk/production/release/*.apk
+          generate_release_notes: true

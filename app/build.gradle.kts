@@ -93,7 +93,6 @@ android {
     buildTypes {
         debug {
             isMinifyEnabled = false
-            isShrinkResources = false
             isDebuggable = true
         }
         release {
@@ -117,6 +116,7 @@ android {
     }
 }
 
+@Suppress("UnstableApiUsage")
 androidComponents {
     onVariants(selector().withBuildType("release")) { variant ->
         variant.outputs.forEach { output ->
