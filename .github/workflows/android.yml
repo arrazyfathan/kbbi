@@ -70,7 +70,17 @@ jobs:
       - name: Make Gradle wrapper executable
         run: chmod +x ./gradlew
 
+      - name: Decode release keystore
+        env:
+          ANDROID_KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+        run: echo "$ANDROID_KEYSTORE_BASE64" | base64 --decode > "$RUNNER_TEMP/release.keystore"
+
       - name: Build production release APK
+        env:
+          ANDROID_KEYSTORE_PATH: ${{ runner.temp }}/release.keystore
+          ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+          ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
         run: ./gradlew assembleProductionRelease --stacktrace
 
       - name: Upload release APK artifact
@@ -81,8 +91,35 @@ jobs:
           if-no-files-found: error
           retention-days: 30
 
+      - name: Capture release commit notes
+        run: |
+          git fetch --tags
+
+          CURRENT_TAG="${GITHUB_REF_NAME}"
+          PREVIOUS_TAG="$(git tag --sort=-version:refname | grep -Fxv "$CURRENT_TAG" | head -n 1)"
+
+          if [ -n "$PREVIOUS_TAG" ]; then
+            {
+              echo "RELEASE_NOTES<<EOF"
+              echo "Changes since ${PREVIOUS_TAG}:"
+              echo
+              git log "${PREVIOUS_TAG}..${CURRENT_TAG}" --pretty=format:'- %s (%h)'
+              echo
+              echo "EOF"
+            } >> "$GITHUB_ENV"
+          else
+            {
+              echo "RELEASE_NOTES<<EOF"
+              echo "Initial release ${CURRENT_TAG}"
+              echo
+              git log "${CURRENT_TAG}" --pretty=format:'- %s (%h)'
+              echo
+              echo "EOF"
+            } >> "$GITHUB_ENV"
+          fi
+
       - name: Publish GitHub release
         uses: softprops/action-gh-release@v3
         with:
           files: app/build/outputs/apk/production/release/*.apk
-          generate_release_notes: true
+          body: ${{ env.RELEASE_NOTES }}

@@ -15,3 +15,6 @@
 local.properties
 Gemfile
 Gemfile.lock
+*.keystore
+*.jks
+kbbi_keystore

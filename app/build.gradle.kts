@@ -14,6 +14,7 @@ plugins {
 val packageName = "com.arrazyfathan.kbbi"
 val appAliasName = "KBBI"
 val versionPropertiesFile = file("version.properties")
+val localPropertiesFile = rootProject.file("local.properties")
 
 if (!versionPropertiesFile.canRead()) {
     throw GradleException("Could not read version.properties!")
@@ -24,6 +25,13 @@ val versionProperties =
         FileInputStream(versionPropertiesFile).use(::load)
     }
 
+val localProperties =
+    Properties().apply {
+        if (localPropertiesFile.canRead()) {
+            FileInputStream(localPropertiesFile).use(::load)
+        }
+    }
+
 val versionMajor = versionProperties["VERSION_MAJOR"].toString().toInt()
 val versionMinor = versionProperties["VERSION_MINOR"].toString().toInt()
 val versionMaintenance = versionProperties["VERSION_MAINTENANCE"].toString().toInt()
@@ -31,6 +39,14 @@ val versionDev = versionProperties["VERSION_DEV"].toString().toInt()
 val versionBeta = versionProperties["VERSION_BETA"].toString().toInt()
 val versionAlpha = versionProperties["VERSION_ALPHA"].toString().toInt()
 val versionCodeValue = versionProperties["VERSION_CODE"].toString().toInt()
+
+fun localOrEnv(name: String, propertyName: String): String? =
+    System.getenv(name) ?: localProperties.getProperty(propertyName)
+
+val keystorePath = localOrEnv("ANDROID_KEYSTORE_PATH", "android.keystore.path")
+val storePassword = localOrEnv("ANDROID_KEYSTORE_PASSWORD", "android.keystore.password")
+val keyAlias = localOrEnv("ANDROID_KEY_ALIAS", "android.key.alias")
+val keyPassword = localOrEnv("ANDROID_KEY_PASSWORD", "android.key.password")
 
 fun ApplicationProductFlavor.configureAppMetadata(applicationName: String) {
     resValue("string", "version_code", versionCodeValue.toString())
@@ -83,10 +99,12 @@ android {
 
     signingConfigs {
         create("release") {
-            storeFile = file("../kbbi_keystore")
-            storePassword = "kbbi123"
-            keyAlias = "kbbi_key"
-            keyPassword = "kbbi123"
+            if (keystorePath != null) {
+                storeFile = file(keystorePath)
+            }
+            this.storePassword = storePassword
+            this.keyAlias = keyAlias
+            this.keyPassword = keyPassword
         }
     }
 
@@ -122,9 +140,13 @@ androidComponents {
         variant.outputs.forEach { output ->
             val versionName = output.versionName.orNull
             if (versionName != null) {
-                output.outputFileName.set(
-                    output.outputFileName.get().replace(".apk", "-$versionName.apk"),
-                )
+                val baseName =
+                    if (variant.flavorName == "production") {
+                        "kbbi-v$versionName-release.apk"
+                    } else {
+                        "kbbi-${variant.flavorName}-v$versionName-release.apk"
+                    }
+                output.outputFileName.set(baseName)
             }
         }
     }
