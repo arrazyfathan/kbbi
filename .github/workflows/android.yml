@@ -89,7 +89,12 @@ jobs:
           ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
           ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
           ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
-        run: ./gradlew assembleProductionRelease --stacktrace
+        run: |
+          echo "Verifying signing configuration..."
+          if [ -z "$ANDROID_KEYSTORE_PASSWORD" ]; then echo "!! ANDROID_KEYSTORE_PASSWORD is empty !!"; fi
+          if [ -z "$ANDROID_KEY_ALIAS" ]; then echo "!! ANDROID_KEY_ALIAS is empty !!"; fi
+          if [ -z "$ANDROID_KEY_PASSWORD" ]; then echo "!! ANDROID_KEY_PASSWORD is empty !!"; fi
+          ./gradlew assembleProductionRelease --stacktrace
 
       - name: Upload release APK artifact
         uses: actions/upload-artifact@v4

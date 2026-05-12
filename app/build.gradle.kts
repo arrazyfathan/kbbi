@@ -31,10 +31,10 @@ val versionDev = versionProperties["VERSION_DEV"].toString().toInt()
 val versionBeta = versionProperties["VERSION_BETA"].toString().toInt()
 val versionAlpha = versionProperties["VERSION_ALPHA"].toString().toInt()
 val versionCodeValue = versionProperties["VERSION_CODE"].toString().toInt()
-val keystorePath = providers.environmentVariable("ANDROID_KEYSTORE_PATH").orNull
-val storePassword = providers.environmentVariable("ANDROID_KEYSTORE_PASSWORD").orNull
-val keyAlias = providers.environmentVariable("ANDROID_KEY_ALIAS").orNull
-val keyPassword = providers.environmentVariable("ANDROID_KEY_PASSWORD").orNull
+val keystorePath = providers.environmentVariable("ANDROID_KEYSTORE_PATH").getOrNull() ?: System.getenv("ANDROID_KEYSTORE_PATH")
+val storePassword = providers.environmentVariable("ANDROID_KEYSTORE_PASSWORD").getOrNull() ?: System.getenv("ANDROID_KEYSTORE_PASSWORD")
+val keyAlias = providers.environmentVariable("ANDROID_KEY_ALIAS").getOrNull() ?: System.getenv("ANDROID_KEY_ALIAS")
+val keyPassword = providers.environmentVariable("ANDROID_KEY_PASSWORD").getOrNull() ?: System.getenv("ANDROID_KEY_PASSWORD")
 
 val isReleaseTaskRequested =
     gradle.startParameter.taskNames.any { taskName ->
@@ -42,7 +42,7 @@ val isReleaseTaskRequested =
         name.contains("release") && !name.contains("debug")
     }
 
-val isReleaseBuild = providers.environmentVariable("IS_RELEASE_BUILD").getOrElse("false").toBoolean() || isReleaseTaskRequested
+val isReleaseBuild = (providers.environmentVariable("IS_RELEASE_BUILD").getOrNull() ?: System.getenv("IS_RELEASE_BUILD"))?.toBoolean() == true || isReleaseTaskRequested
 
 fun ApplicationProductFlavor.configureAppMetadata(applicationName: String) {
     resValue("string", "version_code", versionCodeValue.toString())
@@ -97,16 +97,16 @@ android {
         create("release") {
             if (isReleaseBuild) {
                 require(!keystorePath.isNullOrBlank()) {
-                    "Missing release signing config: ANDROID_KEYSTORE_PATH"
+                    "Release signing error: ANDROID_KEYSTORE_PATH is missing. Check if secrets are set in GitHub."
                 }
                 require(!storePassword.isNullOrBlank()) {
-                    "Missing release signing config: ANDROID_KEYSTORE_PASSWORD"
+                    "Release signing error: ANDROID_KEYSTORE_PASSWORD is missing. Check if secrets are set in GitHub."
                 }
                 require(!keyAlias.isNullOrBlank()) {
-                    "Missing release signing config: ANDROID_KEY_ALIAS"
+                    "Release signing error: ANDROID_KEY_ALIAS is missing. Check if secrets are set in GitHub."
                 }
                 require(!keyPassword.isNullOrBlank()) {
-                    "Missing release signing config: ANDROID_KEY_PASSWORD"
+                    "Release signing error: ANDROID_KEY_PASSWORD is missing. Check if secrets are set in GitHub."
                 }
             }
             if (!keystorePath.isNullOrBlank()) {
