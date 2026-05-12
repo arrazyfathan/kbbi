@@ -47,6 +47,10 @@ val keystorePath = localOrEnv("ANDROID_KEYSTORE_PATH", "android.keystore.path")
 val storePassword = localOrEnv("ANDROID_KEYSTORE_PASSWORD", "android.keystore.password")
 val keyAlias = localOrEnv("ANDROID_KEY_ALIAS", "android.key.alias")
 val keyPassword = localOrEnv("ANDROID_KEY_PASSWORD", "android.key.password")
+val isReleaseTaskRequested =
+    gradle.startParameter.taskNames.any { taskName ->
+        taskName.contains("release", ignoreCase = true)
+    }
 
 fun ApplicationProductFlavor.configureAppMetadata(applicationName: String) {
     resValue("string", "version_code", versionCodeValue.toString())
@@ -99,6 +103,20 @@ android {
 
     signingConfigs {
         create("release") {
+            if (isReleaseTaskRequested) {
+                require(!keystorePath.isNullOrBlank()) {
+                    "Missing release signing config: ANDROID_KEYSTORE_PATH or android.keystore.path"
+                }
+                require(!storePassword.isNullOrBlank()) {
+                    "Missing release signing config: ANDROID_KEYSTORE_PASSWORD or android.keystore.password"
+                }
+                require(!keyAlias.isNullOrBlank()) {
+                    "Missing release signing config: ANDROID_KEY_ALIAS or android.key.alias"
+                }
+                require(!keyPassword.isNullOrBlank()) {
+                    "Missing release signing config: ANDROID_KEY_PASSWORD or android.key.password"
+                }
+            }
             if (keystorePath != null) {
                 storeFile = file(keystorePath)
             }
