@@ -6,9 +6,9 @@ import com.google.gson.annotations.SerializedName
  * Created by Ar Razy Fathan Rabbani on 17/03/23.
  */
 data class Meaning(
-    @SerializedName("kelas_kata")
+    @SerializedName("wordClass")
     val wordClass: String,
 
-    @SerializedName("deskripsi")
+    @SerializedName("description")
     val description: String,
 )

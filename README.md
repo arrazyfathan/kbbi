@@ -32,10 +32,13 @@ Go to the [Releases](https://github.com/arrazyfathan/kbbi/releases/download/1.0/
 - Koin Dependencies Injection
 - Kotlin Flow
 
-## API by [@btrianurdin](https://github.com/btrianurdin)
+## API
 ```
-https://new-kbbi-api.up.railway.app/
-``` 
+https://kbbi-api-green.vercel.app/
+```
+
+Repository:
+https://github.com/arrazyfathan/kbbi-api
 
 ## MAD Score
 ![summary](media/summary.png "Summary")

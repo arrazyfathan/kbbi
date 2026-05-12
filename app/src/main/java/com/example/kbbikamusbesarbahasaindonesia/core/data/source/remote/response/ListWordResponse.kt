@@ -6,8 +6,8 @@ import com.google.gson.annotations.SerializedName
  * Created by Ar Razy Fathan Rabbani on 17/03/23.
  */
 data class ListWordResponse(
-    @SerializedName("status")
-    val status: Boolean,
+    @SerializedName("success")
+    val success: Boolean,
 
     @SerializedName("message")
     val message: String,

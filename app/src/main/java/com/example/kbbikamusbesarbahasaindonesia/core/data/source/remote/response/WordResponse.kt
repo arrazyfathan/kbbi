@@ -6,9 +6,9 @@ import com.google.gson.annotations.SerializedName
  * Created by Ar Razy Fathan Rabbani on 17/03/23.
  */
 data class WordResponse(
-    @SerializedName("lema")
+    @SerializedName("headword")
     val entry: String,
 
-    @SerializedName("arti")
+    @SerializedName("definitions")
     val meanings: List<Meaning>
 )

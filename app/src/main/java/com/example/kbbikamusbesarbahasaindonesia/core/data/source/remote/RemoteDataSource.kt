@@ -20,8 +20,15 @@ class RemoteDataSource(private val apiService: ApiService) {
             try {
                 val response = apiService.getMeaningWord(word)
                 if (response.isSuccessful) {
-                    val data = response.body()!!.data
-                    if (data.isNotEmpty()) emit(ApiResponse.Success(data)) else emit(ApiResponse.Empty)
+                    val body = response.body()
+                    val data = body?.data.orEmpty()
+                    if (body?.success == true && data.isNotEmpty()) {
+                        emit(ApiResponse.Success(data))
+                    } else if (body?.success == false) {
+                        emit(ApiResponse.Error(body.message))
+                    } else {
+                        emit(ApiResponse.Empty)
+                    }
                 } else {
                     val message = when (response.code()) {
                         404 -> "Data tidak ditemukan"
