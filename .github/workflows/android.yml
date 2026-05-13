@@ -48,11 +48,12 @@ jobs:
           retention-days: 14
 
   release:
+    needs: create-release
+    permissions: write-all
     name: Build And Publish Release
     if: github.event_name == 'push' && github.ref_type == 'tag'
     runs-on: ubuntu-latest
-    permissions:
-      contents: write
+
 
     steps:
       - name: Checkout sources
@@ -70,6 +71,9 @@ jobs:
       - name: Make Gradle wrapper executable
         run: chmod +x ./gradlew
 
+      - name: Decode release keystore
+        run: echo "${{ secrets.ANDROID_KEYSTORE_BASE64 }}" | base64 --decode > "$RUNNER_TEMP/release.keystore"
+
       - name: Validate release signing secrets
         run: |
           ERROR=0
@@ -78,9 +82,6 @@ jobs:
           if [ -z "${{ secrets.ANDROID_KEY_ALIAS }}" ]; then echo "Error: ANDROID_KEY_ALIAS secret is missing"; ERROR=1; fi
           if [ -z "${{ secrets.ANDROID_KEY_PASSWORD }}" ]; then echo "Error: ANDROID_KEY_PASSWORD secret is missing"; ERROR=1; fi
           exit $ERROR
-
-      - name: Decode release keystore
-        run: echo "${{ secrets.ANDROID_KEYSTORE_BASE64 }}" | base64 --decode > "$RUNNER_TEMP/release.keystore"
 
       - name: Build production release APK
         env:
@@ -98,6 +99,8 @@ jobs:
 
       - name: Upload release APK artifact
         uses: actions/upload-artifact@v4
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           name: production-release-apk
           path: app/build/outputs/apk/production/release/*.apk
