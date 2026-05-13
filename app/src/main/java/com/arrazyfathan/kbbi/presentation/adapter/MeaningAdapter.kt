@@ -18,7 +18,6 @@ import com.arrazyfathan.kbbi.databinding.ItemListChildArtiBinding
  * Created by Ar Razy Fathan Rabbani on 18/03/23.
  */
 class MeaningAdapter : RecyclerView.Adapter<MeaningAdapter.ViewHolder>() {
-
     val list: MutableList<MeaningModel> = arrayListOf()
 
     @SuppressLint("NotifyDataSetChanged")
@@ -27,9 +26,13 @@ class MeaningAdapter : RecyclerView.Adapter<MeaningAdapter.ViewHolder>() {
         notifyDataSetChanged()
     }
 
-    inner class ViewHolder(val binding: ItemListChildArtiBinding) :
-        RecyclerView.ViewHolder(binding.root) {
-        fun bind(data: MeaningModel, position: Int) {
+    inner class ViewHolder(
+        val binding: ItemListChildArtiBinding,
+    ) : RecyclerView.ViewHolder(binding.root) {
+        fun bind(
+            data: MeaningModel,
+            position: Int,
+        ) {
             with(binding) {
                 val number = "${position + 1}. "
                 val regex = Regex("\\[(.*?)\\]")
@@ -54,17 +57,20 @@ class MeaningAdapter : RecyclerView.Adapter<MeaningAdapter.ViewHolder>() {
         }
     }
 
-    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): MeaningAdapter.ViewHolder {
-        return ViewHolder(
+    override fun onCreateViewHolder(
+        parent: ViewGroup,
+        viewType: Int,
+    ): MeaningAdapter.ViewHolder =
+        ViewHolder(
             ItemListChildArtiBinding.inflate(LayoutInflater.from(parent.context), parent, false),
         )
-    }
 
-    override fun onBindViewHolder(holder: MeaningAdapter.ViewHolder, position: Int) {
+    override fun onBindViewHolder(
+        holder: MeaningAdapter.ViewHolder,
+        position: Int,
+    ) {
         holder.bind(list[position], position)
     }
 
-    override fun getItemCount(): Int {
-        return list.size
-    }
+    override fun getItemCount(): Int = list.size
 }

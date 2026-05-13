@@ -16,14 +16,16 @@ import kotlinx.coroutines.launch
 class HomeViewModel(
     private val wordUseCase: WordUseCase,
 ) : ViewModel() {
-
     fun getAllHistories() = wordUseCase.getAllHistories().asLiveData()
 
-    fun getMeaningOfWord(word: String): LiveData<Resource<List<WordModel>>> {
-        return wordUseCase.getMeaningOfWord(word).asLiveData()
-    }
+    fun getMeaningOfWord(word: String): LiveData<Resource<List<WordModel>>> =
+        wordUseCase.getMeaningOfWord(word).asLiveData()
 
-    fun bookmarkWord(word: String, wordList: List<WordModel>, isSaved: Boolean) {
+    fun bookmarkWord(
+        word: String,
+        wordList: List<WordModel>,
+        isSaved: Boolean,
+    ) {
         viewModelScope.launch {
             wordUseCase.bookmarkWord(word, wordList, isSaved)
         }

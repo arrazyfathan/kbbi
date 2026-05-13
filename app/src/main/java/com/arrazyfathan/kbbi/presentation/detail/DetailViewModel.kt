@@ -1,6 +1,10 @@
 package com.arrazyfathan.kbbi.presentation.detail
 
-import androidx.lifecycle.* // ktlint-disable no-wildcard-imports
+import androidx.lifecycle.LiveData
+import androidx.lifecycle.MutableLiveData
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.asLiveData
+import androidx.lifecycle.viewModelScope
 import com.arrazyfathan.kbbi.core.domain.model.WordModel
 import com.arrazyfathan.kbbi.core.domain.usecase.WordUseCase
 import kotlinx.coroutines.launch
@@ -8,7 +12,6 @@ import kotlinx.coroutines.launch
 class DetailViewModel(
     private val wordUseCase: WordUseCase,
 ) : ViewModel() {
-
     private var _resultBookmark = MutableLiveData<Long>()
     val resultBookmark: LiveData<Long> get() = _resultBookmark
 
@@ -17,7 +20,11 @@ class DetailViewModel(
 
     fun checkIsWordSaved(word: String) = wordUseCase.checkIfWordIsSaved(word).asLiveData()
 
-    fun bookmark(word: String, wordList: List<WordModel>, isSaved: Boolean) {
+    fun bookmark(
+        word: String,
+        wordList: List<WordModel>,
+        isSaved: Boolean,
+    ) {
         viewModelScope.launch {
             val result = wordUseCase.bookmarkWord(word, wordList, isSaved)
             _resultBookmark.postValue(result)

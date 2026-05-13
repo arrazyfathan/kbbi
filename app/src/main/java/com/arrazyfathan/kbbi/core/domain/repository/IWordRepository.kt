@@ -2,7 +2,6 @@ package com.arrazyfathan.kbbi.core.domain.repository
 
 import com.arrazyfathan.kbbi.core.data.Resource
 import com.arrazyfathan.kbbi.core.data.source.local.entity.HistoryEntity
-import com.arrazyfathan.kbbi.core.data.source.local.entity.ListWordEntity
 import com.arrazyfathan.kbbi.core.domain.model.ListWordModel
 import com.arrazyfathan.kbbi.core.domain.model.WordModel
 import kotlinx.coroutines.flow.Flow
@@ -12,10 +11,20 @@ import kotlinx.coroutines.flow.Flow
  */
 interface IWordRepository {
     fun getMeaningOfWord(word: String): Flow<Resource<List<WordModel>>>
-    suspend fun bookmarkWord(word: String, result: List<WordModel>, isSaved: Boolean): Long
+
+    suspend fun bookmarkWord(
+        word: String,
+        result: List<WordModel>,
+        isSaved: Boolean,
+    ): Long
+
     suspend fun addToHistory(historyEntity: HistoryEntity)
+
     fun getAllHistories(): Flow<List<HistoryEntity>>
+
     suspend fun deleteWord(word: String)
+
     fun checkIfWordIsSaved(word: String): Flow<Boolean>
+
     fun getBookmarks(): Flow<List<ListWordModel>>
 }

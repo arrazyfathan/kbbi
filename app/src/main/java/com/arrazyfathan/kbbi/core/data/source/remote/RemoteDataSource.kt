@@ -7,16 +7,22 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOn
+import java.io.IOException
 import java.net.ConnectException
 import java.net.UnknownHostException
 
 /**
  * Created by Ar Razy Fathan Rabbani on 17/03/23.
  */
-class RemoteDataSource(private val apiService: ApiService) {
+class RemoteDataSource(
+    private val apiService: ApiService,
+) {
+    private companion object {
+        const val HTTP_NOT_FOUND = 404
+    }
 
-    suspend fun getMeaningOfWord(word: String): Flow<ApiResponse<List<WordResponse>>> {
-        return flow {
+    suspend fun getMeaningOfWord(word: String): Flow<ApiResponse<List<WordResponse>>> =
+        flow {
             try {
                 val response = apiService.getMeaningWord(word)
                 if (response.isSuccessful) {
@@ -30,24 +36,25 @@ class RemoteDataSource(private val apiService: ApiService) {
                         emit(ApiResponse.Empty)
                     }
                 } else {
-                    val message = when (response.code()) {
-                        404 -> "Data tidak ditemukan"
-                        else -> "Something went wrong"
-                    }
+                    val message =
+                        when (response.code()) {
+                            HTTP_NOT_FOUND -> "Data tidak ditemukan"
+                            else -> "Something went wrong"
+                        }
                     emit(ApiResponse.Error(message))
                 }
-            } catch (e: Exception) {
-                val message = when (e) {
-                    is ConnectException -> {
-                        "Tidak ada koneksi internet"
+            } catch (e: IOException) {
+                val message =
+                    when (e) {
+                        is ConnectException -> {
+                            "Tidak ada koneksi internet"
+                        }
+                        is UnknownHostException -> {
+                            "Tidak ada koneksi internet"
+                        }
+                        else -> "Something went wrong"
                     }
-                    is UnknownHostException -> {
-                        "Tidak ada koneksi internet"
-                    }
-                    else -> "Something went wrong"
-                }
                 emit(ApiResponse.Error(message))
             }
         }.flowOn(Dispatchers.IO)
-    }
 }

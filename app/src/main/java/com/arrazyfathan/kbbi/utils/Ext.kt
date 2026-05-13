@@ -13,6 +13,8 @@ import com.google.gson.reflect.TypeToken
  * Created by Ar Razy Fathan Rabbani on 19/03/23.
  */
 
+private const val KEYBOARD_SHOW_DELAY_MS = 200L
+
 fun Fragment.hideKeyboard() {
     view?.let {
         activity?.hideKeyboard(it)
@@ -60,24 +62,24 @@ fun Activity.showKeyboard(editText: View) {
     imm.toggleSoftInput(InputMethodManager.SHOW_IMPLICIT, InputMethodManager.HIDE_IMPLICIT_ONLY)
 }
 
-fun showKeyboard(context: Context, editText: View) {
+fun showKeyboard(
+    context: Context,
+    editText: View,
+) {
     editText.requestFocus()
     editText.postDelayed({
         val keyboard = context.getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager
         keyboard.showSoftInput(editText, 0)
-    }, 200)
+    }, KEYBOARD_SHOW_DELAY_MS)
 }
 
-fun hideSoftKeyboard(context: Context, editText: View) {
+fun hideSoftKeyboard(
+    context: Context,
+    editText: View,
+) {
     val inputMethodManager =
         context.getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager
     inputMethodManager.hideSoftInputFromWindow(editText.windowToken, 0)
 }
 
-inline fun <reified T> fromJson(json: String): T {
-    return Gson().fromJson(json, object : TypeToken<T>() {}.type)
-}
-
-fun Any.toJson(): String {
-    return Gson().toJson(this)
-}
+inline fun <reified T> fromJson(json: String): T = Gson().fromJson(json, object : TypeToken<T>() {}.type)

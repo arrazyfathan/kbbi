@@ -8,7 +8,6 @@ import com.google.gson.annotations.SerializedName
 data class Meaning(
     @SerializedName("wordClass")
     val wordClass: String,
-
     @SerializedName("description")
     val description: String,
 )

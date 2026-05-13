@@ -21,39 +21,49 @@ import java.util.concurrent.TimeUnit
  * Created by Ar Razy Fathan Rabbani on 17/03/23.
  */
 
-val databaseModule = module {
-    factory { get<WordDatabase>().wordDao() }
-    single {
-        Room.databaseBuilder(
-            androidContext(),
-            WordDatabase::class.java,
-            "kbbi_db",
-        ).fallbackToDestructiveMigration().build()
-    }
-}
+private const val NETWORK_TIMEOUT_SECONDS = 120L
 
-val networkModule = module {
-    single {
-        OkHttpClient.Builder()
-            .addInterceptor(HttpLoggingInterceptor().setLevel(HttpLoggingInterceptor.Level.BODY))
-            .connectTimeout(120, TimeUnit.SECONDS)
-            .readTimeout(120, TimeUnit.SECONDS)
-            .build()
+val databaseModule =
+    module {
+        factory { get<WordDatabase>().wordDao() }
+        single {
+            Room
+                .databaseBuilder(
+                    androidContext(),
+                    WordDatabase::class.java,
+                    "kbbi_db",
+                ).fallbackToDestructiveMigration()
+                .build()
+        }
     }
 
-    single {
-        val retrofit = Retrofit.Builder()
-            .baseUrl(Constant.BASE_URL)
-            .addConverterFactory(GsonConverterFactory.create())
-            .client(get())
-            .build()
-        retrofit.create(ApiService::class.java)
-    }
-}
+val networkModule =
+    module {
+        single {
+            OkHttpClient
+                .Builder()
+                .addInterceptor(HttpLoggingInterceptor().setLevel(HttpLoggingInterceptor.Level.BODY))
+                .connectTimeout(NETWORK_TIMEOUT_SECONDS, TimeUnit.SECONDS)
+                .readTimeout(NETWORK_TIMEOUT_SECONDS, TimeUnit.SECONDS)
+                .build()
+        }
 
-val repositoryModule = module {
-    single { RemoteDataSource(get()) }
-    single { LocalDataSource(get()) }
-    factory { AppExecutors() }
-    factory<IWordRepository> { WordRepository(get(), get()) }
-}
+        single {
+            val retrofit =
+                Retrofit
+                    .Builder()
+                    .baseUrl(Constant.BASE_URL)
+                    .addConverterFactory(GsonConverterFactory.create())
+                    .client(get())
+                    .build()
+            retrofit.create(ApiService::class.java)
+        }
+    }
+
+val repositoryModule =
+    module {
+        single { RemoteDataSource(get()) }
+        single { LocalDataSource(get()) }
+        factory { AppExecutors() }
+        factory<IWordRepository> { WordRepository(get(), get()) }
+    }

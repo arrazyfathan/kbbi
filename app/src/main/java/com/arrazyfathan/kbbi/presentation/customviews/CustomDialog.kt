@@ -20,12 +20,12 @@ class CustomDialog private constructor(
     private val isCancelable: Boolean?,
     val listener: (ResponseType) -> Unit,
 ) : Dialog(context) {
-
     private lateinit var binding: CustomDialogBinding
     private lateinit var dialog: Dialog
 
     enum class ResponseType {
-        YES, NO
+        YES,
+        NO,
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -41,22 +41,23 @@ class CustomDialog private constructor(
         }
     }
 
-    private fun setupView() = with(binding) {
-        btnNo.setOnClickListener {
-            listener(ResponseType.NO)
-            dialog.dismiss()
-        }
+    private fun setupView() =
+        with(binding) {
+            btnNo.setOnClickListener {
+                listener(ResponseType.NO)
+                dialog.dismiss()
+            }
 
-        btnYes.setOnClickListener {
-            listener(ResponseType.YES)
-            dialog.dismiss()
-        }
+            btnYes.setOnClickListener {
+                listener(ResponseType.YES)
+                dialog.dismiss()
+            }
 
-        dialogTitle.text = title
-        dialogMessage.text = message
-        btnNoTitle.text = cancelTitle
-        btnYesTitle.text = okTitle
-    }
+            dialogTitle.text = title
+            dialogMessage.text = message
+            btnNoTitle.text = cancelTitle
+            btnYesTitle.text = okTitle
+        }
 
     private fun setupWindow() {
         this.window?.setLayout(
@@ -66,7 +67,9 @@ class CustomDialog private constructor(
         this.window?.setBackgroundDrawableResource(R.drawable.custom_dialog_inset)
     }
 
-    class Builder(val context: Context) {
+    class Builder(
+        val context: Context,
+    ) {
         private var title: String? = null
         private var message: String? = null
         private var cancelTitle: String? = null
@@ -75,19 +78,26 @@ class CustomDialog private constructor(
         private lateinit var onResponse: (r: ResponseType) -> Unit
 
         fun setTitle(title: String) = apply { this.title = title }
+
         fun setMessage(message: String) = apply { this.message = message }
+
         fun setCancelTitle(cancelTitle: String) = apply { this.cancelTitle = cancelTitle }
+
         fun setOkTitle(okTitle: String) = apply { this.okTitle = okTitle }
+
         fun onResponse(listener: (ResponseType) -> Unit) = apply { this.onResponse = listener }
+
         fun isCancelable(bool: Boolean) = apply { this.isCancelable = bool }
-        fun build() = CustomDialog(
-            context,
-            title,
-            message,
-            okTitle,
-            cancelTitle,
-            isCancelable,
-            onResponse,
-        ).show()
+
+        fun build() =
+            CustomDialog(
+                context,
+                title,
+                message,
+                okTitle,
+                cancelTitle,
+                isCancelable,
+                onResponse,
+            ).show()
     }
 }

@@ -14,8 +14,9 @@ import com.arrazyfathan.kbbi.databinding.ItemListArtiBinding
 /**
  * Created by Ar Razy Fathan Rabbani on 18/03/23.
  */
-class WordAdapter(private val context: Context) : RecyclerView.Adapter<WordAdapter.ViewHolder>() {
-
+class WordAdapter(
+    private val context: Context,
+) : RecyclerView.Adapter<WordAdapter.ViewHolder>() {
     val list: MutableList<WordModel> = arrayListOf()
 
     @SuppressLint("NotifyDataSetChanged")
@@ -24,9 +25,13 @@ class WordAdapter(private val context: Context) : RecyclerView.Adapter<WordAdapt
         notifyDataSetChanged()
     }
 
-    inner class ViewHolder(val binding: ItemListArtiBinding) :
-        RecyclerView.ViewHolder(binding.root) {
-        fun bind(data: WordModel, position: Int) {
+    inner class ViewHolder(
+        val binding: ItemListArtiBinding,
+    ) : RecyclerView.ViewHolder(binding.root) {
+        fun bind(
+            data: WordModel,
+            position: Int,
+        ) {
             with(binding) {
                 numberItem.text = position.plus(1).toString()
                 lemma.text = data.entry
@@ -40,11 +45,12 @@ class WordAdapter(private val context: Context) : RecyclerView.Adapter<WordAdapt
                         context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
                     var arti = ""
                     for ((index, item) in data.meanings.withIndex()) {
-                        arti += """
-                    ${index + 1}. ${item.wordClass}
-                    ${item.description}
-                    
-                        """.trimIndent()
+                        arti +=
+                            """
+                            ${index + 1}. ${item.wordClass}
+                            ${item.description}
+                            
+                            """.trimIndent()
                     }
                     val clip: ClipData = ClipData.newPlainText("arti", arti)
                     clipboarManager.setPrimaryClip(clip)
@@ -54,13 +60,18 @@ class WordAdapter(private val context: Context) : RecyclerView.Adapter<WordAdapt
         }
     }
 
-    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
-        return ViewHolder(
+    override fun onCreateViewHolder(
+        parent: ViewGroup,
+        viewType: Int,
+    ): ViewHolder =
+        ViewHolder(
             ItemListArtiBinding.inflate(LayoutInflater.from(parent.context), parent, false),
         )
-    }
 
-    override fun onBindViewHolder(holder: ViewHolder, position: Int) {
+    override fun onBindViewHolder(
+        holder: ViewHolder,
+        position: Int,
+    ) {
         holder.bind(list[position], position)
     }
 

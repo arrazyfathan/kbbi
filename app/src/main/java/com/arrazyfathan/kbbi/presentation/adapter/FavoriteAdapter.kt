@@ -23,14 +23,21 @@ class FavoriteAdapter(
     private val context: Context,
     private val favoriteListener: FavoriteListener,
 ) : RecyclerView.Adapter<FavoriteAdapter.ViewHolder>() {
+    private companion object {
+        const val DELETE_BUTTON_ANIMATION_DURATION_MS = 300L
+        const val VIBRATION_DURATION_MS = 50L
+        const val LONG_PRESS_DELAY_MS = 1000L
+    }
 
     interface FavoriteListener {
         fun onClickListener(model: ListWordModel)
+
         fun onDeleteListener(model: ListWordModel)
     }
 
-    inner class ViewHolder(val binding: ItemListFavoriteBinding) :
-        RecyclerView.ViewHolder(binding.root) {
+    inner class ViewHolder(
+        val binding: ItemListFavoriteBinding,
+    ) : RecyclerView.ViewHolder(binding.root) {
         fun bind(data: ListWordModel) {
             with(binding) {
                 kataSaved.text = data.word.replaceFirstChar { it.uppercase() }
@@ -40,15 +47,16 @@ class FavoriteAdapter(
                     favoriteListener.onClickListener(data)
                 }
 
-                val vibrator = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-                    context.getSystemService(Vibrator::class.java)
-                } else {
-                    context.getSystemService(Context.VIBRATOR_SERVICE) as Vibrator
-                }
+                val vibrator =
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+                        context.getSystemService(Vibrator::class.java)
+                    } else {
+                        context.getSystemService(Context.VIBRATOR_SERVICE) as Vibrator
+                    }
 
                 val transition = Slide(Gravity.END)
                 transition.apply {
-                    duration = 300
+                    duration = DELETE_BUTTON_ANIMATION_DURATION_MS
                     addTarget(btnDelete)
                     interpolator = OvershootInterpolator()
                 }
@@ -57,14 +65,14 @@ class FavoriteAdapter(
                     Handler().postDelayed({
                         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
                             val vibrationEffect =
-                                VibrationEffect.createOneShot(50, VibrationEffect.DEFAULT_AMPLITUDE)
+                                VibrationEffect.createOneShot(VIBRATION_DURATION_MS, VibrationEffect.DEFAULT_AMPLITUDE)
                             vibrator?.vibrate(vibrationEffect)
                         } else {
-                            vibrator?.vibrate(50)
+                            vibrator?.vibrate(VIBRATION_DURATION_MS)
                         }
                         TransitionManager.beginDelayedTransition(root, transition)
                         btnDelete.visible()
-                    }, 1000L)
+                    }, LONG_PRESS_DELAY_MS)
                     true
                 }
 
@@ -82,31 +90,38 @@ class FavoriteAdapter(
         }
     }
 
-    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
+    override fun onCreateViewHolder(
+        parent: ViewGroup,
+        viewType: Int,
+    ): ViewHolder {
         val view =
             ItemListFavoriteBinding.inflate(LayoutInflater.from(parent.context), parent, false)
         return ViewHolder(view)
     }
 
-    override fun onBindViewHolder(holder: ViewHolder, position: Int) {
+    override fun onBindViewHolder(
+        holder: ViewHolder,
+        position: Int,
+    ) {
         holder.bind(differ.currentList[position])
     }
 
-    private val diffCallback = object : DiffUtil.ItemCallback<ListWordModel>() {
-        override fun areItemsTheSame(oldItem: ListWordModel, newItem: ListWordModel): Boolean {
-            return oldItem.word == newItem.word
-        }
+    private val diffCallback =
+        object : DiffUtil.ItemCallback<ListWordModel>() {
+            override fun areItemsTheSame(
+                oldItem: ListWordModel,
+                newItem: ListWordModel,
+            ): Boolean = oldItem.word == newItem.word
 
-        override fun areContentsTheSame(oldItem: ListWordModel, newItem: ListWordModel): Boolean {
-            return oldItem == newItem
+            override fun areContentsTheSame(
+                oldItem: ListWordModel,
+                newItem: ListWordModel,
+            ): Boolean = oldItem == newItem
         }
-    }
 
     val differ = AsyncListDiffer(this, diffCallback)
 
     fun isEmpty(): Boolean = differ.currentList.isEmpty()
 
-    override fun getItemCount(): Int {
-        return differ.currentList.size
-    }
+    override fun getItemCount(): Int = differ.currentList.size
 }

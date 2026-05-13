@@ -14,9 +14,9 @@ import com.arrazyfathan.kbbi.databinding.ItemHistoryAdapterBinding
 class HistoryAdapter(
     private val listener: (String) -> Unit,
 ) : RecyclerView.Adapter<HistoryAdapter.ViewHolder>() {
-
-    inner class ViewHolder(val binding: ItemHistoryAdapterBinding) :
-        RecyclerView.ViewHolder(binding.root) {
+    inner class ViewHolder(
+        val binding: ItemHistoryAdapterBinding,
+    ) : RecyclerView.ViewHolder(binding.root) {
         fun bind(data: HistoryEntity) {
             with(binding) {
                 textHistory.text = data.word.replaceFirstChar { it.uppercase() }
@@ -27,25 +27,34 @@ class HistoryAdapter(
         }
     }
 
-    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
+    override fun onCreateViewHolder(
+        parent: ViewGroup,
+        viewType: Int,
+    ): ViewHolder {
         val view =
             ItemHistoryAdapterBinding.inflate(LayoutInflater.from(parent.context), parent, false)
         return ViewHolder(view)
     }
 
-    override fun onBindViewHolder(holder: HistoryAdapter.ViewHolder, position: Int) {
+    override fun onBindViewHolder(
+        holder: HistoryAdapter.ViewHolder,
+        position: Int,
+    ) {
         holder.bind(differ.currentList[position])
     }
 
-    private val diffCallback = object : DiffUtil.ItemCallback<HistoryEntity>() {
-        override fun areItemsTheSame(oldItem: HistoryEntity, newItem: HistoryEntity): Boolean {
-            return oldItem.word == newItem.word
-        }
+    private val diffCallback =
+        object : DiffUtil.ItemCallback<HistoryEntity>() {
+            override fun areItemsTheSame(
+                oldItem: HistoryEntity,
+                newItem: HistoryEntity,
+            ): Boolean = oldItem.word == newItem.word
 
-        override fun areContentsTheSame(oldItem: HistoryEntity, newItem: HistoryEntity): Boolean {
-            return oldItem == newItem
+            override fun areContentsTheSame(
+                oldItem: HistoryEntity,
+                newItem: HistoryEntity,
+            ): Boolean = oldItem == newItem
         }
-    }
 
     val differ = AsyncListDiffer(this, diffCallback)
 

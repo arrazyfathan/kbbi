@@ -9,6 +9,8 @@ plugins {
     alias(libs.plugins.androidx.navigation.safeargs)
     alias(libs.plugins.kotlin.parcelize)
     alias(libs.plugins.google.gms.google.services)
+    alias(libs.plugins.detekt)
+    alias(libs.plugins.ktlint)
 }
 
 val packageName = "com.arrazyfathan.kbbi"
@@ -160,12 +162,35 @@ kotlin {
     }
 }
 
-gradle.taskGraph.whenReady {
-    val isReleaseTaskRequested = allTasks.any { task ->
-        task.name.contains("Release", ignoreCase = true)
-    }
+detekt {
+    toolVersion = libs.versions.detekt.get()
+    buildUponDefaultConfig = true
+    allRules = false
+    parallel = true
+    config.setFrom(rootProject.files("detekt.yml"))
+    basePath = rootDir.absolutePath
+}
 
-    if (isReleaseTaskRequested && !hasReleaseSigning) {
+ktlint {
+    android.set(true)
+    outputToConsole.set(true)
+    ignoreFailures.set(false)
+}
+
+gradle.taskGraph.whenReady {
+    val requestsReleaseVariant =
+        allTasks.any { task ->
+            task.name.contains("Release", ignoreCase = true)
+        }
+    val requestsSignedArtifact =
+        allTasks.any { task ->
+            task.name.startsWith("assemble", ignoreCase = true) ||
+                task.name.startsWith("bundle", ignoreCase = true) ||
+                task.name.startsWith("package", ignoreCase = true) ||
+                task.name.startsWith("sign", ignoreCase = true)
+        }
+
+    if (requestsReleaseVariant && requestsSignedArtifact && !hasReleaseSigning) {
         throw GradleException(
             "Release signing is not configured. Provide ANDROID_KEYSTORE_PATH, " +
                 "ANDROID_KEYSTORE_PASSWORD, ANDROID_KEY_ALIAS, and ANDROID_KEY_PASSWORD.",

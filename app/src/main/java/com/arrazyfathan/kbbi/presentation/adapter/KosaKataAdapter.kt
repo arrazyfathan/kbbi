@@ -11,28 +11,32 @@ import com.arrazyfathan.kbbi.databinding.ItemListKosaKataBinding
 
 class KosaKataAdapter(
     private var listKosaKata: ArrayList<String>,
-    private val clickListener: (String) -> Unit
-) : RecyclerView.Adapter<KosaKataAdapter.KosaKataViewHolder>(), Filterable {
-
+    private val clickListener: (String) -> Unit,
+) : RecyclerView.Adapter<KosaKataAdapter.KosaKataViewHolder>(),
+    Filterable {
     var kataFilterList = ArrayList<String>()
 
     init {
         kataFilterList = listKosaKata
     }
 
-    inner class KosaKataViewHolder(val binding: ItemListKosaKataBinding) :
-        RecyclerView.ViewHolder(binding.root)
+    inner class KosaKataViewHolder(
+        val binding: ItemListKosaKataBinding,
+    ) : RecyclerView.ViewHolder(binding.root)
 
     override fun onCreateViewHolder(
         parent: ViewGroup,
-        viewType: Int
+        viewType: Int,
     ): KosaKataViewHolder {
         val binding =
             ItemListKosaKataBinding.inflate(LayoutInflater.from(parent.context), parent, false)
         return KosaKataViewHolder(binding)
     }
 
-    override fun onBindViewHolder(holder: KosaKataViewHolder, position: Int) {
+    override fun onBindViewHolder(
+        holder: KosaKataViewHolder,
+        position: Int,
+    ) {
         val data = listKosaKata[position]
         holder.binding.kosaKataList.text = data
 
@@ -45,23 +49,21 @@ class KosaKataAdapter(
 
     class KosaKataDiffCallback(
         private var oldData: KosaKata,
-        private var newData: KosaKata
+        private var newData: KosaKata,
     ) : DiffUtil.Callback() {
-        override fun getOldListSize(): Int {
-            return oldData.size
-        }
+        override fun getOldListSize(): Int = oldData.size
 
-        override fun getNewListSize(): Int {
-            return newData.size
-        }
+        override fun getNewListSize(): Int = newData.size
 
-        override fun areItemsTheSame(oldItemPosition: Int, newItemPosition: Int): Boolean {
-            return oldData[oldItemPosition] == newData[newItemPosition]
-        }
+        override fun areItemsTheSame(
+            oldItemPosition: Int,
+            newItemPosition: Int,
+        ): Boolean = oldData[oldItemPosition] == newData[newItemPosition]
 
-        override fun areContentsTheSame(oldItemPosition: Int, newItemPosition: Int): Boolean {
-            return oldData == newData
-        }
+        override fun areContentsTheSame(
+            oldItemPosition: Int,
+            newItemPosition: Int,
+        ): Boolean = oldData == newData
     }
 
     override fun getFilter(): Filter {
@@ -84,7 +86,10 @@ class KosaKataAdapter(
                 return filterResults
             }
 
-            override fun publishResults(constraint: CharSequence?, results: FilterResults?) {
+            override fun publishResults(
+                constraint: CharSequence?,
+                results: FilterResults?,
+            ) {
                 kataFilterList = results?.values as ArrayList<String>
                 notifyDataSetChanged()
             }

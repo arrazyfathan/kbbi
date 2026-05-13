@@ -8,7 +8,6 @@ import com.google.gson.annotations.SerializedName
 data class WordResponse(
     @SerializedName("headword")
     val entry: String,
-
     @SerializedName("definitions")
-    val meanings: List<Meaning>
+    val meanings: List<Meaning>,
 )

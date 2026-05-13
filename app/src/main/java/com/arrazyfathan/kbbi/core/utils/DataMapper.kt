@@ -13,88 +13,80 @@ import com.arrazyfathan.kbbi.core.domain.model.WordModel
  * Created by Ar Razy Fathan Rabbani on 17/03/23.
  */
 object DataMapper {
-
     fun mapResponseToEntities(input: List<WordResponse>): List<WordEntity> {
         val wordList = ArrayList<WordEntity>()
         input.map {
-            val wordEntity = WordEntity(
-                entry = it.entry,
-                meanings = mapMeaningResponseToMeaningEntity(it.meanings),
-            )
+            val wordEntity =
+                WordEntity(
+                    entry = it.entry,
+                    meanings = mapMeaningResponseToMeaningEntity(it.meanings),
+                )
             wordList.add(wordEntity)
         }
         return wordList
     }
 
-    private fun mapMeaningResponseToMeaningEntity(input: List<Meaning>): List<MeaningEntity> {
-        return input.map {
+    private fun mapMeaningResponseToMeaningEntity(input: List<Meaning>): List<MeaningEntity> =
+        input.map {
             MeaningEntity(
                 it.wordClass,
                 it.description,
             )
         }
-    }
 
-    fun mapResponseToDomain(input: List<WordResponse>): List<WordModel> {
-        return input.map {
+    fun mapResponseToDomain(input: List<WordResponse>): List<WordModel> =
+        input.map {
             WordModel(
                 it.entry,
                 mapMeaningResponseToMeaningDomain(it.meanings),
             )
         }
-    }
 
-    private fun mapMeaningResponseToMeaningDomain(input: List<Meaning>): List<MeaningModel> {
-        return input.map {
+    private fun mapMeaningResponseToMeaningDomain(input: List<Meaning>): List<MeaningModel> =
+        input.map {
             MeaningModel(
                 it.wordClass,
                 it.description,
             )
         }
-    }
 
-    fun mapListWordEntityToDomain(input: List<ListWordEntity>): List<ListWordModel> {
-        return input.map {
+    fun mapListWordEntityToDomain(input: List<ListWordEntity>): List<ListWordModel> =
+        input.map {
             ListWordModel(
                 word = it.word,
-                listWords = mapEntitiesToDomain(it.listWords)
+                listWords = mapEntitiesToDomain(it.listWords),
             )
         }
-    }
 
-    fun mapEntitiesToDomain(input: List<WordEntity>): List<WordModel> {
-        return input.map {
+    fun mapEntitiesToDomain(input: List<WordEntity>): List<WordModel> =
+        input.map {
             WordModel(
                 it.entry,
                 mapMeaningEntitiesToMeaningDomain(it.meanings),
             )
         }
-    }
 
-    private fun mapMeaningEntitiesToMeaningDomain(input: List<MeaningEntity>): List<MeaningModel> {
-        return input.map {
+    private fun mapMeaningEntitiesToMeaningDomain(input: List<MeaningEntity>): List<MeaningModel> =
+        input.map {
             MeaningModel(
                 it.wordClass,
                 it.description,
             )
         }
-    }
 
-    fun mapDomainToEntity(input: List<WordModel>): List<WordEntity> {
-        return input.map {
+    fun mapDomainToEntity(input: List<WordModel>): List<WordEntity> =
+        input.map {
             WordEntity(
                 it.entry,
                 mapMeaningDomainToMeaningEntity(it.meanings),
             )
         }
-    }
 
-    private fun mapMeaningDomainToMeaningEntity(input: List<MeaningModel>): List<MeaningEntity> {
-        return input.map {
+    private fun mapMeaningDomainToMeaningEntity(input: List<MeaningModel>): List<MeaningEntity> =
+        input.map {
             MeaningEntity(
                 it.wordClass,
                 it.description,
             )
         }
-    }
 }

@@ -5,7 +5,8 @@ import android.content.Intent
 import android.os.Bundle
 import android.transition.Slide
 import android.transition.TransitionManager
-import android.view.*
+import android.view.Gravity
+import android.view.View
 import android.view.animation.AnticipateOvershootInterpolator
 import android.view.animation.OvershootInterpolator
 import android.view.inputmethod.EditorInfo
@@ -20,12 +21,23 @@ import com.arrazyfathan.kbbi.core.domain.model.WordModel
 import com.arrazyfathan.kbbi.databinding.FragmentHomeBinding
 import com.arrazyfathan.kbbi.presentation.detail.DetailActivity
 import com.arrazyfathan.kbbi.presentation.home.adapter.HistoryAdapter
-import com.arrazyfathan.kbbi.utils.*
+import com.arrazyfathan.kbbi.utils.SwipeListener
+import com.arrazyfathan.kbbi.utils.applySystemBarPadding
+import com.arrazyfathan.kbbi.utils.gone
+import com.arrazyfathan.kbbi.utils.hideKeyboard
+import com.arrazyfathan.kbbi.utils.invisible
+import com.arrazyfathan.kbbi.utils.toJson
+import com.arrazyfathan.kbbi.utils.updateSystemBarStyle
+import com.arrazyfathan.kbbi.utils.viewBinding
+import com.arrazyfathan.kbbi.utils.visible
 import com.google.android.material.bottomsheet.BottomSheetDialog
 import com.jakewharton.rxbinding4.widget.textChanges
 import org.koin.androidx.viewmodel.ext.android.viewModel
 
 class HomeFragment : Fragment(R.layout.fragment_home) {
+    private companion object {
+        const val SEARCH_BUTTON_ANIMATION_DURATION_MS = 600L
+    }
 
     private val binding by viewBinding(FragmentHomeBinding::bind)
     private lateinit var bottomSheetDialog: BottomSheetDialog
@@ -33,7 +45,10 @@ class HomeFragment : Fragment(R.layout.fragment_home) {
 
     private val viewModel: HomeViewModel by viewModel()
 
-    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+    override fun onViewCreated(
+        view: View,
+        savedInstanceState: Bundle?,
+    ) {
         super.onViewCreated(view, savedInstanceState)
         binding.homeContainer.applySystemBarPadding(applyTop = true)
         setupView()
@@ -55,42 +70,47 @@ class HomeFragment : Fragment(R.layout.fragment_home) {
     }
 
     @SuppressLint("CheckResult")
-    private fun setupView() = with(binding) {
-        homeButtonSearch.setOnClickListener {
-            getMeaningOfWord(editTextSearch.text.toString())
-            hideKeyboard()
-        }
-
-        editTextSearch.setOnEditorActionListener { _, actionId, _ ->
-            if (editTextSearch.text.isNotBlank()) {
-                if (actionId == EditorInfo.IME_ACTION_SEARCH) getMeaningOfWord(editTextSearch.text.toString())
+    private fun setupView() =
+        with(binding) {
+            homeButtonSearch.setOnClickListener {
+                getMeaningOfWord(editTextSearch.text.toString())
                 hideKeyboard()
             }
-            true
-        }
 
-        editTextSearch.textChanges()
-            .skipInitialValue()
-            .subscribe { text ->
-                val filteredText = text.toString().replace(" ", "")
-                if (editTextSearch.text.toString() != filteredText) {
-                    editTextSearch.setText(filteredText)
-                    editTextSearch.setSelection(filteredText.length)
+            editTextSearch.setOnEditorActionListener { _, actionId, _ ->
+                if (editTextSearch.text.isNotBlank()) {
+                    if (actionId == EditorInfo.IME_ACTION_SEARCH) getMeaningOfWord(editTextSearch.text.toString())
+                    hideKeyboard()
                 }
-                enableSearchButton(text)
+                true
             }
 
-        view?.setOnTouchListener(object : SwipeListener(requireActivity()) {
-            override fun onSwipeTop() {
-                showBottomDialog()
-            }
-        })
+            editTextSearch
+                .textChanges()
+                .skipInitialValue()
+                .subscribe { text ->
+                    val filteredText = text.toString().replace(" ", "")
+                    if (editTextSearch.text.toString() != filteredText) {
+                        editTextSearch.setText(filteredText)
+                        editTextSearch.setSelection(filteredText.length)
+                    }
+                    enableSearchButton(text)
+                }
 
-        adapter = HistoryAdapter { word ->
-            getMeaningOfWord(word)
+            view?.setOnTouchListener(
+                object : SwipeListener(requireActivity()) {
+                    override fun onSwipeTop() {
+                        showBottomDialog()
+                    }
+                },
+            )
+
+            adapter =
+                HistoryAdapter { word ->
+                    getMeaningOfWord(word)
+                }
+            rvHistory.adapter = adapter
         }
-        rvHistory.adapter = adapter
-    }
 
     private fun enableSearchButton(text: CharSequence) {
         when {
@@ -103,20 +123,21 @@ class HomeFragment : Fragment(R.layout.fragment_home) {
         viewModel.getMeaningOfWord(word).observe(viewLifecycleOwner) { result ->
             if (result != null) {
                 when (result) {
-                    is Resource.Loading -> showLoading(true)
+                    is Resource.Loading -> binding.loadingState.visible()
                     is Resource.Success -> {
-                        showLoading(false)
+                        binding.loadingState.gone()
                         saveWordToHistory(word)
                         binding.editTextSearch.setText("")
                         navigateToDetail(result, word)
                     }
                     is Resource.Error -> {
-                        showLoading(false)
-                        Toast.makeText(
-                            requireContext(),
-                            "${result.message}",
-                            Toast.LENGTH_SHORT,
-                        ).show()
+                        binding.loadingState.gone()
+                        Toast
+                            .makeText(
+                                requireContext(),
+                                "${result.message}",
+                                Toast.LENGTH_SHORT,
+                            ).show()
                     }
                 }
             }
@@ -126,7 +147,7 @@ class HomeFragment : Fragment(R.layout.fragment_home) {
     private fun revealButtonSearch() {
         val transition = Slide(Gravity.END)
         transition.apply {
-            duration = 600
+            duration = SEARCH_BUTTON_ANIMATION_DURATION_MS
             addTarget(binding.homeButtonSearch)
             interpolator = OvershootInterpolator()
         }
@@ -137,7 +158,7 @@ class HomeFragment : Fragment(R.layout.fragment_home) {
     private fun hideButtonSearch() {
         val transition = Slide(Gravity.END)
         transition.apply {
-            duration = 600
+            duration = SEARCH_BUTTON_ANIMATION_DURATION_MS
             addTarget(binding.homeButtonSearch)
             interpolator = AnticipateOvershootInterpolator()
         }
@@ -145,19 +166,19 @@ class HomeFragment : Fragment(R.layout.fragment_home) {
         binding.homeButtonSearch.invisible()
     }
 
-    fun showLoading(isLoading: Boolean) {
-        if (isLoading) binding.loadingState.visible() else binding.loadingState.gone()
-    }
-
     private fun saveWordToHistory(word: String) {
         viewModel.addToHistory(HistoryEntity(word.lowercase()))
     }
 
-    private fun navigateToDetail(result: Resource<List<WordModel>>?, word: String) {
-        val listWordModel = ListWordModel(
-            word = word,
-            listWords = result?.data!!,
-        ).toJson()
+    private fun navigateToDetail(
+        result: Resource<List<WordModel>>?,
+        word: String,
+    ) {
+        val listWordModel =
+            ListWordModel(
+                word = word,
+                listWords = result?.data!!,
+            ).toJson()
         startActivity(
             Intent(requireActivity(), DetailActivity::class.java).putExtra(
                 "data",

@@ -14,6 +14,8 @@ import androidx.core.view.doOnAttach
 import androidx.core.view.updateLayoutParams
 import androidx.core.view.updatePadding
 
+private const val DARK_ICON_LUMINANCE_THRESHOLD = 0.5
+
 private data class InitialPadding(
     val left: Int,
     val top: Int,
@@ -35,8 +37,10 @@ fun AppCompatActivity.enableEdgeToEdgeSystemBars() {
     window.navigationBarColor = Color.TRANSPARENT
 }
 
-fun AppCompatActivity.updateSystemBarStyle(@ColorInt backgroundColor: Int) {
-    val useDarkIcons = ColorUtils.calculateLuminance(backgroundColor) > 0.5
+fun AppCompatActivity.updateSystemBarStyle(
+    @ColorInt backgroundColor: Int,
+) {
+    val useDarkIcons = ColorUtils.calculateLuminance(backgroundColor) > DARK_ICON_LUMINANCE_THRESHOLD
     WindowInsetsControllerCompat(window, window.decorView).apply {
         isAppearanceLightStatusBars = useDarkIcons
         isAppearanceLightNavigationBars = useDarkIcons

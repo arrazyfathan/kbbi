@@ -7,5 +7,7 @@ import retrofit2.http.Path
 
 interface ApiService {
     @GET("/search/{word}")
-    suspend fun getMeaningWord(@Path("word") word: String): Response<ListWordResponse>
+    suspend fun getMeaningWord(
+        @Path("word") word: String,
+    ): Response<ListWordResponse>
 }

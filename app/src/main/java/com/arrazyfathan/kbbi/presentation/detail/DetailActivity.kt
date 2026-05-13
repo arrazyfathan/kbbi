@@ -17,7 +17,6 @@ import com.google.gson.Gson
 import org.koin.androidx.viewmodel.ext.android.viewModel
 
 class DetailActivity : AppCompatActivity() {
-
     private val binding by viewBinding(ActivityDetailBinding::inflate)
     private val viewModel: DetailViewModel by viewModel()
 
@@ -54,7 +53,8 @@ class DetailActivity : AppCompatActivity() {
         viewModel.resultDelete.observe(this) {
             if (it) {
                 setBookmarkState(false)
-                Toast.makeText(this@DetailActivity, "Kata berhasil dihapus.", Toast.LENGTH_SHORT)
+                Toast
+                    .makeText(this@DetailActivity, "Kata berhasil dihapus.", Toast.LENGTH_SHORT)
                     .show()
             } else {
                 setBookmarkState(true)
@@ -69,43 +69,44 @@ class DetailActivity : AppCompatActivity() {
         }
     }
 
-    private fun setBookmarkState(isSaved: Boolean) = with(binding) {
-        if (isSaved) {
-            bookmark.setImageDrawable(
-                ContextCompat.getDrawable(
-                    this@DetailActivity,
-                    R.drawable.book_solid,
-                ),
-            )
-            bookmark.imageTintList =
-                ContextCompat.getColorStateList(this@DetailActivity, R.color.white)
-            textBookmark.text = "Bookmarked"
-            textBookmark.setTextColor(ContextCompat.getColor(this@DetailActivity, R.color.white))
-            btnBookContainer.setCardBackgroundColor(
-                ContextCompat.getColor(
-                    this@DetailActivity,
-                    R.color.text_h1,
-                ),
-            )
-        } else {
-            bookmark.setImageDrawable(
-                ContextCompat.getDrawable(
-                    this@DetailActivity,
-                    R.drawable.book,
-                ),
-            )
-            textBookmark.text = "Bookmark"
-            bookmark.imageTintList =
-                ContextCompat.getColorStateList(this@DetailActivity, R.color.text_h1)
-            textBookmark.setTextColor(ContextCompat.getColor(this@DetailActivity, R.color.text_h1))
-            btnBookContainer.setCardBackgroundColor(
-                ContextCompat.getColor(
-                    this@DetailActivity,
-                    R.color.white,
-                ),
-            )
+    private fun setBookmarkState(isSaved: Boolean) =
+        with(binding) {
+            if (isSaved) {
+                bookmark.setImageDrawable(
+                    ContextCompat.getDrawable(
+                        this@DetailActivity,
+                        R.drawable.book_solid,
+                    ),
+                )
+                bookmark.imageTintList =
+                    ContextCompat.getColorStateList(this@DetailActivity, R.color.white)
+                textBookmark.text = "Bookmarked"
+                textBookmark.setTextColor(ContextCompat.getColor(this@DetailActivity, R.color.white))
+                btnBookContainer.setCardBackgroundColor(
+                    ContextCompat.getColor(
+                        this@DetailActivity,
+                        R.color.text_h1,
+                    ),
+                )
+            } else {
+                bookmark.setImageDrawable(
+                    ContextCompat.getDrawable(
+                        this@DetailActivity,
+                        R.drawable.book,
+                    ),
+                )
+                textBookmark.text = "Bookmark"
+                bookmark.imageTintList =
+                    ContextCompat.getColorStateList(this@DetailActivity, R.color.text_h1)
+                textBookmark.setTextColor(ContextCompat.getColor(this@DetailActivity, R.color.text_h1))
+                btnBookContainer.setCardBackgroundColor(
+                    ContextCompat.getColor(
+                        this@DetailActivity,
+                        R.color.white,
+                    ),
+                )
+            }
         }
-    }
 
     private fun setupView() {
         with(binding) {

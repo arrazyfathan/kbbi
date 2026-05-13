@@ -20,12 +20,14 @@ import com.arrazyfathan.kbbi.utils.viewBinding
 import org.koin.androidx.viewmodel.ext.android.viewModel
 
 class SavedFragment : Fragment(R.layout.fragment_saved) {
-
     private val binding by viewBinding(FragmentSavedBinding::bind)
     private val viewModel: SavedViewModel by viewModel()
     private lateinit var adapter: FavoriteAdapter
 
-    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+    override fun onViewCreated(
+        view: View,
+        savedInstanceState: Bundle?,
+    ) {
         super.onViewCreated(view, savedInstanceState)
         binding.root.applySystemBarPadding(applyTop = true)
         setupView()
@@ -39,29 +41,32 @@ class SavedFragment : Fragment(R.layout.fragment_saved) {
         )
     }
 
-    private fun setupView() = with(binding) {
-        adapter = FavoriteAdapter(
-            requireContext(),
-            object : FavoriteAdapter.FavoriteListener {
-                override fun onClickListener(model: ListWordModel) {
-                    startActivity(
-                        Intent(requireActivity(), DetailActivity::class.java).putExtra(
-                            "data",
-                            model.toJson(),
-                        ),
-                    )
-                }
+    private fun setupView() =
+        with(binding) {
+            adapter =
+                FavoriteAdapter(
+                    requireContext(),
+                    object : FavoriteAdapter.FavoriteListener {
+                        override fun onClickListener(model: ListWordModel) {
+                            startActivity(
+                                Intent(requireActivity(), DetailActivity::class.java).putExtra(
+                                    "data",
+                                    model.toJson(),
+                                ),
+                            )
+                        }
 
-                override fun onDeleteListener(model: ListWordModel) {
-                    showDialogDelete(model)
-                }
-            },
-        )
-        rvFavoritKata.adapter = adapter
-    }
+                        override fun onDeleteListener(model: ListWordModel) {
+                            showDialogDelete(model)
+                        }
+                    },
+                )
+            rvFavoritKata.adapter = adapter
+        }
 
     private fun showDialogDelete(model: ListWordModel) {
-        CustomDialog.Builder(requireContext())
+        CustomDialog
+            .Builder(requireContext())
             .setTitle("Hapus kata?")
             .setMessage("Anda yakin ingin menghapus kata?")
             .isCancelable(false)
@@ -72,24 +77,24 @@ class SavedFragment : Fragment(R.layout.fragment_saved) {
                     CustomDialog.ResponseType.YES -> removeWordFromBookmark(word = model.word)
                     CustomDialog.ResponseType.NO -> {}
                 }
-            }
-            .build()
+            }.build()
     }
 
     private fun removeWordFromBookmark(word: String) {
         viewModel.removeFromBookmark(word)
     }
 
-    private fun observe() = with(binding) {
-        viewModel.getBookmarks().observe(viewLifecycleOwner) {
-            adapter.differ.submitList(it)
-            if (adapter.isEmpty()) {
-                emptyLayout.isVisible = true
-                readingPeople.isVisible = false
-            } else {
-                emptyLayout.isVisible = false
-                readingPeople.isVisible = true
+    private fun observe() =
+        with(binding) {
+            viewModel.getBookmarks().observe(viewLifecycleOwner) {
+                adapter.differ.submitList(it)
+                if (adapter.isEmpty()) {
+                    emptyLayout.isVisible = true
+                    readingPeople.isVisible = false
+                } else {
+                    emptyLayout.isVisible = false
+                    readingPeople.isVisible = true
+                }
             }
         }
-    }
 }

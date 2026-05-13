@@ -18,6 +18,12 @@ import com.arrazyfathan.kbbi.utils.viewBinding
 
 @SuppressLint("CustomSplashScreen")
 class SplashScreenActivity : AppCompatActivity() {
+    private companion object {
+        const val LOGO_ANIMATION_DURATION_MS = 2000L
+        const val READING_ANIMATION_TRANSLATION_Y = -80f
+        const val CONTENT_ANIMATION_TRANSLATION_Y = 100f
+        const val SPLASH_DELAY_MS = 3000L
+    }
 
     private val binding by viewBinding(ActivitySplashScreenBinding::inflate)
 
@@ -35,24 +41,30 @@ class SplashScreenActivity : AppCompatActivity() {
     }
 
     private fun animateLogo() {
-        binding.readingAnimation.animate().apply {
-            duration = 2000
-            translationY(-80f)
-            alpha(1f)
-            interpolator = LinearInterpolator()
-        }.start()
+        binding.readingAnimation
+            .animate()
+            .apply {
+                duration = LOGO_ANIMATION_DURATION_MS
+                translationY(READING_ANIMATION_TRANSLATION_Y)
+                alpha(1f)
+                interpolator = LinearInterpolator()
+            }.start()
 
-        binding.logo.animate().apply {
-            duration = 2000
-            translationY(100f)
-            interpolator = LinearInterpolator()
-        }.start()
+        binding.logo
+            .animate()
+            .apply {
+                duration = LOGO_ANIMATION_DURATION_MS
+                translationY(CONTENT_ANIMATION_TRANSLATION_Y)
+                interpolator = LinearInterpolator()
+            }.start()
 
-        binding.loadingAnimation.animate().apply {
-            duration = 2000
-            translationY(100f)
-            interpolator = LinearInterpolator()
-        }.start()
+        binding.loadingAnimation
+            .animate()
+            .apply {
+                duration = LOGO_ANIMATION_DURATION_MS
+                translationY(CONTENT_ANIMATION_TRANSLATION_Y)
+                interpolator = LinearInterpolator()
+            }.start()
     }
 
     private fun beginSplash() {
@@ -61,6 +73,6 @@ class SplashScreenActivity : AppCompatActivity() {
                 startActivity(it)
             }
             finish()
-        }, 3000)
+        }, SPLASH_DELAY_MS)
     }
 }

@@ -1,8 +1,8 @@
 package com.arrazyfathan.kbbi.presentation.home
 
 import android.os.Bundle
-import androidx.core.content.ContextCompat
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.content.ContextCompat
 import androidx.navigation.fragment.NavHostFragment
 import androidx.navigation.ui.setupWithNavController
 import com.arrazyfathan.kbbi.R
@@ -13,7 +13,6 @@ import com.arrazyfathan.kbbi.utils.updateSystemBarStyle
 import com.arrazyfathan.kbbi.utils.viewBinding
 
 class MainActivity : AppCompatActivity() {
-
     private val binding by viewBinding(ActivityMainBinding::inflate)
 
     override fun onCreate(savedInstanceState: Bundle?) {

@@ -12,6 +12,7 @@ class SavedViewModel(
     private val wordUseCase: WordUseCase,
 ) : ViewModel() {
     fun getBookmarks(): LiveData<List<ListWordModel>> = wordUseCase.getBookmarks().asLiveData()
+
     fun removeFromBookmark(word: String) {
         viewModelScope.launch {
             wordUseCase.deleteWord(word)

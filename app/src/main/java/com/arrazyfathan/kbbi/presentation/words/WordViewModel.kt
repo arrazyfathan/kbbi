@@ -13,8 +13,6 @@ import com.arrazyfathan.kbbi.core.domain.usecase.WordUseCase
 class WordViewModel(
     private val wordUseCase: WordUseCase,
 ) : ViewModel() {
-
-    fun getMeaningOfWord(word: String): LiveData<Resource<List<WordModel>>> {
-        return wordUseCase.getMeaningOfWord(word = word).asLiveData()
-    }
+    fun getMeaningOfWord(word: String): LiveData<Resource<List<WordModel>>> =
+        wordUseCase.getMeaningOfWord(word = word).asLiveData()
 }

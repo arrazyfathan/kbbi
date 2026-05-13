@@ -1,6 +1,8 @@
 package com.arrazyfathan.kbbi.core.data.source.local.room
 
-import androidx.room.*
+import androidx.room.Dao
+import androidx.room.Query
+import androidx.room.Upsert
 import com.arrazyfathan.kbbi.core.data.source.local.entity.HistoryEntity
 import com.arrazyfathan.kbbi.core.data.source.local.entity.ListWordEntity
 import kotlinx.coroutines.flow.Flow
@@ -11,7 +13,6 @@ import kotlinx.coroutines.flow.Flow
 
 @Dao
 interface WordDao {
-
     @Query("SELECT * FROM word_table")
     fun getAllWords(): Flow<List<ListWordEntity>>
 

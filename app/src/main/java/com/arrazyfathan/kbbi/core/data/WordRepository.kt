@@ -23,52 +23,52 @@ class WordRepository(
     private val remoteDataSource: RemoteDataSource,
     private val localDataSource: LocalDataSource,
 ) : IWordRepository {
-
-    override fun getMeaningOfWord(word: String): Flow<Resource<List<WordModel>>> = flow {
-        emit(Resource.Loading())
-        when (val response = remoteDataSource.getMeaningOfWord(word).first()) {
-            is ApiResponse.Success -> {
-                emit(Resource.Success(DataMapper.mapResponseToDomain(response.data)))
-            }
-            is ApiResponse.Empty -> {
-                emit(Resource.Error(message = "Data not found"))
-            }
-            is ApiResponse.Error -> {
-                emit(Resource.Error(response.errorMessage))
+    override fun getMeaningOfWord(word: String): Flow<Resource<List<WordModel>>> =
+        flow {
+            emit(Resource.Loading())
+            when (val response = remoteDataSource.getMeaningOfWord(word).first()) {
+                is ApiResponse.Success -> {
+                    emit(Resource.Success(DataMapper.mapResponseToDomain(response.data)))
+                }
+                is ApiResponse.Empty -> {
+                    emit(Resource.Error(message = "Data not found"))
+                }
+                is ApiResponse.Error -> {
+                    emit(Resource.Error(response.errorMessage))
+                }
             }
         }
+
+    override suspend fun bookmarkWord(
+        word: String,
+        result: List<WordModel>,
+        isSaved: Boolean,
+    ) = withContext(Dispatchers.IO) {
+        return@withContext localDataSource.insertWord(
+            ListWordEntity(
+                word = word,
+                DataMapper.mapDomainToEntity(result),
+                isSaved = isSaved,
+            ),
+        )
     }
 
-    override suspend fun bookmarkWord(word: String, result: List<WordModel>, isSaved: Boolean) =
+    override suspend fun addToHistory(historyEntity: HistoryEntity) =
         withContext(Dispatchers.IO) {
-            return@withContext localDataSource.insertWord(
-                ListWordEntity(
-                    word = word,
-                    DataMapper.mapDomainToEntity(result),
-                    isSaved = isSaved,
-                ),
-            )
+            return@withContext localDataSource.insertHistory(historyEntity)
         }
 
-    override suspend fun addToHistory(historyEntity: HistoryEntity) = withContext(Dispatchers.IO) {
-        return@withContext localDataSource.insertHistory(historyEntity)
-    }
+    override fun getAllHistories(): Flow<List<HistoryEntity>> = localDataSource.getAllHistories()
 
-    override fun getAllHistories(): Flow<List<HistoryEntity>> {
-        return localDataSource.getAllHistories()
-    }
+    override suspend fun deleteWord(word: String) =
+        withContext(Dispatchers.IO) {
+            return@withContext localDataSource.deleteWord(word)
+        }
 
-    override suspend fun deleteWord(word: String) = withContext(Dispatchers.IO) {
-        return@withContext localDataSource.deleteWord(word)
-    }
+    override fun checkIfWordIsSaved(word: String): Flow<Boolean> = localDataSource.checkWordIsExist(word)
 
-    override fun checkIfWordIsSaved(word: String): Flow<Boolean> {
-        return localDataSource.checkWordIsExist(word)
-    }
-
-    override fun getBookmarks(): Flow<List<ListWordModel>> {
-        return localDataSource.getAllWords().map {
+    override fun getBookmarks(): Flow<List<ListWordModel>> =
+        localDataSource.getAllWords().map {
             DataMapper.mapListWordEntityToDomain(it)
         }
-    }
 }
