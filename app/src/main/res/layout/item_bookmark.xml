@@ -45,9 +45,9 @@
                 android:layout_marginTop="4dp"
                 android:layout_marginEnd="16dp"
                 android:layout_marginBottom="32dp"
-                android:maxLines="1"
                 android:ellipsize="end"
                 android:fontFamily="@font/inter_regular"
+                android:maxLines="1"
                 android:textColor="@color/text_p"
                 android:textSize="14sp"
                 app:layout_constraintBottom_toBottomOf="parent"
@@ -83,6 +83,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_gravity="center"
+                android:contentDescription="@string/app_name"
                 android:src="@drawable/ic_delete"
                 app:tint="@color/white" />
 
@@ -95,6 +96,7 @@
                 android:layout_marginTop="16dp"
                 android:layout_marginEnd="16dp"
                 android:backgroundTint="@color/red"
+                android:contentDescription="@string/app_name"
                 android:src="@drawable/close"
                 app:tint="@color/white" />
 

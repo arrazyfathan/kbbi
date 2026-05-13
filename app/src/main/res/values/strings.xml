@@ -24,4 +24,5 @@
     <string name="bookmarks_screen_subtitle">Your saved word collection.</string>
     <string name="empty_bookmarks_message">No bookmarked words yet.</string>
     <string name="copy">Copy</string>
+    <string name="number_item">1</string>
 </resources>

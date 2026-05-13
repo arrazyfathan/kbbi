@@ -40,6 +40,7 @@
         android:layout_height="55dp"
         android:layout_marginStart="16dp"
         android:layout_marginTop="12dp"
+        android:autofillHints="@string/search_word_list_hint"
         android:background="@drawable/custom_text_input"
         android:fontFamily="@font/inter_medium"
         android:hint="@string/search_word_list_hint"
