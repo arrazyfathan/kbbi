@@ -8,6 +8,10 @@ import com.arrazyfathan.kbbi.R
 import com.arrazyfathan.kbbi.core.domain.model.ListWordModel
 import com.arrazyfathan.kbbi.databinding.ActivityDetailBinding
 import com.arrazyfathan.kbbi.presentation.adapter.WordAdapter
+import com.arrazyfathan.kbbi.utils.applySystemBarMargin
+import com.arrazyfathan.kbbi.utils.applySystemBarPadding
+import com.arrazyfathan.kbbi.utils.enableEdgeToEdgeSystemBars
+import com.arrazyfathan.kbbi.utils.updateSystemBarStyle
 import com.arrazyfathan.kbbi.utils.viewBinding
 import com.google.gson.Gson
 import org.koin.androidx.viewmodel.ext.android.viewModel
@@ -24,7 +28,12 @@ class DetailActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        enableEdgeToEdgeSystemBars()
         setContentView(binding.root)
+        binding.appBar.applySystemBarPadding(applyTop = true)
+        binding.rvArtiKata.applySystemBarPadding(applyBottom = true)
+        binding.btnBookContainer.applySystemBarMargin(applyBottom = true)
+        updateSystemBarStyle(ContextCompat.getColor(this, R.color.blue_bg))
         handleIntent()
         setupRecyclerView()
         checkIfWordSaved()

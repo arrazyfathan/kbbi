@@ -10,6 +10,7 @@ import android.view.animation.AnticipateOvershootInterpolator
 import android.view.animation.OvershootInterpolator
 import android.view.inputmethod.EditorInfo
 import android.widget.Toast
+import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
 import com.arrazyfathan.kbbi.R
 import com.arrazyfathan.kbbi.core.data.Resource
@@ -34,8 +35,16 @@ class HomeFragment : Fragment(R.layout.fragment_home) {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+        binding.homeContainer.applySystemBarPadding(applyTop = true)
         setupView()
         observe()
+    }
+
+    override fun onResume() {
+        super.onResume()
+        (activity as? MainActivity)?.updateSystemBarStyle(
+            ContextCompat.getColor(requireContext(), R.color.blue_primary),
+        )
     }
 
     private fun observe() {

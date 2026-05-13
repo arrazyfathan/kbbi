@@ -1,11 +1,15 @@
 package com.arrazyfathan.kbbi.presentation.home
 
 import android.os.Bundle
+import androidx.core.content.ContextCompat
 import androidx.appcompat.app.AppCompatActivity
 import androidx.navigation.fragment.NavHostFragment
 import androidx.navigation.ui.setupWithNavController
 import com.arrazyfathan.kbbi.R
 import com.arrazyfathan.kbbi.databinding.ActivityMainBinding
+import com.arrazyfathan.kbbi.utils.applyBottomNavigationInsets
+import com.arrazyfathan.kbbi.utils.enableEdgeToEdgeSystemBars
+import com.arrazyfathan.kbbi.utils.updateSystemBarStyle
 import com.arrazyfathan.kbbi.utils.viewBinding
 
 class MainActivity : AppCompatActivity() {
@@ -14,7 +18,10 @@ class MainActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        enableEdgeToEdgeSystemBars()
         setContentView(binding.root)
+        binding.bottomNavigationView.applyBottomNavigationInsets()
+        updateSystemBarStyle(ContextCompat.getColor(this, R.color.blue_primary))
         setupBottomNavigationView()
     }
 

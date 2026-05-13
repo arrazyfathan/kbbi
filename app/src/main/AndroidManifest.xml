@@ -19,7 +19,7 @@
             android:exported="false" />
         <activity
             android:name=".presentation.home.MainActivity"
-            android:windowSoftInputMode="adjustNothing"
+            android:windowSoftInputMode="adjustResize"
             android:exported="false" />
         <activity
             android:name=".presentation.splash.SplashScreenActivity"

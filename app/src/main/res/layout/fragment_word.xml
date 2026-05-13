@@ -5,18 +5,19 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="@color/blue_bg"
-    android:fitsSystemWindows="true"
     tools:context=".presentation.words.WordFragment">
 
     <com.google.android.material.appbar.AppBarLayout
+        android:id="@+id/word_app_bar"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:fitsSystemWindows="true">
+        android:background="@color/blue_primary">
 
         <com.google.android.material.appbar.CollapsingToolbarLayout
             style="?attr/collapsingToolbarLayoutLargeStyle"
             android:layout_width="match_parent"
             android:layout_height="120dp"
+            android:background="@color/blue_primary"
             app:contentScrim="?attr/colorPrimary"
             app:layout_scrollFlags="scroll|exitUntilCollapsed|snap">
 

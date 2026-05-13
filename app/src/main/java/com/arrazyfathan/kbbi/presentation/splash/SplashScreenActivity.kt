@@ -5,25 +5,29 @@ import android.content.Intent
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
-import android.view.WindowManager
 import android.view.animation.LinearInterpolator
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.content.ContextCompat
 import com.arrazyfathan.kbbi.R
 import com.arrazyfathan.kbbi.databinding.ActivitySplashScreenBinding
 import com.arrazyfathan.kbbi.presentation.home.MainActivity
+import com.arrazyfathan.kbbi.utils.applySystemBarPadding
+import com.arrazyfathan.kbbi.utils.enableEdgeToEdgeSystemBars
+import com.arrazyfathan.kbbi.utils.updateSystemBarStyle
 import com.arrazyfathan.kbbi.utils.viewBinding
 
 @SuppressLint("CustomSplashScreen")
-@Suppress("DEPRECATION")
 class SplashScreenActivity : AppCompatActivity() {
 
     private val binding by viewBinding(ActivitySplashScreenBinding::inflate)
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        enableEdgeToEdgeSystemBars()
         setContentView(binding.root)
+        binding.root.applySystemBarPadding(applyTop = true, applyBottom = true)
+        updateSystemBarStyle(ContextCompat.getColor(this, R.color.blue_primary))
 
-        // setFullScreen()
         animateLogo()
         beginSplash()
 
@@ -49,13 +53,6 @@ class SplashScreenActivity : AppCompatActivity() {
             translationY(100f)
             interpolator = LinearInterpolator()
         }.start()
-    }
-
-    private fun setFullScreen() {
-        window.setFlags(
-            WindowManager.LayoutParams.FLAG_FULLSCREEN,
-            WindowManager.LayoutParams.FLAG_FULLSCREEN,
-        )
     }
 
     private fun beginSplash() {

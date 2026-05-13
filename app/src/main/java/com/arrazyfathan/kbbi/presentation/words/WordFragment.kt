@@ -6,6 +6,7 @@ import android.content.Intent
 import android.os.Bundle
 import android.view.*
 import android.widget.Toast
+import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.arrazyfathan.kbbi.R
@@ -16,7 +17,10 @@ import com.arrazyfathan.kbbi.core.domain.model.WordModel
 import com.arrazyfathan.kbbi.databinding.FragmentWordBinding
 import com.arrazyfathan.kbbi.presentation.adapter.KosaKataAdapter
 import com.arrazyfathan.kbbi.presentation.detail.DetailActivity
+import com.arrazyfathan.kbbi.presentation.home.MainActivity
+import com.arrazyfathan.kbbi.utils.applySystemBarPadding
 import com.arrazyfathan.kbbi.utils.toJson
+import com.arrazyfathan.kbbi.utils.updateSystemBarStyle
 import com.arrazyfathan.kbbi.utils.viewBinding
 import com.google.gson.GsonBuilder
 import com.google.gson.reflect.TypeToken
@@ -33,6 +37,7 @@ class WordFragment : Fragment(R.layout.fragment_word) {
     @SuppressLint("CheckResult", "NotifyDataSetChanged")
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+        binding.wordAppBar.applySystemBarPadding(applyTop = true)
 
         val jsonFileString = getJsonDataFromAsset(requireActivity(), "entries.json")
         val gson = GsonBuilder().create()
@@ -82,6 +87,13 @@ class WordFragment : Fragment(R.layout.fragment_word) {
                 }
             }
         }
+    }
+
+    override fun onResume() {
+        super.onResume()
+        (activity as? MainActivity)?.updateSystemBarStyle(
+            ContextCompat.getColor(requireContext(), R.color.blue_primary),
+        )
     }
 
     private fun navigateToDetail(result: Resource.Success<List<WordModel>>, word: String) {
