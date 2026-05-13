@@ -21,16 +21,6 @@ class HomeViewModel(
     fun getMeaningOfWord(word: String): LiveData<Resource<List<WordModel>>> =
         wordUseCase.getMeaningOfWord(word).asLiveData()
 
-    fun bookmarkWord(
-        word: String,
-        wordList: List<WordModel>,
-        isSaved: Boolean,
-    ) {
-        viewModelScope.launch {
-            wordUseCase.bookmarkWord(word, wordList, isSaved)
-        }
-    }
-
     fun addToHistory(historyEntity: HistoryEntity) {
         viewModelScope.launch {
             wordUseCase.addToHistory(historyEntity)

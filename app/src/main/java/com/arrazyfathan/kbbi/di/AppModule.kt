@@ -6,7 +6,7 @@ import com.arrazyfathan.kbbi.presentation.bookmark.SavedViewModel
 import com.arrazyfathan.kbbi.presentation.detail.DetailViewModel
 import com.arrazyfathan.kbbi.presentation.home.HomeViewModel
 import com.arrazyfathan.kbbi.presentation.words.WordViewModel
-import org.koin.androidx.viewmodel.dsl.viewModel
+import org.koin.core.module.dsl.viewModelOf
 import org.koin.dsl.module
 
 /**
@@ -20,8 +20,8 @@ val useCaseModule =
 
 val viewModelModule =
     module {
-        viewModel { DetailViewModel(get()) }
-        viewModel { HomeViewModel(get()) }
-        viewModel { SavedViewModel(get()) }
-        viewModel { WordViewModel(get()) }
+        viewModelOf(::DetailViewModel)
+        viewModelOf(::HomeViewModel)
+        viewModelOf(::SavedViewModel)
+        viewModelOf(::WordViewModel)
     }

@@ -1,7 +1,6 @@
 package com.arrazyfathan.kbbi.presentation.adapter
 
 import android.annotation.SuppressLint
-import android.graphics.Color
 import android.graphics.Typeface
 import android.text.Spannable
 import android.text.TextUtils
@@ -9,6 +8,7 @@ import android.text.style.ForegroundColorSpan
 import android.text.style.StyleSpan
 import android.view.LayoutInflater
 import android.view.ViewGroup
+import androidx.core.graphics.toColorInt
 import androidx.core.text.toSpannable
 import androidx.recyclerview.widget.RecyclerView
 import com.arrazyfathan.kbbi.core.domain.model.MeaningModel
@@ -26,7 +26,7 @@ class MeaningAdapter : RecyclerView.Adapter<MeaningAdapter.ViewHolder>() {
         notifyDataSetChanged()
     }
 
-    inner class ViewHolder(
+    class ViewHolder(
         val binding: ItemListChildArtiBinding,
     ) : RecyclerView.ViewHolder(binding.root) {
         fun bind(
@@ -35,8 +35,8 @@ class MeaningAdapter : RecyclerView.Adapter<MeaningAdapter.ViewHolder>() {
         ) {
             with(binding) {
                 val number = "${position + 1}. "
-                val regex = Regex("\\[(.*?)\\]")
-                val colorBoldString = ForegroundColorSpan(Color.parseColor("#2E494C"))
+                val regex = Regex("""\[(.*?)]""")
+                val colorBoldString = ForegroundColorSpan("#2E494C".toColorInt())
                 val boloString = StyleSpan(Typeface.BOLD)
                 val kelasKata = data.wordClass.replace(regex, " ").toSpannable()
                 kelasKata.setSpan(
@@ -60,13 +60,13 @@ class MeaningAdapter : RecyclerView.Adapter<MeaningAdapter.ViewHolder>() {
     override fun onCreateViewHolder(
         parent: ViewGroup,
         viewType: Int,
-    ): MeaningAdapter.ViewHolder =
+    ): ViewHolder =
         ViewHolder(
             ItemListChildArtiBinding.inflate(LayoutInflater.from(parent.context), parent, false),
         )
 
     override fun onBindViewHolder(
-        holder: MeaningAdapter.ViewHolder,
+        holder: ViewHolder,
         position: Int,
     ) {
         holder.bind(list[position], position)

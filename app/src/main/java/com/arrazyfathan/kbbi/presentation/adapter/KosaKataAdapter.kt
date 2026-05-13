@@ -1,12 +1,11 @@
 package com.arrazyfathan.kbbi.presentation.adapter
 
+import android.annotation.SuppressLint
 import android.view.LayoutInflater
 import android.view.ViewGroup
 import android.widget.Filter
 import android.widget.Filterable
-import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.RecyclerView
-import com.arrazyfathan.kbbi.core.data.source.local.KosaKata
 import com.arrazyfathan.kbbi.databinding.ItemListKosaKataBinding
 
 class KosaKataAdapter(
@@ -20,7 +19,7 @@ class KosaKataAdapter(
         kataFilterList = listKosaKata
     }
 
-    inner class KosaKataViewHolder(
+    class KosaKataViewHolder(
         val binding: ItemListKosaKataBinding,
     ) : RecyclerView.ViewHolder(binding.root)
 
@@ -37,7 +36,7 @@ class KosaKataAdapter(
         holder: KosaKataViewHolder,
         position: Int,
     ) {
-        val data = listKosaKata[position]
+        val data = kataFilterList[position]
         holder.binding.kosaKataList.text = data
 
         holder.itemView.setOnClickListener {
@@ -47,25 +46,7 @@ class KosaKataAdapter(
 
     override fun getItemCount(): Int = kataFilterList.size
 
-    class KosaKataDiffCallback(
-        private var oldData: KosaKata,
-        private var newData: KosaKata,
-    ) : DiffUtil.Callback() {
-        override fun getOldListSize(): Int = oldData.size
-
-        override fun getNewListSize(): Int = newData.size
-
-        override fun areItemsTheSame(
-            oldItemPosition: Int,
-            newItemPosition: Int,
-        ): Boolean = oldData[oldItemPosition] == newData[newItemPosition]
-
-        override fun areContentsTheSame(
-            oldItemPosition: Int,
-            newItemPosition: Int,
-        ): Boolean = oldData == newData
-    }
-
+    @SuppressLint("NotifyDataSetChanged")
     override fun getFilter(): Filter {
         return object : Filter() {
             override fun performFiltering(constraint: CharSequence?): FilterResults {
@@ -90,7 +71,11 @@ class KosaKataAdapter(
                 constraint: CharSequence?,
                 results: FilterResults?,
             ) {
-                kataFilterList = results?.values as ArrayList<String>
+                kataFilterList =
+                    when (val values = results?.values) {
+                        is List<*> -> ArrayList(values.filterIsInstance<String>())
+                        else -> arrayListOf()
+                    }
                 notifyDataSetChanged()
             }
         }

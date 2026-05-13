@@ -1,3 +1,5 @@
+@file:Suppress("unused")
+
 package com.arrazyfathan.kbbi.utils
 
 import android.app.Activity
@@ -41,25 +43,27 @@ fun Fragment.focusAndShowKeyboard(view: View) {
         view.requestFocus()
     }
     if (view is EditText) {
-        showKeyboard()
+        showKeyboard(view)
     }
 }
 
 fun Fragment.showKeyboard() {
     val imm = activity?.getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager
-    imm.toggleSoftInput(InputMethodManager.SHOW_IMPLICIT, InputMethodManager.HIDE_IMPLICIT_ONLY)
+    val targetView = activity?.currentFocus ?: view ?: return
+    targetView.requestFocus()
+    imm.showSoftInput(targetView, 0)
 }
 
 fun Fragment.showKeyboard(editText: View) {
     editText.requestFocus()
     val imm = activity?.getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager
-    imm.toggleSoftInput(InputMethodManager.SHOW_IMPLICIT, InputMethodManager.HIDE_IMPLICIT_ONLY)
+    imm.showSoftInput(editText, 0)
 }
 
 fun Activity.showKeyboard(editText: View) {
     editText.requestFocus()
     val imm = getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager
-    imm.toggleSoftInput(InputMethodManager.SHOW_IMPLICIT, InputMethodManager.HIDE_IMPLICIT_ONLY)
+    imm.showSoftInput(editText, 0)
 }
 
 fun showKeyboard(

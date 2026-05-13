@@ -3,6 +3,7 @@ package com.arrazyfathan.kbbi.presentation.adapter
 import android.content.Context
 import android.os.Build
 import android.os.Handler
+import android.os.Looper
 import android.os.VibrationEffect
 import android.os.Vibrator
 import android.transition.Slide
@@ -47,12 +48,7 @@ class FavoriteAdapter(
                     favoriteListener.onClickListener(data)
                 }
 
-                val vibrator =
-                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-                        context.getSystemService(Vibrator::class.java)
-                    } else {
-                        context.getSystemService(Context.VIBRATOR_SERVICE) as Vibrator
-                    }
+                val vibrator = context.getSystemService(Vibrator::class.java)
 
                 val transition = Slide(Gravity.END)
                 transition.apply {
@@ -62,13 +58,13 @@ class FavoriteAdapter(
                 }
 
                 item.setOnLongClickListener {
-                    Handler().postDelayed({
+                    Handler(Looper.getMainLooper()).postDelayed({
                         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
                             val vibrationEffect =
                                 VibrationEffect.createOneShot(VIBRATION_DURATION_MS, VibrationEffect.DEFAULT_AMPLITUDE)
                             vibrator?.vibrate(vibrationEffect)
                         } else {
-                            vibrator?.vibrate(VIBRATION_DURATION_MS)
+                            vibrateLegacy(vibrator)
                         }
                         TransitionManager.beginDelayedTransition(root, transition)
                         btnDelete.visible()
@@ -124,4 +120,9 @@ class FavoriteAdapter(
     fun isEmpty(): Boolean = differ.currentList.isEmpty()
 
     override fun getItemCount(): Int = differ.currentList.size
+
+    @Suppress("DEPRECATION")
+    private fun vibrateLegacy(vibrator: Vibrator?) {
+        vibrator?.vibrate(VIBRATION_DURATION_MS)
+    }
 }

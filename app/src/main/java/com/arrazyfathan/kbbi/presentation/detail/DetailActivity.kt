@@ -46,7 +46,7 @@ class DetailActivity : AppCompatActivity() {
                 setBookmarkState(false)
             } else {
                 setBookmarkState(true)
-                Toast.makeText(this, "Kata berhasil disimpan.", Toast.LENGTH_SHORT).show()
+                Toast.makeText(this, R.string.word_saved_success, Toast.LENGTH_SHORT).show()
             }
         }
 
@@ -54,7 +54,7 @@ class DetailActivity : AppCompatActivity() {
             if (it) {
                 setBookmarkState(false)
                 Toast
-                    .makeText(this@DetailActivity, "Kata berhasil dihapus.", Toast.LENGTH_SHORT)
+                    .makeText(this@DetailActivity, R.string.word_deleted_success, Toast.LENGTH_SHORT)
                     .show()
             } else {
                 setBookmarkState(true)
@@ -80,7 +80,7 @@ class DetailActivity : AppCompatActivity() {
                 )
                 bookmark.imageTintList =
                     ContextCompat.getColorStateList(this@DetailActivity, R.color.white)
-                textBookmark.text = "Bookmarked"
+                textBookmark.text = getString(R.string.bookmarked)
                 textBookmark.setTextColor(ContextCompat.getColor(this@DetailActivity, R.color.white))
                 btnBookContainer.setCardBackgroundColor(
                     ContextCompat.getColor(
@@ -95,7 +95,7 @@ class DetailActivity : AppCompatActivity() {
                         R.drawable.book,
                     ),
                 )
-                textBookmark.text = "Bookmark"
+                textBookmark.text = getString(R.string.bookmark)
                 bookmark.imageTintList =
                     ContextCompat.getColorStateList(this@DetailActivity, R.color.text_h1)
                 textBookmark.setTextColor(ContextCompat.getColor(this@DetailActivity, R.color.text_h1))

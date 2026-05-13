@@ -29,6 +29,10 @@ import org.koin.androidx.viewmodel.ext.android.viewModel
 import java.io.IOException
 
 class WordFragment : Fragment(R.layout.fragment_word) {
+    private companion object {
+        const val ENTRIES_FILE_NAME = "entries.json"
+    }
+
     private val binding by viewBinding(FragmentWordBinding::bind)
     private val viewModel: WordViewModel by viewModel()
     private lateinit var adapter: KosaKataAdapter
@@ -41,7 +45,7 @@ class WordFragment : Fragment(R.layout.fragment_word) {
         super.onViewCreated(view, savedInstanceState)
         binding.wordAppBar.applySystemBarPadding(applyTop = true)
 
-        val jsonFileString = getJsonDataFromAsset(requireActivity(), "entries.json")
+        val jsonFileString = getJsonDataFromAsset(requireActivity())
         val gson = GsonBuilder().create()
         val listKosaKata = object : TypeToken<KosaKata>() {}.type
         val list: KosaKata = gson.fromJson(jsonFileString, listKosaKata)
@@ -120,18 +124,15 @@ class WordFragment : Fragment(R.layout.fragment_word) {
         )
     }
 
-    private fun getJsonDataFromAsset(
-        context: Context,
-        fileName: String,
-    ): String? {
+    private fun getJsonDataFromAsset(context: Context): String? {
         val jsonString: String
         try {
             jsonString =
                 context.assets
-                    .open(fileName)
+                    .open(ENTRIES_FILE_NAME)
                     .bufferedReader()
                     .use { it.readText() }
-        } catch (ignored: IOException) {
+        } catch (_: IOException) {
             return null
         }
         return jsonString

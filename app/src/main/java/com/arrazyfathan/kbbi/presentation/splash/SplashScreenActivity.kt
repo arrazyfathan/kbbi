@@ -37,7 +37,7 @@ class SplashScreenActivity : AppCompatActivity() {
         animateLogo()
         beginSplash()
 
-        binding.version.text = "Version ${getString(R.string.version_name)}"
+        binding.version.text = getString(R.string.version_label, getString(R.string.version_name))
     }
 
     private fun animateLogo() {

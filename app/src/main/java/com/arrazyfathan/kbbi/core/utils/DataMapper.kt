@@ -13,27 +13,6 @@ import com.arrazyfathan.kbbi.core.domain.model.WordModel
  * Created by Ar Razy Fathan Rabbani on 17/03/23.
  */
 object DataMapper {
-    fun mapResponseToEntities(input: List<WordResponse>): List<WordEntity> {
-        val wordList = ArrayList<WordEntity>()
-        input.map {
-            val wordEntity =
-                WordEntity(
-                    entry = it.entry,
-                    meanings = mapMeaningResponseToMeaningEntity(it.meanings),
-                )
-            wordList.add(wordEntity)
-        }
-        return wordList
-    }
-
-    private fun mapMeaningResponseToMeaningEntity(input: List<Meaning>): List<MeaningEntity> =
-        input.map {
-            MeaningEntity(
-                it.wordClass,
-                it.description,
-            )
-        }
-
     fun mapResponseToDomain(input: List<WordResponse>): List<WordModel> =
         input.map {
             WordModel(

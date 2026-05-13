@@ -1,3 +1,5 @@
+@file:Suppress("unused")
+
 package com.arrazyfathan.kbbi.core.data.source.local.room
 
 import androidx.room.TypeConverter

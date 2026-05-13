@@ -7,7 +7,6 @@ import com.arrazyfathan.kbbi.core.data.source.local.room.WordDatabase
 import com.arrazyfathan.kbbi.core.data.source.remote.RemoteDataSource
 import com.arrazyfathan.kbbi.core.data.source.remote.network.ApiService
 import com.arrazyfathan.kbbi.core.domain.repository.IWordRepository
-import com.arrazyfathan.kbbi.core.utils.AppExecutors
 import com.arrazyfathan.kbbi.utils.Constant
 import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
@@ -32,7 +31,7 @@ val databaseModule =
                     androidContext(),
                     WordDatabase::class.java,
                     "kbbi_db",
-                ).fallbackToDestructiveMigration()
+                ).fallbackToDestructiveMigration(dropAllTables = true)
                 .build()
         }
     }
@@ -64,6 +63,5 @@ val repositoryModule =
     module {
         single { RemoteDataSource(get()) }
         single { LocalDataSource(get()) }
-        factory { AppExecutors() }
         factory<IWordRepository> { WordRepository(get(), get()) }
     }

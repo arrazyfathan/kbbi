@@ -37,7 +37,7 @@ class HistoryAdapter(
     }
 
     override fun onBindViewHolder(
-        holder: HistoryAdapter.ViewHolder,
+        holder: ViewHolder,
         position: Int,
     ) {
         holder.bind(differ.currentList[position])
@@ -57,8 +57,6 @@ class HistoryAdapter(
         }
 
     val differ = AsyncListDiffer(this, diffCallback)
-
-    fun isEmpty(): Boolean = differ.currentList.isEmpty()
 
     override fun getItemCount() = differ.currentList.size
 }

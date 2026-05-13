@@ -21,7 +21,7 @@ class RemoteDataSource(
         const val HTTP_NOT_FOUND = 404
     }
 
-    suspend fun getMeaningOfWord(word: String): Flow<ApiResponse<List<WordResponse>>> =
+    fun getMeaningOfWord(word: String): Flow<ApiResponse<List<WordResponse>>> =
         flow {
             try {
                 val response = apiService.getMeaningWord(word)

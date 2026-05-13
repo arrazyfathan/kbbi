@@ -10,4 +10,10 @@
     <string name="cari_kosa_kata">Cari kosa kata ...</string>
     <string name="button_search">button_search</string>
     <string name="history_label">History :</string>
+    <string name="version_label">Version %1$s</string>
+    <string name="word_saved_success">Kata berhasil disimpan.</string>
+    <string name="word_deleted_success">Kata berhasil dihapus.</string>
+    <string name="bookmarked">Bookmarked</string>
+    <string name="bookmark">Bookmark</string>
+    <string name="word_list_title">Daftar Kosa\nKata</string>
 </resources>

@@ -1,3 +1,5 @@
+@file:Suppress("ClickableViewAccessibility")
+
 package com.arrazyfathan.kbbi.utils
 
 import android.content.Context
@@ -20,7 +22,13 @@ open class SwipeListener(
     override fun onTouch(
         view: View,
         motionEvent: MotionEvent,
-    ): Boolean = gestureDetector.onTouchEvent(motionEvent)
+    ): Boolean {
+        val handled = gestureDetector.onTouchEvent(motionEvent)
+        if (!handled && motionEvent.action == MotionEvent.ACTION_UP) {
+            view.performClick()
+        }
+        return handled
+    }
 
     private inner class GestureListener : GestureDetector.SimpleOnGestureListener() {
         override fun onDown(e: MotionEvent): Boolean = true

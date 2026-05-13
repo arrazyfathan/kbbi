@@ -1,3 +1,5 @@
+@file:Suppress("unused", "ClickableViewAccessibility")
+
 package com.arrazyfathan.kbbi.utils
 
 import android.view.LayoutInflater
@@ -40,6 +42,7 @@ fun View.onLongClick(listener: () -> Unit) {
                 if (v.isPressed && event.action == MotionEvent.ACTION_DOWN) {
                     val eventDuration = event.eventTime - event.downTime
                     if (eventDuration > LONG_PRESS_TIMEOUT_MS) {
+                        v.performClick()
                         listener.invoke()
                     }
                 }
