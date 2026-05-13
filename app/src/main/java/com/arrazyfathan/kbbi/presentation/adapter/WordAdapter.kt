@@ -8,8 +8,9 @@ import android.view.LayoutInflater
 import android.view.ViewGroup
 import android.widget.Toast
 import androidx.recyclerview.widget.RecyclerView
+import com.arrazyfathan.kbbi.R
 import com.arrazyfathan.kbbi.core.domain.model.WordModel
-import com.arrazyfathan.kbbi.databinding.ItemListArtiBinding
+import com.arrazyfathan.kbbi.databinding.ItemWordEntryBinding
 
 /**
  * Created by Ar Razy Fathan Rabbani on 18/03/23.
@@ -26,7 +27,7 @@ class WordAdapter(
     }
 
     inner class ViewHolder(
-        val binding: ItemListArtiBinding,
+        val binding: ItemWordEntryBinding,
     ) : RecyclerView.ViewHolder(binding.root) {
         fun bind(
             data: WordModel,
@@ -34,27 +35,27 @@ class WordAdapter(
         ) {
             with(binding) {
                 numberItem.text = position.plus(1).toString()
-                lemma.text = data.entry
+                entryText.text = data.entry
 
                 val meaningAdapter = MeaningAdapter()
-                rvArtiKataChild.adapter = meaningAdapter
+                rvMeaningItems.adapter = meaningAdapter
                 meaningAdapter.submitList(data.meanings)
 
-                btnSalin.setOnClickListener {
-                    val clipboarManager =
+                copyButton.setOnClickListener {
+                    val clipboardManager =
                         context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
-                    var arti = ""
+                    var copiedText = ""
                     for ((index, item) in data.meanings.withIndex()) {
-                        arti +=
+                        copiedText +=
                             """
                             ${index + 1}. ${item.wordClass}
                             ${item.description}
                             
                             """.trimIndent()
                     }
-                    val clip: ClipData = ClipData.newPlainText("arti", arti)
-                    clipboarManager.setPrimaryClip(clip)
-                    Toast.makeText(context, "Berhasil menyalin teks.", Toast.LENGTH_SHORT).show()
+                    val clip: ClipData = ClipData.newPlainText("meaning", copiedText)
+                    clipboardManager.setPrimaryClip(clip)
+                    Toast.makeText(context, R.string.copy_success, Toast.LENGTH_SHORT).show()
                 }
             }
         }
@@ -65,7 +66,7 @@ class WordAdapter(
         viewType: Int,
     ): ViewHolder =
         ViewHolder(
-            ItemListArtiBinding.inflate(LayoutInflater.from(parent.context), parent, false),
+            ItemWordEntryBinding.inflate(LayoutInflater.from(parent.context), parent, false),
         )
 
     override fun onBindViewHolder(

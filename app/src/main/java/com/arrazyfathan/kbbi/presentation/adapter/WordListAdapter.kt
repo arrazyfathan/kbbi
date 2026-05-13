@@ -6,64 +6,64 @@ import android.view.ViewGroup
 import android.widget.Filter
 import android.widget.Filterable
 import androidx.recyclerview.widget.RecyclerView
-import com.arrazyfathan.kbbi.databinding.ItemListKosaKataBinding
+import com.arrazyfathan.kbbi.databinding.ItemWordListBinding
 
-class KosaKataAdapter(
-    private var listKosaKata: ArrayList<String>,
+class WordListAdapter(
+    private var wordList: ArrayList<String>,
     private val clickListener: (String) -> Unit,
-) : RecyclerView.Adapter<KosaKataAdapter.KosaKataViewHolder>(),
+) : RecyclerView.Adapter<WordListAdapter.WordViewHolder>(),
     Filterable {
-    var kataFilterList = ArrayList<String>()
+    var filteredWordList = ArrayList<String>()
 
     init {
-        kataFilterList = listKosaKata
+        filteredWordList = wordList
     }
 
-    class KosaKataViewHolder(
-        val binding: ItemListKosaKataBinding,
+    class WordViewHolder(
+        val binding: ItemWordListBinding,
     ) : RecyclerView.ViewHolder(binding.root)
 
     override fun onCreateViewHolder(
         parent: ViewGroup,
         viewType: Int,
-    ): KosaKataViewHolder {
+    ): WordViewHolder {
         val binding =
-            ItemListKosaKataBinding.inflate(LayoutInflater.from(parent.context), parent, false)
-        return KosaKataViewHolder(binding)
+            ItemWordListBinding.inflate(LayoutInflater.from(parent.context), parent, false)
+        return WordViewHolder(binding)
     }
 
     override fun onBindViewHolder(
-        holder: KosaKataViewHolder,
+        holder: WordViewHolder,
         position: Int,
     ) {
-        val data = kataFilterList[position]
-        holder.binding.kosaKataList.text = data
+        val data = filteredWordList[position]
+        holder.binding.wordText.text = data
 
         holder.itemView.setOnClickListener {
             clickListener(data)
         }
     }
 
-    override fun getItemCount(): Int = kataFilterList.size
+    override fun getItemCount(): Int = filteredWordList.size
 
     @SuppressLint("NotifyDataSetChanged")
     override fun getFilter(): Filter {
         return object : Filter() {
             override fun performFiltering(constraint: CharSequence?): FilterResults {
-                val charSearch = constraint.toString()
-                if (charSearch.isEmpty()) {
-                    kataFilterList = listKosaKata
+                val searchQuery = constraint.toString()
+                if (searchQuery.isEmpty()) {
+                    filteredWordList = wordList
                 } else {
                     val resultList = ArrayList<String>()
-                    for (row in listKosaKata) {
+                    for (row in wordList) {
                         if (row.lowercase().contains(constraint.toString().lowercase())) {
                             resultList.add(row)
                         }
                     }
-                    kataFilterList = resultList
+                    filteredWordList = resultList
                 }
                 val filterResults = FilterResults()
-                filterResults.values = kataFilterList
+                filterResults.values = filteredWordList
                 return filterResults
             }
 
@@ -71,7 +71,7 @@ class KosaKataAdapter(
                 constraint: CharSequence?,
                 results: FilterResults?,
             ) {
-                kataFilterList =
+                filteredWordList =
                     when (val values = results?.values) {
                         is List<*> -> ArrayList(values.filterIsInstance<String>())
                         else -> arrayListOf()

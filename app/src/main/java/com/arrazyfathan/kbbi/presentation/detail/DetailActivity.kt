@@ -30,8 +30,8 @@ class DetailActivity : AppCompatActivity() {
         enableEdgeToEdgeSystemBars()
         setContentView(binding.root)
         binding.appBar.applySystemBarPadding(applyTop = true)
-        binding.rvArtiKata.applySystemBarPadding(applyBottom = true)
-        binding.btnBookContainer.applySystemBarMargin(applyBottom = true)
+        binding.rvWordEntries.applySystemBarPadding(applyBottom = true)
+        binding.bookmarkActionContainer.applySystemBarMargin(applyBottom = true)
         updateSystemBarStyle(ContextCompat.getColor(this, R.color.blue_bg))
         handleIntent()
         setupRecyclerView()
@@ -72,34 +72,34 @@ class DetailActivity : AppCompatActivity() {
     private fun setBookmarkState(isSaved: Boolean) =
         with(binding) {
             if (isSaved) {
-                bookmark.setImageDrawable(
+                bookmarkIcon.setImageDrawable(
                     ContextCompat.getDrawable(
                         this@DetailActivity,
                         R.drawable.book_solid,
                     ),
                 )
-                bookmark.imageTintList =
+                bookmarkIcon.imageTintList =
                     ContextCompat.getColorStateList(this@DetailActivity, R.color.white)
-                textBookmark.text = getString(R.string.bookmarked)
-                textBookmark.setTextColor(ContextCompat.getColor(this@DetailActivity, R.color.white))
-                btnBookContainer.setCardBackgroundColor(
+                bookmarkText.text = getString(R.string.bookmarked)
+                bookmarkText.setTextColor(ContextCompat.getColor(this@DetailActivity, R.color.white))
+                bookmarkActionContainer.setCardBackgroundColor(
                     ContextCompat.getColor(
                         this@DetailActivity,
                         R.color.text_h1,
                     ),
                 )
             } else {
-                bookmark.setImageDrawable(
+                bookmarkIcon.setImageDrawable(
                     ContextCompat.getDrawable(
                         this@DetailActivity,
                         R.drawable.book,
                     ),
                 )
-                textBookmark.text = getString(R.string.bookmark)
-                bookmark.imageTintList =
+                bookmarkText.text = getString(R.string.bookmark)
+                bookmarkIcon.imageTintList =
                     ContextCompat.getColorStateList(this@DetailActivity, R.color.text_h1)
-                textBookmark.setTextColor(ContextCompat.getColor(this@DetailActivity, R.color.text_h1))
-                btnBookContainer.setCardBackgroundColor(
+                bookmarkText.setTextColor(ContextCompat.getColor(this@DetailActivity, R.color.text_h1))
+                bookmarkActionContainer.setCardBackgroundColor(
                     ContextCompat.getColor(
                         this@DetailActivity,
                         R.color.white,
@@ -112,7 +112,7 @@ class DetailActivity : AppCompatActivity() {
         with(binding) {
             expandedTitle.text = listWordModel.word.replaceFirstChar { it.uppercase() }
             collapsedTitle.text = listWordModel.word.replaceFirstChar { it.uppercase() }
-            btnBookContainer.setOnClickListener {
+            bookmarkActionContainer.setOnClickListener {
                 if (stateBookmark) deleteBookmark() else performBookmark()
             }
         }
@@ -134,7 +134,7 @@ class DetailActivity : AppCompatActivity() {
 
     private fun setupRecyclerView() {
         wordAdapter = WordAdapter(this)
-        binding.rvArtiKata.adapter = wordAdapter
+        binding.rvWordEntries.adapter = wordAdapter
         wordAdapter.submitList(listWordModel.listWords)
     }
 }

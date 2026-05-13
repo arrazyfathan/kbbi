@@ -8,7 +8,7 @@ import com.arrazyfathan.kbbi.core.domain.model.ListWordModel
 import com.arrazyfathan.kbbi.core.domain.usecase.WordUseCase
 import kotlinx.coroutines.launch
 
-class SavedViewModel(
+class BookmarksViewModel(
     private val wordUseCase: WordUseCase,
 ) : ViewModel() {
     fun getBookmarks(): LiveData<List<ListWordModel>> = wordUseCase.getBookmarks().asLiveData()

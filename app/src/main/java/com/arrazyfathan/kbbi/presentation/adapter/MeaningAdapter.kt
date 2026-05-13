@@ -12,7 +12,7 @@ import androidx.core.graphics.toColorInt
 import androidx.core.text.toSpannable
 import androidx.recyclerview.widget.RecyclerView
 import com.arrazyfathan.kbbi.core.domain.model.MeaningModel
-import com.arrazyfathan.kbbi.databinding.ItemListChildArtiBinding
+import com.arrazyfathan.kbbi.databinding.ItemMeaningBinding
 
 /**
  * Created by Ar Razy Fathan Rabbani on 18/03/23.
@@ -27,7 +27,7 @@ class MeaningAdapter : RecyclerView.Adapter<MeaningAdapter.ViewHolder>() {
     }
 
     class ViewHolder(
-        val binding: ItemListChildArtiBinding,
+        val binding: ItemMeaningBinding,
     ) : RecyclerView.ViewHolder(binding.root) {
         fun bind(
             data: MeaningModel,
@@ -52,7 +52,7 @@ class MeaningAdapter : RecyclerView.Adapter<MeaningAdapter.ViewHolder>() {
                     Spannable.SPAN_EXCLUSIVE_EXCLUSIVE,
                 )
                 val description = " ${data.description.replace(Regex("\\?(.*)"), "")}"
-                deskripsi.text = TextUtils.concat(number, kelasKata, description)
+                descriptionText.text = TextUtils.concat(number, kelasKata, description)
             }
         }
     }
@@ -62,7 +62,7 @@ class MeaningAdapter : RecyclerView.Adapter<MeaningAdapter.ViewHolder>() {
         viewType: Int,
     ): ViewHolder =
         ViewHolder(
-            ItemListChildArtiBinding.inflate(LayoutInflater.from(parent.context), parent, false),
+            ItemMeaningBinding.inflate(LayoutInflater.from(parent.context), parent, false),
         )
 
     override fun onBindViewHolder(

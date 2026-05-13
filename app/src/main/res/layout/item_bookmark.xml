@@ -25,7 +25,7 @@
             android:orientation="vertical">
 
             <TextView
-                android:id="@+id/kata_saved"
+                android:id="@+id/saved_word_text"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_marginStart="16dp"
@@ -39,7 +39,7 @@
                 tools:text="Guru" />
 
             <TextView
-                android:id="@+id/lemma_saved"
+                android:id="@+id/saved_entry_text"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="4dp"
@@ -52,8 +52,8 @@
                 android:textSize="14sp"
                 app:layout_constraintBottom_toBottomOf="parent"
                 app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintStart_toStartOf="@+id/kata_saved"
-                app:layout_constraintTop_toBottomOf="@+id/kata_saved"
+                app:layout_constraintStart_toStartOf="@+id/saved_word_text"
+                app:layout_constraintTop_toBottomOf="@+id/saved_word_text"
                 tools:text="Guru" />
 
         </androidx.constraintlayout.widget.ConstraintLayout>
@@ -61,7 +61,7 @@
     </com.google.android.material.card.MaterialCardView>
 
     <com.google.android.material.card.MaterialCardView
-        android:id="@+id/btn_delete"
+        android:id="@+id/delete_button"
         android:layout_width="0dp"
         android:layout_height="0dp"
         android:clickable="true"
@@ -88,7 +88,7 @@
 
 
             <ImageButton
-                android:id="@+id/btn_cancel"
+                android:id="@+id/cancel_button"
                 android:layout_width="12dp"
                 android:layout_height="12dp"
                 android:layout_gravity="top|end"
@@ -104,4 +104,3 @@
 
 
 </androidx.constraintlayout.widget.ConstraintLayout>
-

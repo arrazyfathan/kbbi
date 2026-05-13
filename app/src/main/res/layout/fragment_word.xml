@@ -22,7 +22,7 @@
             app:layout_scrollFlags="scroll|exitUntilCollapsed|snap">
 
             <androidx.constraintlayout.widget.ConstraintLayout
-                android:id="@+id/container_daftar_kosa_kata"
+                android:id="@+id/word_list_header_container"
                 android:layout_width="match_parent"
                 android:layout_height="150dp"
                 android:background="@color/blue_primary"
@@ -31,7 +31,7 @@
                 app:layout_constraintTop_toTopOf="parent">
 
                 <TextView
-                    android:id="@+id/list_kata_title"
+                    android:id="@+id/word_list_title_text"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginStart="16dp"
@@ -71,7 +71,7 @@
             android:autofillHints=""
             android:background="@drawable/custom_text_input_search"
             android:fontFamily="@font/inter_medium"
-            android:hint="@string/cari_kosa_kata"
+            android:hint="@string/search_word_list_hint"
             android:inputType="text"
             android:textColor="@color/white"
             android:paddingStart="16dp"
@@ -84,7 +84,7 @@
 
 
         <androidx.recyclerview.widget.RecyclerView
-            android:id="@+id/rv_list_kosa_kata"
+            android:id="@+id/rv_word_list"
             android:layout_width="match_parent"
             android:layout_height="0dp"
             android:layoutAnimation="@anim/layout_animation_down_to_up"

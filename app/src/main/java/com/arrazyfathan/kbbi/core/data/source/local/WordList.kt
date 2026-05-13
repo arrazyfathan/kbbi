@@ -1,3 +1,3 @@
 package com.arrazyfathan.kbbi.core.data.source.local
 
-class KosaKata : ArrayList<String>()
+class WordList : ArrayList<String>()

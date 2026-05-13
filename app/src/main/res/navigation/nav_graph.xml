@@ -12,10 +12,10 @@
         tools:layout="@layout/fragment_home" />
 
     <fragment
-        android:id="@+id/savedFragment"
-        android:name="com.arrazyfathan.kbbi.presentation.bookmark.SavedFragment"
+        android:id="@+id/bookmarksFragment"
+        android:name="com.arrazyfathan.kbbi.presentation.bookmark.BookmarksFragment"
         android:label="fragment_saved"
-        tools:layout="@layout/fragment_saved" />
+        tools:layout="@layout/fragment_bookmarks" />
     <fragment
         android:id="@+id/wordFragment"
         android:name="com.arrazyfathan.kbbi.presentation.words.WordFragment"

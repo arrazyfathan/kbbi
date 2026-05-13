@@ -16,36 +16,36 @@ import androidx.recyclerview.widget.AsyncListDiffer
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.RecyclerView
 import com.arrazyfathan.kbbi.core.domain.model.ListWordModel
-import com.arrazyfathan.kbbi.databinding.ItemListFavoriteBinding
+import com.arrazyfathan.kbbi.databinding.ItemBookmarkBinding
 import com.arrazyfathan.kbbi.utils.gone
 import com.arrazyfathan.kbbi.utils.visible
 
-class FavoriteAdapter(
+class BookmarkAdapter(
     private val context: Context,
-    private val favoriteListener: FavoriteListener,
-) : RecyclerView.Adapter<FavoriteAdapter.ViewHolder>() {
+    private val bookmarkListener: BookmarkListener,
+) : RecyclerView.Adapter<BookmarkAdapter.ViewHolder>() {
     private companion object {
         const val DELETE_BUTTON_ANIMATION_DURATION_MS = 300L
         const val VIBRATION_DURATION_MS = 50L
         const val LONG_PRESS_DELAY_MS = 1000L
     }
 
-    interface FavoriteListener {
+    interface BookmarkListener {
         fun onClickListener(model: ListWordModel)
 
         fun onDeleteListener(model: ListWordModel)
     }
 
     inner class ViewHolder(
-        val binding: ItemListFavoriteBinding,
+        val binding: ItemBookmarkBinding,
     ) : RecyclerView.ViewHolder(binding.root) {
         fun bind(data: ListWordModel) {
             with(binding) {
-                kataSaved.text = data.word.replaceFirstChar { it.uppercase() }
-                lemmaSaved.text = data.listWords[0].entry
+                savedWordText.text = data.word.replaceFirstChar { it.uppercase() }
+                savedEntryText.text = data.listWords[0].entry
 
                 item.setOnClickListener {
-                    favoriteListener.onClickListener(data)
+                    bookmarkListener.onClickListener(data)
                 }
 
                 val vibrator = context.getSystemService(Vibrator::class.java)
@@ -53,7 +53,7 @@ class FavoriteAdapter(
                 val transition = Slide(Gravity.END)
                 transition.apply {
                     duration = DELETE_BUTTON_ANIMATION_DURATION_MS
-                    addTarget(btnDelete)
+                    addTarget(deleteButton)
                     interpolator = OvershootInterpolator()
                 }
 
@@ -67,20 +67,20 @@ class FavoriteAdapter(
                             vibrateLegacy(vibrator)
                         }
                         TransitionManager.beginDelayedTransition(root, transition)
-                        btnDelete.visible()
+                        deleteButton.visible()
                     }, LONG_PRESS_DELAY_MS)
                     true
                 }
 
-                btnCancel.setOnClickListener {
+                cancelButton.setOnClickListener {
                     TransitionManager.beginDelayedTransition(root, transition)
-                    btnDelete.gone()
+                    deleteButton.gone()
                 }
 
-                btnDelete.setOnClickListener {
+                deleteButton.setOnClickListener {
                     TransitionManager.beginDelayedTransition(root, transition)
-                    favoriteListener.onDeleteListener(data)
-                    btnDelete.gone()
+                    bookmarkListener.onDeleteListener(data)
+                    deleteButton.gone()
                 }
             }
         }
@@ -91,7 +91,7 @@ class FavoriteAdapter(
         viewType: Int,
     ): ViewHolder {
         val view =
-            ItemListFavoriteBinding.inflate(LayoutInflater.from(parent.context), parent, false)
+            ItemBookmarkBinding.inflate(LayoutInflater.from(parent.context), parent, false)
         return ViewHolder(view)
     }
 

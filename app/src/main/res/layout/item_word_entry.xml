@@ -36,7 +36,7 @@
         </com.google.android.material.card.MaterialCardView>
 
         <TextView
-            android:id="@+id/lemma"
+            android:id="@+id/entry_text"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_marginEnd="16dp"
@@ -52,32 +52,32 @@
             app:layout_constraintTop_toTopOf="@id/container_number" />
 
         <androidx.recyclerview.widget.RecyclerView
-            android:id="@+id/rv_arti_kata_child"
+            android:id="@+id/rv_meaning_items"
             android:layout_width="0dp"
             android:layout_marginTop="8dp"
             android:layout_marginEnd="16dp"
             app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
             android:layout_height="wrap_content"
-            tools:listitem="@layout/item_list_child_arti"
+            tools:listitem="@layout/item_meaning"
             app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toStartOf="@id/lemma"
-            app:layout_constraintTop_toBottomOf="@id/lemma"
+            app:layout_constraintStart_toStartOf="@id/entry_text"
+            app:layout_constraintTop_toBottomOf="@id/entry_text"
             />
 
         <com.google.android.material.button.MaterialButton
-            android:id="@+id/btn_salin"
+            android:id="@+id/copy_button"
             android:layout_width="wrap_content"
             android:layout_height="50dp"
             android:layout_marginTop="16dp"
             android:backgroundTint="@color/text_h1"
             android:fontFamily="@font/inter_semibold"
-            android:text="Salin"
+            android:text="@string/copy"
             android:textColor="@color/white"
             android:textSize="14sp"
             app:icon="@drawable/copy"
             app:iconSize="16dp"
-            app:layout_constraintEnd_toEndOf="@id/rv_arti_kata_child"
-            app:layout_constraintTop_toBottomOf="@id/rv_arti_kata_child" />
+            app:layout_constraintEnd_toEndOf="@id/rv_meaning_items"
+            app:layout_constraintTop_toBottomOf="@id/rv_meaning_items" />
 
 
     </androidx.constraintlayout.widget.ConstraintLayout>

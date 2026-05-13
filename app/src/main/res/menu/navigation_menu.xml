@@ -11,12 +11,12 @@
         android:id="@+id/wordFragment"
         android:enabled="true"
         android:icon="@drawable/ic_menu_word"
-        android:title="@string/kosa_kata_title" />
+        android:title="@string/word_list_tab_title" />
 
     <item
-        android:id="@+id/savedFragment"
+        android:id="@+id/bookmarksFragment"
         android:enabled="true"
         android:icon="@drawable/ic_men_saved"
-        android:title="@string/favorit_title" />
+        android:title="@string/bookmarks_title" />
 
 </menu>

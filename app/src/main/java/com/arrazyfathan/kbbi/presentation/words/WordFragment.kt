@@ -11,11 +11,11 @@ import androidx.fragment.app.Fragment
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.arrazyfathan.kbbi.R
 import com.arrazyfathan.kbbi.core.data.Resource
-import com.arrazyfathan.kbbi.core.data.source.local.KosaKata
+import com.arrazyfathan.kbbi.core.data.source.local.WordList
 import com.arrazyfathan.kbbi.core.domain.model.ListWordModel
 import com.arrazyfathan.kbbi.core.domain.model.WordModel
 import com.arrazyfathan.kbbi.databinding.FragmentWordBinding
-import com.arrazyfathan.kbbi.presentation.adapter.KosaKataAdapter
+import com.arrazyfathan.kbbi.presentation.adapter.WordListAdapter
 import com.arrazyfathan.kbbi.presentation.detail.DetailActivity
 import com.arrazyfathan.kbbi.presentation.home.MainActivity
 import com.arrazyfathan.kbbi.utils.applySystemBarPadding
@@ -35,7 +35,7 @@ class WordFragment : Fragment(R.layout.fragment_word) {
 
     private val binding by viewBinding(FragmentWordBinding::bind)
     private val viewModel: WordViewModel by viewModel()
-    private lateinit var adapter: KosaKataAdapter
+    private lateinit var adapter: WordListAdapter
 
     @SuppressLint("CheckResult", "NotifyDataSetChanged")
     override fun onViewCreated(
@@ -47,30 +47,30 @@ class WordFragment : Fragment(R.layout.fragment_word) {
 
         val jsonFileString = getJsonDataFromAsset(requireActivity())
         val gson = GsonBuilder().create()
-        val listKosaKata = object : TypeToken<KosaKata>() {}.type
-        val list: KosaKata = gson.fromJson(jsonFileString, listKosaKata)
+        val wordListType = object : TypeToken<WordList>() {}.type
+        val words: WordList = gson.fromJson(jsonFileString, wordListType)
 
-        binding.rvListKosaKata.layoutManager = LinearLayoutManager(requireContext())
+        binding.rvWordList.layoutManager = LinearLayoutManager(requireContext())
         adapter =
-            KosaKataAdapter(list) {
+            WordListAdapter(words) {
                 getMeaningOfWord(it)
             }
-        binding.rvListKosaKata.adapter = adapter
+        binding.rvWordList.adapter = adapter
 
         binding.editTextSearchWord
             .textChanges()
             .skipInitialValue()
             .subscribe { text ->
                 if (text.toString().isEmpty()) {
-                    binding.rvListKosaKata.adapter =
-                        KosaKataAdapter(list) {
+                    binding.rvWordList.adapter =
+                        WordListAdapter(words) {
                             getMeaningOfWord(it)
                         }
                     adapter.notifyDataSetChanged()
                 } else {
                     adapter.filter.filter(text)
-                    binding.rvListKosaKata.adapter =
-                        KosaKataAdapter(adapter.kataFilterList) {
+                    binding.rvWordList.adapter =
+                        WordListAdapter(adapter.filteredWordList) {
                             getMeaningOfWord(it)
                         }
                 }

@@ -2,7 +2,7 @@ package com.arrazyfathan.kbbi.di
 
 import com.arrazyfathan.kbbi.core.domain.usecase.WordInteractor
 import com.arrazyfathan.kbbi.core.domain.usecase.WordUseCase
-import com.arrazyfathan.kbbi.presentation.bookmark.SavedViewModel
+import com.arrazyfathan.kbbi.presentation.bookmark.BookmarksViewModel
 import com.arrazyfathan.kbbi.presentation.detail.DetailViewModel
 import com.arrazyfathan.kbbi.presentation.home.HomeViewModel
 import com.arrazyfathan.kbbi.presentation.words.WordViewModel
@@ -22,6 +22,6 @@ val viewModelModule =
     module {
         viewModelOf(::DetailViewModel)
         viewModelOf(::HomeViewModel)
-        viewModelOf(::SavedViewModel)
+        viewModelOf(::BookmarksViewModel)
         viewModelOf(::WordViewModel)
     }

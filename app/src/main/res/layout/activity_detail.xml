@@ -62,7 +62,7 @@
     </com.arrazyfathan.kbbi.presentation.customviews.CollapsibleAppbar>
 
     <androidx.recyclerview.widget.RecyclerView
-        android:id="@+id/rv_arti_kata"
+        android:id="@+id/rv_word_entries"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:layout_marginStart="16dp"
@@ -72,10 +72,10 @@
         android:layoutAnimation="@anim/layout_animation_down_to_up"
         app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
         app:layout_behavior="@string/appbar_scrolling_view_behavior"
-        tools:listitem="@layout/item_list_arti" />
+        tools:listitem="@layout/item_word_entry" />
 
     <com.google.android.material.card.MaterialCardView
-        android:id="@+id/btn_book_container"
+        android:id="@+id/bookmark_action_container"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_gravity="center_horizontal|bottom"
@@ -92,7 +92,7 @@
             android:layout_height="match_parent">
 
             <ImageView
-                android:id="@+id/bookmark"
+                android:id="@+id/bookmark_icon"
                 android:layout_width="20dp"
                 android:layout_height="20dp"
                 android:layout_gravity="center"
@@ -105,7 +105,7 @@
                 app:layout_constraintTop_toTopOf="parent" />
 
             <TextView
-                android:id="@+id/text_bookmark"
+                android:id="@+id/bookmark_text"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginStart="8dp"
@@ -114,10 +114,10 @@
                 android:includeFontPadding="false"
                 android:textColor="#2E494C"
                 android:textSize="16sp"
-                app:layout_constraintBottom_toBottomOf="@id/bookmark"
+                app:layout_constraintBottom_toBottomOf="@id/bookmark_icon"
                 app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintStart_toEndOf="@id/bookmark"
-                app:layout_constraintTop_toTopOf="@id/bookmark"
+                app:layout_constraintStart_toEndOf="@id/bookmark_icon"
+                app:layout_constraintTop_toTopOf="@id/bookmark_icon"
                 tools:text="Bookmark" />
         </androidx.constraintlayout.widget.ConstraintLayout>
 
