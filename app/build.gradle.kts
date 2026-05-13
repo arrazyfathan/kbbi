@@ -31,18 +31,22 @@ val versionDev = versionProperties["VERSION_DEV"].toString().toInt()
 val versionBeta = versionProperties["VERSION_BETA"].toString().toInt()
 val versionAlpha = versionProperties["VERSION_ALPHA"].toString().toInt()
 val versionCodeValue = versionProperties["VERSION_CODE"].toString().toInt()
-val keystorePath = providers.environmentVariable("ANDROID_KEYSTORE_PATH").getOrNull() ?: System.getenv("ANDROID_KEYSTORE_PATH")
-val storePassword = providers.environmentVariable("ANDROID_KEYSTORE_PASSWORD").getOrNull() ?: System.getenv("ANDROID_KEYSTORE_PASSWORD")
-val keyAlias = providers.environmentVariable("ANDROID_KEY_ALIAS").getOrNull() ?: System.getenv("ANDROID_KEY_ALIAS")
-val keyPassword = providers.environmentVariable("ANDROID_KEY_PASSWORD").getOrNull() ?: System.getenv("ANDROID_KEY_PASSWORD")
 
-val isReleaseTaskRequested =
-    gradle.startParameter.taskNames.any { taskName ->
-        val name = taskName.lowercase()
-        name.contains("release") && !name.contains("debug")
-    }
+fun propertyOrEnv(name: String): String? =
+    providers.gradleProperty(name).orNull?.takeIf { it.isNotBlank() }
+        ?: providers.environmentVariable(name).orNull?.takeIf { it.isNotBlank() }
 
-val isReleaseBuild = (providers.environmentVariable("IS_RELEASE_BUILD").getOrNull() ?: System.getenv("IS_RELEASE_BUILD"))?.toBoolean() == true || isReleaseTaskRequested
+val releaseKeystorePath = propertyOrEnv("ANDROID_KEYSTORE_PATH")
+val releaseKeystorePassword = propertyOrEnv("ANDROID_KEYSTORE_PASSWORD")
+val releaseKeyAlias = propertyOrEnv("ANDROID_KEY_ALIAS")
+val releaseKeyPassword = propertyOrEnv("ANDROID_KEY_PASSWORD")
+val hasReleaseSigning =
+    listOf(
+        releaseKeystorePath,
+        releaseKeystorePassword,
+        releaseKeyAlias,
+        releaseKeyPassword,
+    ).all { !it.isNullOrBlank() }
 
 fun ApplicationProductFlavor.configureAppMetadata(applicationName: String) {
     resValue("string", "version_code", versionCodeValue.toString())
@@ -95,26 +99,12 @@ android {
 
     signingConfigs {
         create("release") {
-            if (isReleaseBuild) {
-                require(!keystorePath.isNullOrBlank()) {
-                    "Release signing error: ANDROID_KEYSTORE_PATH is missing. Check if secrets are set in GitHub."
-                }
-                require(!storePassword.isNullOrBlank()) {
-                    "Release signing error: ANDROID_KEYSTORE_PASSWORD is missing. Check if secrets are set in GitHub."
-                }
-                require(!keyAlias.isNullOrBlank()) {
-                    "Release signing error: ANDROID_KEY_ALIAS is missing. Check if secrets are set in GitHub."
-                }
-                require(!keyPassword.isNullOrBlank()) {
-                    "Release signing error: ANDROID_KEY_PASSWORD is missing. Check if secrets are set in GitHub."
-                }
+            if (hasReleaseSigning) {
+                storeFile = file(releaseKeystorePath!!)
+                storePassword = releaseKeystorePassword
+                keyAlias = releaseKeyAlias
+                keyPassword = releaseKeyPassword
             }
-            if (!keystorePath.isNullOrBlank()) {
-                storeFile = file(keystorePath)
-            }
-            this.storePassword = storePassword
-            this.keyAlias = keyAlias
-            this.keyPassword = keyPassword
         }
     }
 
@@ -124,7 +114,9 @@ android {
             isDebuggable = true
         }
         release {
-            signingConfig = signingConfigs.getByName("release")
+            if (hasReleaseSigning) {
+                signingConfig = signingConfigs.getByName("release")
+            }
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro",
@@ -165,6 +157,19 @@ androidComponents {
 kotlin {
     compilerOptions {
         jvmTarget = JvmTarget.JVM_17
+    }
+}
+
+gradle.taskGraph.whenReady {
+    val isReleaseTaskRequested = allTasks.any { task ->
+        task.name.contains("Release", ignoreCase = true)
+    }
+
+    if (isReleaseTaskRequested && !hasReleaseSigning) {
+        throw GradleException(
+            "Release signing is not configured. Provide ANDROID_KEYSTORE_PATH, " +
+                "ANDROID_KEYSTORE_PASSWORD, ANDROID_KEY_ALIAS, and ANDROID_KEY_PASSWORD.",
+        )
     }
 }
 
