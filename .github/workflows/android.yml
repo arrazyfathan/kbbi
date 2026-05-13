@@ -48,7 +48,6 @@ jobs:
           retention-days: 14
 
   release:
-    needs: create-release
     permissions: write-all
     name: Build And Publish Release
     if: github.event_name == 'push' && github.ref_type == 'tag'
