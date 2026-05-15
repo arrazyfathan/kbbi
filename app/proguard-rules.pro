@@ -41,6 +41,19 @@
 # Keep Domain Models (Optional but safe for Parcelable/UI state)
 -keep class com.arrazyfathan.kbbi.core.domain.model.** { *; }
 
+# --- Presentation Layer Protection ---
+
+# Keep Fragments (Needed for Jetpack Navigation and Fragment Manager)
+-keep public class * extends androidx.fragment.app.Fragment
+
+# Keep ViewModels (Needed for Koin and ViewModelProvider)
+-keep public class * extends androidx.lifecycle.ViewModel {
+    public <init>(...);
+}
+
+# Keep local data models used for JSON parsing
+-keep class com.arrazyfathan.kbbi.core.data.source.local.WordList { *; }
+
 # --- General Library Rules ---
 
 # Preserve Annotations and Signatures
