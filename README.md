@@ -54,7 +54,7 @@ This repository contains the Android client for KBBI. The current project setup 
 - **Networking:** Retrofit, Gson, OkHttp logging interceptor
 - **Dependency injection:** Koin `4.2.1`
 - **Code quality:** Detekt, Ktlint
-- **Distribution/automation:** Fastlane, Firebase App Distribution, GitHub Actions
+- **Distribution/automation:** Fastlane, GitHub Actions
 
 ## Project Structure
 
@@ -208,16 +208,6 @@ export ANDROID_KEY_PASSWORD=your-key-password
 
 Without those values, any signed release packaging task will fail by design.
 
-## Firebase and Google Services
-
-The project applies the Google Services Gradle plugin and includes `app/google-services.json`. Fastlane also contains a Firebase App Distribution lane for internal tester delivery.
-
-If you change Firebase projects, update the following as needed:
-
-- `app/google-services.json`
-- `fastlane/Fastfile`
-- `fastlane/Appfile`
-
 ## Fastlane
 
 The repository already includes Fastlane setup.
@@ -232,13 +222,11 @@ Available lanes:
 
 ```sh
 bundle exec fastlane android test
-bundle exec fastlane android development
 ```
 
 Current behavior:
 
 - `android test` runs Gradle tests
-- `android development` builds `assembleDevelopmentDebug` and uploads it to Firebase App Distribution
 
 ## CI/CD
 

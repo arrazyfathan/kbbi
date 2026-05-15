@@ -8,7 +8,6 @@ plugins {
     alias(libs.plugins.google.devtools.ksp)
     alias(libs.plugins.androidx.navigation.safeargs)
     alias(libs.plugins.kotlin.parcelize)
-    alias(libs.plugins.google.gms.google.services)
     alias(libs.plugins.detekt)
     alias(libs.plugins.ktlint)
 }
@@ -232,8 +231,6 @@ dependencies {
     implementation(libs.androidx.lifecycle.runtime.ktx)
     implementation(libs.androidx.lifecycle.viewmodel.ktx)
     implementation(libs.androidx.lifecycle.livedata.ktx)
-
-    implementation(platform(libs.firebase.bom))
 
     implementation(libs.koin.core)
     implementation(libs.koin.android)
