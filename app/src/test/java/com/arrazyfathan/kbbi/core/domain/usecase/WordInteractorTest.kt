@@ -14,7 +14,6 @@ import org.junit.Before
 import org.junit.Test
 
 class WordInteractorTest {
-
     private lateinit var fakeRepository: FakeWordRepository
     private lateinit var wordInteractor: WordInteractor
 
@@ -25,90 +24,102 @@ class WordInteractorTest {
     }
 
     @Test
-    fun testGetMeaningOfWord_Success() = runBlocking {
-        val word = "belajar"
-        val meanings = listOf(MeaningModel(wordClass = "v", description = "berusaha memperoleh kepandaian"))
-        val wordModel = WordModel(entry = word, meanings = meanings)
-        val expectedResource = Resource.Success(listOf(wordModel))
+    fun testGetMeaningOfWord_Success() =
+        runBlocking {
+            val word = "belajar"
+            val meanings = listOf(MeaningModel(wordClass = "v", description = "berusaha memperoleh kepandaian"))
+            val wordModel = WordModel(entry = word, meanings = meanings)
+            val expectedResource = Resource.Success(listOf(wordModel))
 
-        fakeRepository.setRemoteData(word, expectedResource)
+            fakeRepository.setRemoteData(word, expectedResource)
 
-        val flowResult = wordInteractor.getMeaningOfWord(word).first()
-        assertTrue(flowResult is Resource.Success)
-        val data = (flowResult as Resource.Success).data
-        assertEquals(1, data?.size)
-        assertEquals(word, data?.get(0)?.entry)
-        assertEquals("v", data?.get(0)?.meanings?.get(0)?.wordClass)
-    }
-
-    @Test
-    fun testGetMeaningOfWord_Error() = runBlocking {
-        val word = "nonexistentword"
-        val expectedResource = Resource.Error<List<WordModel>>("Word not found")
-
-        fakeRepository.setRemoteData(word, expectedResource)
-
-        val flowResult = wordInteractor.getMeaningOfWord(word).first()
-        assertTrue(flowResult is Resource.Error)
-        assertEquals("Word not found", flowResult.message)
-    }
+            val flowResult = wordInteractor.getMeaningOfWord(word).first()
+            assertTrue(flowResult is Resource.Success)
+            val data = (flowResult as Resource.Success).data
+            assertEquals(1, data?.size)
+            assertEquals(word, data?.get(0)?.entry)
+            assertEquals(
+                "v",
+                data
+                    ?.get(0)
+                    ?.meanings
+                    ?.get(0)
+                    ?.wordClass,
+            )
+        }
 
     @Test
-    fun testBookmarkAndGetBookmarks() = runBlocking {
-        val word = "buku"
-        val meanings = listOf(MeaningModel(wordClass = "n", description = "lembar kertas berjilid"))
-        val wordModel = listOf(WordModel(entry = word, meanings = meanings))
+    fun testGetMeaningOfWord_Error() =
+        runBlocking {
+            val word = "nonexistentword"
+            val expectedResource = Resource.Error<List<WordModel>>("Word not found")
 
-        // Assert initially not saved
-        var isSaved = wordInteractor.checkIfWordIsSaved(word).first()
-        assertFalse(isSaved)
+            fakeRepository.setRemoteData(word, expectedResource)
 
-        // Bookmark the word
-        wordInteractor.bookmarkWord(word, wordModel, isSaved = true)
-
-        // Assert is saved now
-        isSaved = wordInteractor.checkIfWordIsSaved(word).first()
-        assertTrue(isSaved)
-
-        // Verify bookmark contents
-        val bookmarks = wordInteractor.getBookmarks().first()
-        assertEquals(1, bookmarks.size)
-        assertEquals(word, bookmarks[0].word)
-        assertEquals(1, bookmarks[0].listWords.size)
-        assertEquals(word, bookmarks[0].listWords[0].entry)
-    }
+            val flowResult = wordInteractor.getMeaningOfWord(word).first()
+            assertTrue(flowResult is Resource.Error)
+            assertEquals("Word not found", flowResult.message)
+        }
 
     @Test
-    fun testDeleteWord() = runBlocking {
-        val word = "pena"
-        val meanings = listOf(MeaningModel(wordClass = "n", description = "alat tulis"))
-        val wordModel = listOf(WordModel(entry = word, meanings = meanings))
+    fun testBookmarkAndGetBookmarks() =
+        runBlocking {
+            val word = "buku"
+            val meanings = listOf(MeaningModel(wordClass = "n", description = "lembar kertas berjilid"))
+            val wordModel = listOf(WordModel(entry = word, meanings = meanings))
 
-        // Bookmark the word
-        wordInteractor.bookmarkWord(word, wordModel, isSaved = true)
-        assertTrue(wordInteractor.checkIfWordIsSaved(word).first())
+            // Assert initially not saved
+            var isSaved = wordInteractor.checkIfWordIsSaved(word).first()
+            assertFalse(isSaved)
 
-        // Delete the word
-        wordInteractor.deleteWord(word)
+            // Bookmark the word
+            wordInteractor.bookmarkWord(word, wordModel, isSaved = true)
 
-        // Assert deleted
-        assertFalse(wordInteractor.checkIfWordIsSaved(word).first())
-        assertTrue(wordInteractor.getBookmarks().first().isEmpty())
-    }
+            // Assert is saved now
+            isSaved = wordInteractor.checkIfWordIsSaved(word).first()
+            assertTrue(isSaved)
+
+            // Verify bookmark contents
+            val bookmarks = wordInteractor.getBookmarks().first()
+            assertEquals(1, bookmarks.size)
+            assertEquals(word, bookmarks[0].word)
+            assertEquals(1, bookmarks[0].listWords.size)
+            assertEquals(word, bookmarks[0].listWords[0].entry)
+        }
 
     @Test
-    fun testHistory() = runBlocking {
-        val history1 = HistoryEntity("belajar")
-        val history2 = HistoryEntity("membaca")
+    fun testDeleteWord() =
+        runBlocking {
+            val word = "pena"
+            val meanings = listOf(MeaningModel(wordClass = "n", description = "alat tulis"))
+            val wordModel = listOf(WordModel(entry = word, meanings = meanings))
 
-        assertTrue(wordInteractor.getAllHistories().first().isEmpty())
+            // Bookmark the word
+            wordInteractor.bookmarkWord(word, wordModel, isSaved = true)
+            assertTrue(wordInteractor.checkIfWordIsSaved(word).first())
 
-        wordInteractor.addToHistory(history1)
-        wordInteractor.addToHistory(history2)
+            // Delete the word
+            wordInteractor.deleteWord(word)
 
-        val histories = wordInteractor.getAllHistories().first()
-        assertEquals(2, histories.size)
-        assertEquals("belajar", histories[0].word)
-        assertEquals("membaca", histories[1].word)
-    }
+            // Assert deleted
+            assertFalse(wordInteractor.checkIfWordIsSaved(word).first())
+            assertTrue(wordInteractor.getBookmarks().first().isEmpty())
+        }
+
+    @Test
+    fun testHistory() =
+        runBlocking {
+            val history1 = HistoryEntity("belajar")
+            val history2 = HistoryEntity("membaca")
+
+            assertTrue(wordInteractor.getAllHistories().first().isEmpty())
+
+            wordInteractor.addToHistory(history1)
+            wordInteractor.addToHistory(history2)
+
+            val histories = wordInteractor.getAllHistories().first()
+            assertEquals(2, histories.size)
+            assertEquals("belajar", histories[0].word)
+            assertEquals("membaca", histories[1].word)
+        }
 }

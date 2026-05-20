@@ -10,24 +10,27 @@ import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.map
 
 class FakeWordRepository : IWordRepository {
-
     private val bookmarks = MutableStateFlow<Map<String, ListWordModel>>(emptyMap())
     private val histories = MutableStateFlow<List<HistoryEntity>>(emptyList())
     private val remoteMeanings = mutableMapOf<String, Resource<List<WordModel>>>()
 
-    fun setRemoteData(word: String, resource: Resource<List<WordModel>>) {
+    fun setRemoteData(
+        word: String,
+        resource: Resource<List<WordModel>>,
+    ) {
         remoteMeanings[word] = resource
     }
 
-    override fun getMeaningOfWord(word: String): Flow<Resource<List<WordModel>>> = flow {
-        val result = remoteMeanings[word] ?: Resource.Error("Word not found in remote source")
-        emit(result)
-    }
+    override fun getMeaningOfWord(word: String): Flow<Resource<List<WordModel>>> =
+        flow {
+            val result = remoteMeanings[word] ?: Resource.Error("Word not found in remote source")
+            emit(result)
+        }
 
     override suspend fun bookmarkWord(
         word: String,
         result: List<WordModel>,
-        isSaved: Boolean
+        isSaved: Boolean,
     ): Long {
         val current = bookmarks.value.toMutableMap()
         if (isSaved) {
@@ -45,9 +48,7 @@ class FakeWordRepository : IWordRepository {
         histories.value = current
     }
 
-    override fun getAllHistories(): Flow<List<HistoryEntity>> {
-        return histories
-    }
+    override fun getAllHistories(): Flow<List<HistoryEntity>> = histories
 
     override suspend fun deleteWord(word: String) {
         val current = bookmarks.value.toMutableMap()
@@ -55,11 +56,7 @@ class FakeWordRepository : IWordRepository {
         bookmarks.value = current
     }
 
-    override fun checkIfWordIsSaved(word: String): Flow<Boolean> {
-        return bookmarks.map { it.containsKey(word) }
-    }
+    override fun checkIfWordIsSaved(word: String): Flow<Boolean> = bookmarks.map { it.containsKey(word) }
 
-    override fun getBookmarks(): Flow<List<ListWordModel>> {
-        return bookmarks.map { it.values.toList() }
-    }
+    override fun getBookmarks(): Flow<List<ListWordModel>> = bookmarks.map { it.values.toList() }
 }

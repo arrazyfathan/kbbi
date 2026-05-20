@@ -170,17 +170,36 @@ Or from Android Studio, choose the `developmentDebug` variant and run the `app` 
 
 ## Code Quality and Testing
 
-Useful local commands:
+The project contains two suites of tests:
+1. **Local Unit Tests** (located in `app/src/test`): Test pure logic and business interactors using mock/fake repositories directly on the host JVM.
+2. **Instrumented Integration Tests** (located in `app/src/androidTest`): Test database operations and Android-dependent integrations on a physical device or emulator.
 
+### Running Local Unit Tests
+To run JVM unit tests:
 ```sh
 ./gradlew testDevelopmentDebugUnitTest
+```
+
+### Running Instrumented Integration Tests
+To compile instrumented tests without running them:
+```sh
+./gradlew compileDevelopmentDebugAndroidTestKotlin
+```
+
+To run instrumented tests (requires a running emulator or connected device):
+```sh
+./gradlew connectedDevelopmentDebugAndroidTest
+```
+
+### Quality and Validation Commands
+Other useful check tasks:
+```sh
 ./gradlew lintDevelopmentDebug
 ./gradlew detekt
 ./gradlew ktlintCheck
 ```
 
-You can also run a broader validation pass:
-
+You can run a broader validation pass including unit tests and build tasks:
 ```sh
 ./gradlew testDevelopmentDebugUnitTest lintDevelopmentDebug assembleDevelopmentDebug
 ```

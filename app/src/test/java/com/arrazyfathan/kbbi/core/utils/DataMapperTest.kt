@@ -11,7 +11,6 @@ import org.junit.Assert.assertEquals
 import org.junit.Test
 
 class DataMapperTest {
-
     @Test
     fun testMapResponseToDomain() {
         val meaning1 = Meaning(wordClass = "n", description = "kata benda")
@@ -42,7 +41,7 @@ class DataMapperTest {
         val domainListWord = domainList[0]
         assertEquals("indah", domainListWord.word)
         assertEquals(1, domainListWord.listWords.size)
-        
+
         val firstWord = domainListWord.listWords[0]
         assertEquals("indah", firstWord.entry)
         assertEquals(1, firstWord.meanings.size)
