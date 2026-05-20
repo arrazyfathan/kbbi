@@ -17,25 +17,38 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.ripple
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSerializable
+import androidx.compose.runtime.setValue
+import androidx.compose.runtime.snapshots.SnapshotStateList
+import androidx.compose.runtime.toMutableStateList
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat
-import androidx.navigation.NavGraph.Companion.findStartDestination
-import androidx.navigation.compose.NavHost
-import androidx.navigation.compose.composable
-import androidx.navigation.compose.currentBackStackEntryAsState
-import androidx.navigation.compose.rememberNavController
+import androidx.lifecycle.viewmodel.navigation3.rememberViewModelStoreNavEntryDecorator
+import androidx.navigation3.runtime.NavBackStack
+import androidx.navigation3.runtime.NavEntry
+import androidx.navigation3.runtime.NavKey
+import androidx.navigation3.runtime.entryProvider
+import androidx.navigation3.runtime.rememberDecoratedNavEntries
+import androidx.navigation3.runtime.rememberNavBackStack
+import androidx.navigation3.runtime.rememberSaveableStateHolderNavEntryDecorator
+import androidx.navigation3.runtime.serialization.NavKeySerializer
+import androidx.navigation3.ui.NavDisplay
+import androidx.savedstate.compose.serialization.serializers.MutableStateSerializer
 import com.arrazyfathan.kbbi.R
 import com.arrazyfathan.kbbi.presentation.bookmark.BookmarksScreen
 import com.arrazyfathan.kbbi.presentation.theme.KBBITheme
 import com.arrazyfathan.kbbi.presentation.words.WordListScreen
 import com.arrazyfathan.kbbi.utils.enableEdgeToEdgeSystemBars
 import com.arrazyfathan.kbbi.utils.updateSystemBarStyle
+import kotlinx.serialization.Serializable
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -54,30 +67,61 @@ class MainActivity : ComponentActivity() {
     }
 }
 
-sealed class Screen(
-    val route: String,
-    val titleResId: Int,
-    val iconResId: Int,
-    val iconSelectedResId: Int,
-) {
-    object Home : Screen("home", R.string.home_title, R.drawable.home, R.drawable.home_selected)
+sealed interface Screen : NavKey {
+    val titleResId: Int
+    val iconResId: Int
+    val iconSelectedResId: Int
 
-    object WordList : Screen("word_list", R.string.word_list_tab_title, R.drawable.word, R.drawable.word_selected)
+    @Serializable
+    data object Home : Screen {
+        override val titleResId = R.string.home_title
+        override val iconResId = R.drawable.home
+        override val iconSelectedResId = R.drawable.home_selected
+    }
 
-    object Bookmarks : Screen("bookmarks", R.string.bookmarks_title, R.drawable.saved, R.drawable.saved_selected)
+    @Serializable
+    data object WordList : Screen {
+        override val titleResId = R.string.word_list_tab_title
+        override val iconResId = R.drawable.word
+        override val iconSelectedResId = R.drawable.word_selected
+    }
+
+    @Serializable
+    data object Bookmarks : Screen {
+        override val titleResId = R.string.bookmarks_title
+        override val iconResId = R.drawable.saved
+        override val iconSelectedResId = R.drawable.saved_selected
+    }
 }
 
 @Composable
 fun MainApp() {
-    val navController = rememberNavController()
-    val navBackStackEntry by navController.currentBackStackEntryAsState()
-    val currentRoute = navBackStackEntry?.destination?.route
-
     val screens =
         listOf(
             Screen.Home,
             Screen.WordList,
             Screen.Bookmarks,
+        )
+    val navigationState =
+        rememberNavigationState(
+            startRoute = Screen.Home,
+            topLevelRoutes = screens,
+        )
+    val navigator = remember(navigationState) { Navigator(navigationState) }
+
+    val entries =
+        navigationState.toEntries(
+            entryProvider {
+                entry<Screen.Home> {
+                    HomeScreen()
+                }
+                entry<Screen.WordList> {
+                    WordListScreen()
+                }
+                entry<Screen.Bookmarks> {
+                    BookmarksScreen()
+                }
+            },
         )
 
     Scaffold(
@@ -92,7 +136,7 @@ fun MainApp() {
                 verticalAlignment = Alignment.CenterVertically,
             ) {
                 screens.forEach { screen ->
-                    val isSelected = currentRoute == screen.route
+                    val isSelected = navigationState.topLevelRoute == screen
                     Box(
                         modifier =
                             Modifier
@@ -102,14 +146,8 @@ fun MainApp() {
                                     interactionSource = remember { MutableInteractionSource() },
                                     indication = ripple(bounded = false, radius = 24.dp),
                                 ) {
-                                    if (currentRoute != screen.route) {
-                                        navController.navigate(screen.route) {
-                                            popUpTo(navController.graph.findStartDestination().id) {
-                                                saveState = true
-                                            }
-                                            launchSingleTop = true
-                                            restoreState = true
-                                        }
+                                    if (!isSelected) {
+                                        navigator.navigate(screen)
                                     }
                                 },
                         contentAlignment = Alignment.Center,
@@ -127,20 +165,101 @@ fun MainApp() {
             }
         },
     ) { innerPadding ->
-        NavHost(
-            navController = navController,
-            startDestination = Screen.Home.route,
+        NavDisplay(
+            entries = entries,
+            onBack = navigator::goBack,
             modifier = Modifier.padding(bottom = innerPadding.calculateBottomPadding()),
+        )
+    }
+}
+
+@Composable
+private fun rememberNavigationState(
+    startRoute: Screen,
+    topLevelRoutes: List<Screen>,
+): NavigationState {
+    val topLevelRoute =
+        rememberSerializable(
+            startRoute,
+            topLevelRoutes,
+            serializer = MutableStateSerializer(NavKeySerializer()),
         ) {
-            composable(Screen.Home.route) {
-                HomeScreen()
+            mutableStateOf<NavKey>(startRoute)
+        }
+
+    val backStacks: Map<NavKey, NavBackStack<NavKey>> =
+        topLevelRoutes.associate { key ->
+            key to rememberNavBackStack(key)
+        }
+
+    return remember(startRoute, topLevelRoutes) {
+        NavigationState(
+            startRoute = startRoute,
+            topLevelRoute = topLevelRoute,
+            backStacks = backStacks,
+        )
+    }
+}
+
+private class NavigationState(
+    val startRoute: NavKey,
+    topLevelRoute: MutableState<NavKey>,
+    val backStacks: Map<NavKey, NavBackStack<NavKey>>,
+) {
+    var topLevelRoute: NavKey by topLevelRoute
+
+    val stacksInUse: List<NavKey>
+        get() =
+            if (topLevelRoute == startRoute) {
+                listOf(startRoute)
+            } else {
+                listOf(startRoute, topLevelRoute)
             }
-            composable(Screen.WordList.route) {
-                WordListScreen()
-            }
-            composable(Screen.Bookmarks.route) {
-                BookmarksScreen()
-            }
+}
+
+private class Navigator(
+    private val state: NavigationState,
+) {
+    fun navigate(route: NavKey) {
+        if (route in state.backStacks.keys) {
+            state.topLevelRoute = route
+        } else {
+            state.backStacks[state.topLevelRoute]?.add(route)
         }
     }
+
+    fun goBack() {
+        val currentStack =
+            state.backStacks[state.topLevelRoute]
+                ?: error("Stack for ${state.topLevelRoute} not found")
+        val currentRoute = currentStack.last()
+
+        if (currentRoute == state.topLevelRoute) {
+            state.topLevelRoute = state.startRoute
+        } else {
+            currentStack.removeLastOrNull()
+        }
+    }
+}
+
+@Composable
+private fun NavigationState.toEntries(
+    entryProvider: (NavKey) -> NavEntry<NavKey>,
+): SnapshotStateList<NavEntry<NavKey>> {
+    val decoratedEntries =
+        backStacks.mapValues { (_, stack) ->
+            rememberDecoratedNavEntries(
+                backStack = stack,
+                entryDecorators =
+                    listOf(
+                        rememberSaveableStateHolderNavEntryDecorator(),
+                        rememberViewModelStoreNavEntryDecorator(),
+                    ),
+                entryProvider = entryProvider,
+            )
+        }
+
+    return stacksInUse
+        .flatMap { decoratedEntries[it] ?: emptyList() }
+        .toMutableStateList()
 }
