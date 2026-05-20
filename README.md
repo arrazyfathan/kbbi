@@ -191,6 +191,19 @@ To run instrumented tests (requires a running emulator or connected device):
 ./gradlew connectedDevelopmentDebugAndroidTest
 ```
 
+### Checking Test Coverage
+We use the JetBrains Kover plugin to measure unit test coverage. Since the project includes product flavors and signing rules, run the coverage tasks specifically for the development debug variant:
+
+- **Console Summary**: Print coverage statistics directly to the terminal:
+  ```sh
+  ./gradlew app:koverLogDevelopmentDebug
+  ```
+- **HTML Report**: Generate a detailed HTML report:
+  ```sh
+  ./gradlew app:koverHtmlReportDevelopmentDebug
+  ```
+  The report is saved at `app/build/reports/kover/htmlDevelopmentDebug/index.html`.
+
 ### Quality and Validation Commands
 Other useful check tasks:
 ```sh

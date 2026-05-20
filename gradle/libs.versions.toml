@@ -23,6 +23,8 @@ rxbinding = "4.0.0"
 rxandroid = "3.0.2"
 detekt = "1.23.8"
 ktlint = "14.2.0"
+kover = "0.9.8"
+
 
 [libraries]
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
@@ -61,3 +63,5 @@ google-devtools-ksp = { id = "com.google.devtools.ksp", version.ref = "ksp" }
 androidx-navigation-safeargs = { id = "androidx.navigation.safeargs", version.ref = "navigation" }
 detekt = { id = "io.gitlab.arturbosch.detekt", version.ref = "detekt" }
 ktlint = { id = "org.jlleitschuh.gradle.ktlint", version.ref = "ktlint" }
+kotlinx-kover = { id = "org.jetbrains.kotlinx.kover", version.ref = "kover" }
+
