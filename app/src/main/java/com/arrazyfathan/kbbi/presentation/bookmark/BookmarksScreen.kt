@@ -37,7 +37,6 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -54,6 +53,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.airbnb.lottie.compose.LottieAnimation
 import com.airbnb.lottie.compose.LottieCompositionSpec
 import com.airbnb.lottie.compose.LottieConstants
@@ -78,7 +78,7 @@ fun BookmarksScreen(
     viewModel: BookmarksViewModel = koinViewModel(),
 ) {
     val context = LocalContext.current
-    val bookmarks by viewModel.getBookmarks().observeAsState(initial = emptyList())
+    val state by viewModel.state.collectAsStateWithLifecycle()
     var wordToDelete by remember { mutableStateOf<ListWordModel?>(null) }
 
     Box(
@@ -89,7 +89,7 @@ fun BookmarksScreen(
                 .statusBarsPadding(),
     ) {
         // Background Hero Image if not empty
-        if (bookmarks.isNotEmpty()) {
+        if (state.bookmarks.isNotEmpty()) {
             Image(
                 painter = painterResource(id = R.drawable.hero_saved),
                 contentDescription = stringResource(id = R.string.app_name),
@@ -102,7 +102,7 @@ fun BookmarksScreen(
         }
 
         // Empty layout if empty
-        if (bookmarks.isEmpty()) {
+        if (state.bookmarks.isEmpty()) {
             Column(
                 modifier =
                     Modifier
@@ -166,7 +166,7 @@ fun BookmarksScreen(
                 modifier = Modifier.fillMaxSize(),
                 contentPadding = PaddingValues(bottom = 80.dp),
             ) {
-                items(bookmarks, key = { it.word }) { item ->
+                items(state.bookmarks, key = { it.word }) { item ->
                     BookmarkItem(
                         model = item,
                         onClick = {
@@ -192,7 +192,7 @@ fun BookmarksScreen(
                 okTitle = stringResource(id = R.string.delete),
                 cancelTitle = stringResource(id = R.string.cancel),
                 onConfirm = {
-                    viewModel.removeFromBookmark(item.word)
+                    viewModel.onAction(BookmarksAction.OnDeleteConfirmed(item.word))
                     wordToDelete = null
                 },
                 onDismiss = {

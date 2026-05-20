@@ -1,40 +1,82 @@
 package com.arrazyfathan.kbbi.presentation.detail
 
-import androidx.lifecycle.LiveData
-import androidx.lifecycle.MutableLiveData
+import androidx.annotation.StringRes
 import androidx.lifecycle.ViewModel
-import androidx.lifecycle.asLiveData
 import androidx.lifecycle.viewModelScope
+import com.arrazyfathan.kbbi.R
 import com.arrazyfathan.kbbi.core.domain.model.WordModel
 import com.arrazyfathan.kbbi.core.domain.usecase.WordUseCase
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.receiveAsFlow
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+
+data class DetailState(
+    val isSaved: Boolean = false,
+)
+
+sealed interface DetailAction {
+    data class OnStarted(
+        val word: String,
+    ) : DetailAction
+
+    data class OnBookmarkClick(
+        val word: String,
+        val wordList: List<WordModel>,
+    ) : DetailAction
+}
+
+sealed interface DetailEvent {
+    data class ShowMessage(
+        @param:StringRes val messageResId: Int,
+    ) : DetailEvent
+}
 
 class DetailViewModel(
     private val wordUseCase: WordUseCase,
 ) : ViewModel() {
-    private var _resultBookmark = MutableLiveData<Long>()
-    val resultBookmark: LiveData<Long> get() = _resultBookmark
+    private val _state = MutableStateFlow(DetailState())
+    val state = _state.asStateFlow()
 
-    private var _resultDelete = MutableLiveData<Boolean>()
-    val resultDelete: LiveData<Boolean> get() = _resultDelete
+    private val _events = Channel<DetailEvent>(Channel.BUFFERED)
+    val events = _events.receiveAsFlow()
 
-    fun checkIsWordSaved(word: String) = wordUseCase.checkIfWordIsSaved(word).asLiveData()
+    private var savedStateJob: Job? = null
 
-    fun bookmark(
-        word: String,
-        wordList: List<WordModel>,
-        isSaved: Boolean,
-    ) {
-        viewModelScope.launch {
-            val result = wordUseCase.bookmarkWord(word, wordList, isSaved)
-            _resultBookmark.postValue(result)
+    fun onAction(action: DetailAction) {
+        when (action) {
+            is DetailAction.OnStarted -> observeSavedState(action.word)
+            is DetailAction.OnBookmarkClick -> toggleBookmark(action.word, action.wordList)
         }
     }
 
-    fun delete(word: String) {
+    private fun observeSavedState(word: String) {
+        if (savedStateJob != null) return
+        savedStateJob =
+            viewModelScope.launch {
+                wordUseCase.checkIfWordIsSaved(word).collect { isSaved ->
+                    _state.update { it.copy(isSaved = isSaved) }
+                }
+            }
+    }
+
+    private fun toggleBookmark(
+        word: String,
+        wordList: List<WordModel>,
+    ) {
         viewModelScope.launch {
-            wordUseCase.deleteWord(word)
-            _resultDelete.postValue(true)
+            if (state.value.isSaved) {
+                wordUseCase.deleteWord(word)
+                _events.send(DetailEvent.ShowMessage(R.string.word_deleted_success))
+            } else {
+                val result = wordUseCase.bookmarkWord(word, wordList, true)
+                if (result != -1L) {
+                    _events.send(DetailEvent.ShowMessage(R.string.word_saved_success))
+                }
+            }
         }
     }
 }

@@ -36,7 +36,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -53,6 +52,7 @@ import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.content.ContextCompat
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.arrazyfathan.kbbi.R
 import com.arrazyfathan.kbbi.core.domain.model.ListWordModel
 import com.arrazyfathan.kbbi.core.domain.model.WordModel
@@ -89,24 +89,18 @@ fun DetailScreen(
     viewModel: DetailViewModel = koinViewModel(),
 ) {
     val context = LocalContext.current
-    val isSaved by viewModel.checkIsWordSaved(listWordModel.word).observeAsState(initial = false)
+    val state by viewModel.state.collectAsStateWithLifecycle()
 
-    // Observe bookmark / delete results for toast notifications
-    val resultBookmark by viewModel.resultBookmark.observeAsState()
-    val resultDelete by viewModel.resultDelete.observeAsState()
-
-    LaunchedEffect(resultBookmark) {
-        resultBookmark?.let {
-            if (it != -1L) {
-                Toast.makeText(context, R.string.word_saved_success, Toast.LENGTH_SHORT).show()
-            }
-        }
+    LaunchedEffect(listWordModel.word) {
+        viewModel.onAction(DetailAction.OnStarted(listWordModel.word.lowercase()))
     }
 
-    LaunchedEffect(resultDelete) {
-        resultDelete?.let {
-            if (it) {
-                Toast.makeText(context, R.string.word_deleted_success, Toast.LENGTH_SHORT).show()
+    LaunchedEffect(Unit) {
+        viewModel.events.collect { event ->
+            when (event) {
+                is DetailEvent.ShowMessage -> {
+                    Toast.makeText(context, event.messageResId, Toast.LENGTH_SHORT).show()
+                }
             }
         }
     }
@@ -147,20 +141,17 @@ fun DetailScreen(
                     modifier =
                         Modifier
                             .clickable {
-                                if (isSaved) {
-                                    viewModel.delete(listWordModel.word.lowercase())
-                                } else {
-                                    viewModel.bookmark(
+                                viewModel.onAction(
+                                    DetailAction.OnBookmarkClick(
                                         listWordModel.word.lowercase(),
                                         listWordModel.listWords,
-                                        true,
-                                    )
-                                }
+                                    ),
+                                )
                             },
                     shape = RoundedCornerShape(100.dp),
                     colors =
                         CardDefaults.cardColors(
-                            containerColor = if (isSaved) TextH1 else Color.White,
+                            containerColor = if (state.isSaved) TextH1 else Color.White,
                         ),
                     elevation = CardDefaults.cardElevation(defaultElevation = 8.dp),
                 ) {
@@ -171,19 +162,19 @@ fun DetailScreen(
                         Icon(
                             painter =
                                 painterResource(
-                                    id = if (isSaved) R.drawable.book_solid else R.drawable.book,
+                                    id = if (state.isSaved) R.drawable.book_solid else R.drawable.book,
                                 ),
                             contentDescription = "Bookmark",
-                            tint = if (isSaved) Color.White else TextH1,
+                            tint = if (state.isSaved) Color.White else TextH1,
                             modifier = Modifier.size(20.dp),
                         )
                         Spacer(modifier = Modifier.width(8.dp))
                         Text(
                             text =
                                 stringResource(
-                                    id = if (isSaved) R.string.bookmarked else R.string.bookmark,
+                                    id = if (state.isSaved) R.string.bookmarked else R.string.bookmark,
                                 ),
-                            color = if (isSaved) Color.White else TextH1,
+                            color = if (state.isSaved) Color.White else TextH1,
                             fontFamily = InterFontFamily,
                             fontWeight = FontWeight.SemiBold,
                             fontSize = 16.sp,

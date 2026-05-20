@@ -44,7 +44,6 @@ import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -65,14 +64,12 @@ import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.airbnb.lottie.compose.LottieAnimation
 import com.airbnb.lottie.compose.LottieCompositionSpec
 import com.airbnb.lottie.compose.LottieConstants
 import com.airbnb.lottie.compose.rememberLottieComposition
 import com.arrazyfathan.kbbi.R
-import com.arrazyfathan.kbbi.core.data.Resource
-import com.arrazyfathan.kbbi.core.data.source.local.entity.HistoryEntity
-import com.arrazyfathan.kbbi.core.domain.model.ListWordModel
 import com.arrazyfathan.kbbi.presentation.detail.DetailActivity
 import com.arrazyfathan.kbbi.presentation.theme.BlueBg
 import com.arrazyfathan.kbbi.presentation.theme.BluePrimary
@@ -82,7 +79,6 @@ import com.arrazyfathan.kbbi.presentation.theme.MetropolisFontFamily
 import com.arrazyfathan.kbbi.presentation.theme.SpaceGroteskFontFamily
 import com.arrazyfathan.kbbi.presentation.theme.TextH1
 import com.arrazyfathan.kbbi.presentation.theme.TextP
-import com.arrazyfathan.kbbi.utils.toJson
 import org.koin.androidx.compose.koinViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -93,54 +89,33 @@ fun HomeScreen(
 ) {
     val context = LocalContext.current
     val focusManager = LocalFocusManager.current
-    val histories by viewModel.getAllHistories().observeAsState(initial = emptyList())
+    val state by viewModel.state.collectAsStateWithLifecycle()
 
     var searchQuery by remember { mutableStateOf("") }
-    var isLoading by remember { mutableStateOf(false) }
-    var activeSearchWord by remember { mutableStateOf<String?>(null) }
     var showBottomSheet by remember { mutableStateOf(false) }
 
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
     val scope = rememberCoroutineScope()
 
-    // Trigger search when activeSearchWord changes
-    if (activeSearchWord != null) {
-        val wordToSearch = activeSearchWord!!
-        val liveData = remember(wordToSearch) { viewModel.getMeaningOfWord(wordToSearch) }
-        val resourceState by liveData.observeAsState()
+    LaunchedEffect(Unit) {
+        viewModel.onAction(HomeAction.OnStarted)
+    }
 
-        LaunchedEffect(resourceState) {
-            when (val resource = resourceState) {
-                is Resource.Loading -> {
-                    isLoading = true
-                }
-
-                is Resource.Success -> {
-                    isLoading = false
-                    viewModel.addToHistory(HistoryEntity(wordToSearch.lowercase()))
+    LaunchedEffect(Unit) {
+        viewModel.events.collect { event ->
+            when (event) {
+                is HomeEvent.NavigateToDetail -> {
                     searchQuery = ""
-                    activeSearchWord = null
-
-                    val listWordModel =
-                        ListWordModel(
-                            word = wordToSearch,
-                            listWords = resource.data ?: emptyList(),
-                        ).toJson()
-
-                    val intent =
+                    context.startActivity(
                         Intent(context, DetailActivity::class.java).apply {
-                            putExtra("data", listWordModel)
-                        }
-                    context.startActivity(intent)
+                            putExtra("data", event.dataJson)
+                        },
+                    )
                 }
 
-                is Resource.Error -> {
-                    isLoading = false
-                    activeSearchWord = null
-                    Toast.makeText(context, resource.message ?: "Error occurred", Toast.LENGTH_SHORT).show()
+                is HomeEvent.ShowMessage -> {
+                    Toast.makeText(context, event.message, Toast.LENGTH_SHORT).show()
                 }
-
-                null -> {}
             }
         }
     }
@@ -264,7 +239,7 @@ fun HomeScreen(
                         KeyboardActions(
                             onSearch = {
                                 if (searchQuery.isNotBlank()) {
-                                    activeSearchWord = searchQuery
+                                    viewModel.onAction(HomeAction.OnSearchSubmitted(searchQuery))
                                     focusManager.clearFocus()
                                 }
                             },
@@ -293,7 +268,7 @@ fun HomeScreen(
                     IconButton(
                         onClick = {
                             if (searchQuery.isNotBlank()) {
-                                activeSearchWord = searchQuery
+                                viewModel.onAction(HomeAction.OnSearchSubmitted(searchQuery))
                                 focusManager.clearFocus()
                             }
                         },
@@ -319,7 +294,7 @@ fun HomeScreen(
             Spacer(modifier = Modifier.height(12.dp))
 
             // History Section
-            if (histories.isNotEmpty()) {
+            if (state.histories.isNotEmpty()) {
                 Text(
                     text = stringResource(id = R.string.history_label),
                     color = Color.White,
@@ -339,11 +314,11 @@ fun HomeScreen(
                     horizontalItemSpacing = 8.dp,
                     verticalArrangement = Arrangement.spacedBy(8.dp),
                 ) {
-                    items(histories, key = { it.word }) { history ->
+                    items(state.histories, key = { it.word }) { history ->
                         Card(
                             modifier =
                                 Modifier.clickable {
-                                    activeSearchWord = history.word
+                                    viewModel.onAction(HomeAction.OnSearchSubmitted(history.word))
                                 },
                             shape = RoundedCornerShape(32.dp),
                             colors = CardDefaults.cardColors(containerColor = Color.Transparent),
@@ -402,7 +377,7 @@ fun HomeScreen(
         }
 
         // Search Loading Overlay
-        if (isLoading) {
+        if (state.isLoading) {
             Box(
                 modifier =
                     Modifier

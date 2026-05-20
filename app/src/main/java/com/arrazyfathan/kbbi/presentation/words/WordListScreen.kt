@@ -29,9 +29,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.runtime.mutableFloatStateOf
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -51,20 +49,18 @@ import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.airbnb.lottie.compose.LottieAnimation
 import com.airbnb.lottie.compose.LottieCompositionSpec
 import com.airbnb.lottie.compose.LottieConstants
 import com.airbnb.lottie.compose.rememberLottieComposition
 import com.arrazyfathan.kbbi.R
-import com.arrazyfathan.kbbi.core.data.Resource
 import com.arrazyfathan.kbbi.core.data.source.local.WordList
-import com.arrazyfathan.kbbi.core.domain.model.ListWordModel
 import com.arrazyfathan.kbbi.presentation.detail.DetailActivity
 import com.arrazyfathan.kbbi.presentation.theme.BlueBg
 import com.arrazyfathan.kbbi.presentation.theme.BluePrimary
 import com.arrazyfathan.kbbi.presentation.theme.InterFontFamily
 import com.arrazyfathan.kbbi.presentation.theme.MetropolisFontFamily
-import com.arrazyfathan.kbbi.utils.toJson
 import com.google.gson.GsonBuilder
 import com.google.gson.reflect.TypeToken
 import kotlinx.coroutines.Dispatchers
@@ -80,79 +76,46 @@ fun WordListScreen(
     val context = LocalContext.current
     val focusManager = LocalFocusManager.current
     val density = LocalDensity.current
-
-    var searchQuery by remember { mutableStateOf("") }
-    var wordsList by remember { mutableStateOf<List<String>>(emptyList()) }
-    var filteredList by remember { mutableStateOf<List<String>>(emptyList()) }
-
-    var isLoading by remember { mutableStateOf(false) }
-    var activeSearchWord by remember { mutableStateOf<String?>(null) }
+    val state by viewModel.state.collectAsStateWithLifecycle()
 
     // Load words in background
     LaunchedEffect(Unit) {
-        withContext(Dispatchers.IO) {
-            val jsonString =
-                try {
-                    context.assets
-                        .open("entries.json")
-                        .bufferedReader()
-                        .use { it.readText() }
-                } catch (_: Exception) {
-                    null
+        val words =
+            withContext(Dispatchers.IO) {
+                val jsonString =
+                    try {
+                        context.assets
+                            .open("entries.json")
+                            .bufferedReader()
+                            .use { it.readText() }
+                    } catch (_: Exception) {
+                        null
+                    }
+                if (jsonString != null) {
+                    val gson = GsonBuilder().create()
+                    val wordListType = object : TypeToken<WordList>() {}.type
+                    gson.fromJson<WordList>(jsonString, wordListType)
+                } else {
+                    emptyList()
                 }
-            if (jsonString != null) {
-                val gson = GsonBuilder().create()
-                val wordListType = object : TypeToken<WordList>() {}.type
-                val words: WordList = gson.fromJson(jsonString, wordListType)
-                wordsList = words
-                filteredList = words
             }
-        }
+        viewModel.onAction(WordListAction.OnWordsLoaded(words))
     }
 
-    // Filter list on search query change
-    LaunchedEffect(searchQuery, wordsList) {
-        filteredList =
-            if (searchQuery.isEmpty()) {
-                wordsList
-            } else {
-                wordsList.filter { it.contains(searchQuery, ignoreCase = true) }
-            }
-    }
-
-    // Handle fetching word details
-    if (activeSearchWord != null) {
-        val wordToSearch = activeSearchWord!!
-        val liveData = remember(wordToSearch) { viewModel.getMeaningOfWord(wordToSearch) }
-        val resourceState by liveData.observeAsState()
-
-        LaunchedEffect(resourceState) {
-            when (val resource = resourceState) {
-                is Resource.Loading -> {
-                    isLoading = true
-                }
-                is Resource.Success -> {
-                    isLoading = false
-                    activeSearchWord = null
-
-                    val listWordModel =
-                        ListWordModel(
-                            word = wordToSearch,
-                            listWords = resource.data ?: emptyList(),
-                        ).toJson()
-
-                    val intent =
+    LaunchedEffect(Unit) {
+        viewModel.events.collect { event ->
+            when (event) {
+                is WordListEvent.NavigateToDetail -> {
+                    context.startActivity(
                         Intent(context, DetailActivity::class.java).apply {
-                            putExtra("data", listWordModel)
-                        }
-                    context.startActivity(intent)
+                            putExtra("data", event.dataJson)
+                        },
+                    )
                 }
-                is Resource.Error -> {
-                    isLoading = false
-                    activeSearchWord = null
-                    Toast.makeText(context, resource.message ?: "Error occurred", Toast.LENGTH_SHORT).show()
+
+                is WordListEvent.ShowMessage -> {
+                    Toast.makeText(context, event.message, Toast.LENGTH_SHORT).show()
                 }
-                null -> {}
             }
         }
     }
@@ -250,8 +213,10 @@ fun WordListScreen(
 
                 // Search Input Field
                 TextField(
-                    value = searchQuery,
-                    onValueChange = { searchQuery = it },
+                    value = state.searchQuery,
+                    onValueChange = { query ->
+                        viewModel.onAction(WordListAction.OnSearchQueryChanged(query))
+                    },
                     modifier =
                         Modifier
                             .fillMaxWidth()
@@ -305,14 +270,14 @@ fun WordListScreen(
                             .fillMaxSize()
                             .padding(horizontal = 4.dp),
                 ) {
-                    items(filteredList, key = { it }) { word ->
+                    items(state.filteredWords, key = { it }) { word ->
                         Card(
                             modifier =
                                 Modifier
                                     .fillMaxWidth()
                                     .padding(top = 4.dp)
                                     .clickable {
-                                        activeSearchWord = word
+                                        viewModel.onAction(WordListAction.OnWordClicked(word))
                                     },
                             shape = RoundedCornerShape(10.dp),
                             colors = CardDefaults.cardColors(containerColor = Color.White),
@@ -332,7 +297,7 @@ fun WordListScreen(
             }
 
             // Search Loading Overlay
-            if (isLoading) {
+            if (state.isLoading) {
                 Box(
                     modifier =
                         Modifier
