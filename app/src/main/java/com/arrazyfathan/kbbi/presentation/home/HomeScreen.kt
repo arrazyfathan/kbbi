@@ -1,6 +1,5 @@
 package com.arrazyfathan.kbbi.presentation.home
 
-import android.content.Intent
 import android.widget.Toast
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
@@ -70,7 +69,6 @@ import com.airbnb.lottie.compose.LottieCompositionSpec
 import com.airbnb.lottie.compose.LottieConstants
 import com.airbnb.lottie.compose.rememberLottieComposition
 import com.arrazyfathan.kbbi.R
-import com.arrazyfathan.kbbi.presentation.detail.DetailActivity
 import com.arrazyfathan.kbbi.presentation.theme.BlueBg
 import com.arrazyfathan.kbbi.presentation.theme.BluePrimary
 import com.arrazyfathan.kbbi.presentation.theme.BlueSecondary
@@ -85,6 +83,7 @@ import org.koin.androidx.compose.koinViewModel
 @Composable
 fun HomeScreen(
     modifier: Modifier = Modifier,
+    onNavigateToDetail: (String) -> Unit,
     viewModel: HomeViewModel = koinViewModel(),
 ) {
     val context = LocalContext.current
@@ -106,11 +105,7 @@ fun HomeScreen(
             when (event) {
                 is HomeEvent.NavigateToDetail -> {
                     searchQuery = ""
-                    context.startActivity(
-                        Intent(context, DetailActivity::class.java).apply {
-                            putExtra("data", event.dataJson)
-                        },
-                    )
+                    onNavigateToDetail(event.dataJson)
                 }
 
                 is HomeEvent.ShowMessage -> {

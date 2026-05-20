@@ -1,10 +1,12 @@
 package com.arrazyfathan.kbbi.core.utils
 
+import com.arrazyfathan.kbbi.core.data.source.local.entity.HistoryEntity
 import com.arrazyfathan.kbbi.core.data.source.local.entity.ListWordEntity
 import com.arrazyfathan.kbbi.core.data.source.local.entity.MeaningEntity
 import com.arrazyfathan.kbbi.core.data.source.local.entity.WordEntity
 import com.arrazyfathan.kbbi.core.data.source.remote.response.Meaning
 import com.arrazyfathan.kbbi.core.data.source.remote.response.WordResponse
+import com.arrazyfathan.kbbi.core.domain.model.HistoryModel
 import com.arrazyfathan.kbbi.core.domain.model.ListWordModel
 import com.arrazyfathan.kbbi.core.domain.model.MeaningModel
 import com.arrazyfathan.kbbi.core.domain.model.WordModel
@@ -68,4 +70,11 @@ object DataMapper {
                 it.description,
             )
         }
+
+    fun mapHistoryEntitiesToDomain(input: List<HistoryEntity>): List<HistoryModel> =
+        input.map {
+            HistoryModel(word = it.word)
+        }
+
+    fun mapHistoryDomainToEntity(input: HistoryModel): HistoryEntity = HistoryEntity(word = input.word)
 }

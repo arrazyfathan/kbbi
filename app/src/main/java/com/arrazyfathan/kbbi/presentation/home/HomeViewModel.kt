@@ -2,9 +2,9 @@ package com.arrazyfathan.kbbi.presentation.home
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.arrazyfathan.kbbi.core.data.Resource
-import com.arrazyfathan.kbbi.core.data.source.local.entity.HistoryEntity
+import com.arrazyfathan.kbbi.core.domain.model.HistoryModel
 import com.arrazyfathan.kbbi.core.domain.model.ListWordModel
+import com.arrazyfathan.kbbi.core.domain.model.Resource
 import com.arrazyfathan.kbbi.core.domain.usecase.WordUseCase
 import com.arrazyfathan.kbbi.utils.toJson
 import kotlinx.coroutines.Job
@@ -19,7 +19,7 @@ import kotlinx.coroutines.launch
  * Created by Ar Razy Fathan Rabbani on 19/01/23.
  */
 data class HomeState(
-    val histories: List<HistoryEntity> = emptyList(),
+    val histories: List<HistoryModel> = emptyList(),
     val isLoading: Boolean = false,
 )
 
@@ -85,7 +85,7 @@ class HomeViewModel(
 
                         is Resource.Success -> {
                             _state.update { it.copy(isLoading = false) }
-                            wordUseCase.addToHistory(HistoryEntity(wordToSearch.lowercase()))
+                            wordUseCase.addToHistory(HistoryModel(wordToSearch.lowercase()))
 
                             val dataJson =
                                 ListWordModel(

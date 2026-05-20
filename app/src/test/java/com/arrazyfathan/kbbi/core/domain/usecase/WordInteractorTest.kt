@@ -1,9 +1,9 @@
 package com.arrazyfathan.kbbi.core.domain.usecase
 
 import com.arrazyfathan.kbbi.core.data.FakeWordRepository
-import com.arrazyfathan.kbbi.core.data.Resource
-import com.arrazyfathan.kbbi.core.data.source.local.entity.HistoryEntity
+import com.arrazyfathan.kbbi.core.domain.model.HistoryModel
 import com.arrazyfathan.kbbi.core.domain.model.MeaningModel
+import com.arrazyfathan.kbbi.core.domain.model.Resource
 import com.arrazyfathan.kbbi.core.domain.model.WordModel
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.runBlocking
@@ -109,8 +109,8 @@ class WordInteractorTest {
     @Test
     fun testHistory() =
         runBlocking {
-            val history1 = HistoryEntity("belajar")
-            val history2 = HistoryEntity("membaca")
+            val history1 = HistoryModel("belajar")
+            val history2 = HistoryModel("membaca")
 
             assertTrue(wordInteractor.getAllHistories().first().isEmpty())
 

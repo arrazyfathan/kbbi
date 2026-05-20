@@ -14,17 +14,10 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.KBBIKamusBesarBahasaIndonesia">
         <activity
-            android:name=".presentation.detail.DetailActivity"
-            android:theme="@style/Detail.Theme"
-            android:exported="false" />
-        <activity
             android:name=".presentation.home.MainActivity"
-            android:windowSoftInputMode="adjustResize"
-            android:exported="false" />
-        <activity
-            android:name=".presentation.splash.SplashScreenActivity"
             android:exported="true"
-            android:theme="@style/SplashTheme">
+            android:theme="@style/SplashTheme"
+            android:windowSoftInputMode="adjustResize">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 

@@ -135,7 +135,6 @@ android {
     }
 
     buildFeatures {
-        viewBinding = true
         buildConfig = true
         resValues = true
         compose = true
@@ -204,11 +203,7 @@ gradle.taskGraph.whenReady {
 
 dependencies {
     implementation(libs.androidx.core.ktx)
-    implementation(libs.androidx.appcompat)
     implementation(libs.material)
-    implementation(libs.androidx.constraintlayout)
-    implementation(libs.androidx.legacy.support.v4)
-    implementation(libs.androidx.coordinatorlayout)
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
@@ -231,13 +226,9 @@ dependencies {
     implementation(libs.androidx.lifecycle.runtime.ktx)
     implementation(libs.androidx.lifecycle.runtime.compose)
     implementation(libs.androidx.lifecycle.viewmodel.ktx)
-    implementation(libs.androidx.lifecycle.livedata.ktx)
 
     implementation(libs.koin.core)
     implementation(libs.koin.android)
-
-    implementation(libs.rxbinding)
-    implementation(libs.rxandroid)
 
     // Compose
     implementation(platform(libs.androidx.compose.bom))
@@ -246,7 +237,6 @@ dependencies {
     implementation(libs.androidx.compose.ui.graphics)
     implementation(libs.androidx.compose.ui.tooling.preview)
     implementation(libs.androidx.compose.material3)
-    implementation(libs.androidx.compose.runtime.livedata)
     implementation(libs.androidx.navigation3.runtime)
     implementation(libs.androidx.navigation3.ui)
     implementation(libs.androidx.lifecycle.viewmodel.navigation3)

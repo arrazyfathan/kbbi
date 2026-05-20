@@ -1,4 +1,4 @@
-package com.arrazyfathan.kbbi.core.data
+package com.arrazyfathan.kbbi.core.domain.model
 
 sealed class Resource<T>(
     val data: T? = null,

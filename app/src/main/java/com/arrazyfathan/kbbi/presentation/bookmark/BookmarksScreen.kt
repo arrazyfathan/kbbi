@@ -1,7 +1,6 @@
 package com.arrazyfathan.kbbi.presentation.bookmark
 
 import android.content.Context
-import android.content.Intent
 import android.os.Build
 import android.os.VibrationEffect
 import android.os.Vibrator
@@ -60,7 +59,6 @@ import com.airbnb.lottie.compose.LottieConstants
 import com.airbnb.lottie.compose.rememberLottieComposition
 import com.arrazyfathan.kbbi.R
 import com.arrazyfathan.kbbi.core.domain.model.ListWordModel
-import com.arrazyfathan.kbbi.presentation.detail.DetailActivity
 import com.arrazyfathan.kbbi.presentation.theme.BluePrimary
 import com.arrazyfathan.kbbi.presentation.theme.Grey
 import com.arrazyfathan.kbbi.presentation.theme.InterFontFamily
@@ -75,6 +73,7 @@ import org.koin.androidx.compose.koinViewModel
 @Composable
 fun BookmarksScreen(
     modifier: Modifier = Modifier,
+    onNavigateToDetail: (String) -> Unit,
     viewModel: BookmarksViewModel = koinViewModel(),
 ) {
     val context = LocalContext.current
@@ -170,11 +169,7 @@ fun BookmarksScreen(
                     BookmarkItem(
                         model = item,
                         onClick = {
-                            val intent =
-                                Intent(context, DetailActivity::class.java).apply {
-                                    putExtra("data", item.toJson())
-                                }
-                            context.startActivity(intent)
+                            onNavigateToDetail(item.toJson())
                         },
                         onDeleteInitiated = {
                             wordToDelete = item

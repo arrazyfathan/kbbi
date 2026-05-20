@@ -3,10 +3,7 @@ package com.arrazyfathan.kbbi.presentation.detail
 import android.content.ClipData
 import android.content.ClipboardManager
 import android.content.Context
-import android.os.Bundle
 import android.widget.Toast
-import androidx.activity.ComponentActivity
-import androidx.activity.compose.setContent
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
@@ -51,37 +48,15 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.core.content.ContextCompat
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.arrazyfathan.kbbi.R
 import com.arrazyfathan.kbbi.core.domain.model.ListWordModel
 import com.arrazyfathan.kbbi.core.domain.model.WordModel
 import com.arrazyfathan.kbbi.presentation.theme.BlueBg
 import com.arrazyfathan.kbbi.presentation.theme.InterFontFamily
-import com.arrazyfathan.kbbi.presentation.theme.KBBITheme
 import com.arrazyfathan.kbbi.presentation.theme.TextH1
 import com.arrazyfathan.kbbi.presentation.theme.TextP
-import com.arrazyfathan.kbbi.utils.enableEdgeToEdgeSystemBars
-import com.arrazyfathan.kbbi.utils.updateSystemBarStyle
-import com.google.gson.Gson
 import org.koin.androidx.compose.koinViewModel
-
-class DetailActivity : ComponentActivity() {
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-        enableEdgeToEdgeSystemBars()
-        updateSystemBarStyle(ContextCompat.getColor(this, R.color.blue_bg))
-
-        val dataJson = intent.getStringExtra("data")
-        val listWordModel = Gson().fromJson(dataJson, ListWordModel::class.java)
-
-        setContent {
-            KBBITheme {
-                DetailScreen(listWordModel = listWordModel)
-            }
-        }
-    }
-}
 
 @Composable
 fun DetailScreen(

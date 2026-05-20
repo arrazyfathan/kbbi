@@ -1,11 +1,12 @@
 package com.arrazyfathan.kbbi.core.data
 
 import com.arrazyfathan.kbbi.core.data.source.local.LocalDataSource
-import com.arrazyfathan.kbbi.core.data.source.local.entity.HistoryEntity
 import com.arrazyfathan.kbbi.core.data.source.local.entity.ListWordEntity
 import com.arrazyfathan.kbbi.core.data.source.remote.RemoteDataSource
 import com.arrazyfathan.kbbi.core.data.source.remote.network.ApiResponse
+import com.arrazyfathan.kbbi.core.domain.model.HistoryModel
 import com.arrazyfathan.kbbi.core.domain.model.ListWordModel
+import com.arrazyfathan.kbbi.core.domain.model.Resource
 import com.arrazyfathan.kbbi.core.domain.model.WordModel
 import com.arrazyfathan.kbbi.core.domain.repository.IWordRepository
 import com.arrazyfathan.kbbi.core.utils.DataMapper
@@ -53,12 +54,15 @@ class WordRepository(
         )
     }
 
-    override suspend fun addToHistory(historyEntity: HistoryEntity) =
+    override suspend fun addToHistory(history: HistoryModel) =
         withContext(Dispatchers.IO) {
-            return@withContext localDataSource.insertHistory(historyEntity)
+            return@withContext localDataSource.insertHistory(DataMapper.mapHistoryDomainToEntity(history))
         }
 
-    override fun getAllHistories(): Flow<List<HistoryEntity>> = localDataSource.getAllHistories()
+    override fun getAllHistories(): Flow<List<HistoryModel>> =
+        localDataSource.getAllHistories().map {
+            DataMapper.mapHistoryEntitiesToDomain(it)
+        }
 
     override suspend fun deleteWord(word: String) =
         withContext(Dispatchers.IO) {

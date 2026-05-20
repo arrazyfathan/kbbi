@@ -1,10 +1,5 @@
 package com.arrazyfathan.kbbi.presentation.splash
 
-import android.annotation.SuppressLint
-import android.content.Intent
-import android.os.Bundle
-import androidx.activity.ComponentActivity
-import androidx.activity.compose.setContent
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Image
@@ -36,31 +31,10 @@ import com.airbnb.lottie.compose.LottieCompositionSpec
 import com.airbnb.lottie.compose.LottieConstants
 import com.airbnb.lottie.compose.rememberLottieComposition
 import com.arrazyfathan.kbbi.R
-import com.arrazyfathan.kbbi.presentation.home.MainActivity
 import com.arrazyfathan.kbbi.presentation.theme.BluePrimary
 import com.arrazyfathan.kbbi.presentation.theme.InterFontFamily
-import com.arrazyfathan.kbbi.presentation.theme.KBBITheme
-import com.arrazyfathan.kbbi.utils.enableEdgeToEdgeSystemBars
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
-
-@SuppressLint("CustomSplashScreen")
-class SplashScreenActivity : ComponentActivity() {
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-        enableEdgeToEdgeSystemBars()
-        setContent {
-            KBBITheme {
-                SplashScreen(
-                    onTimeout = {
-                        startActivity(Intent(this, MainActivity::class.java))
-                        finish()
-                    },
-                )
-            }
-        }
-    }
-}
 
 @Composable
 fun SplashScreen(

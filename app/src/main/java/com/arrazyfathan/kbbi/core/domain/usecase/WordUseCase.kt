@@ -1,8 +1,8 @@
 package com.arrazyfathan.kbbi.core.domain.usecase
 
-import com.arrazyfathan.kbbi.core.data.Resource
-import com.arrazyfathan.kbbi.core.data.source.local.entity.HistoryEntity
+import com.arrazyfathan.kbbi.core.domain.model.HistoryModel
 import com.arrazyfathan.kbbi.core.domain.model.ListWordModel
+import com.arrazyfathan.kbbi.core.domain.model.Resource
 import com.arrazyfathan.kbbi.core.domain.model.WordModel
 import kotlinx.coroutines.flow.Flow
 
@@ -18,9 +18,9 @@ interface WordUseCase {
         isSaved: Boolean,
     ): Long
 
-    suspend fun addToHistory(historyEntity: HistoryEntity)
+    suspend fun addToHistory(history: HistoryModel)
 
-    fun getAllHistories(): Flow<List<HistoryEntity>>
+    fun getAllHistories(): Flow<List<HistoryModel>>
 
     suspend fun deleteWord(word: String)
 

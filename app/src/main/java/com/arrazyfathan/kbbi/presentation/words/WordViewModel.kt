@@ -2,8 +2,8 @@ package com.arrazyfathan.kbbi.presentation.words
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.arrazyfathan.kbbi.core.data.Resource
 import com.arrazyfathan.kbbi.core.domain.model.ListWordModel
+import com.arrazyfathan.kbbi.core.domain.model.Resource
 import com.arrazyfathan.kbbi.core.domain.usecase.WordUseCase
 import com.arrazyfathan.kbbi.utils.toJson
 import kotlinx.coroutines.Job

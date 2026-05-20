@@ -1,6 +1,5 @@
 package com.arrazyfathan.kbbi.presentation.words
 
-import android.content.Intent
 import android.widget.Toast
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -55,8 +54,6 @@ import com.airbnb.lottie.compose.LottieCompositionSpec
 import com.airbnb.lottie.compose.LottieConstants
 import com.airbnb.lottie.compose.rememberLottieComposition
 import com.arrazyfathan.kbbi.R
-import com.arrazyfathan.kbbi.core.data.source.local.WordList
-import com.arrazyfathan.kbbi.presentation.detail.DetailActivity
 import com.arrazyfathan.kbbi.presentation.theme.BlueBg
 import com.arrazyfathan.kbbi.presentation.theme.BluePrimary
 import com.arrazyfathan.kbbi.presentation.theme.InterFontFamily
@@ -71,6 +68,7 @@ import org.koin.androidx.compose.koinViewModel
 @Composable
 fun WordListScreen(
     modifier: Modifier = Modifier,
+    onNavigateToDetail: (String) -> Unit,
     viewModel: WordViewModel = koinViewModel(),
 ) {
     val context = LocalContext.current
@@ -93,8 +91,8 @@ fun WordListScreen(
                     }
                 if (jsonString != null) {
                     val gson = GsonBuilder().create()
-                    val wordListType = object : TypeToken<WordList>() {}.type
-                    gson.fromJson<WordList>(jsonString, wordListType)
+                    val wordListType = object : TypeToken<List<String>>() {}.type
+                    gson.fromJson<List<String>>(jsonString, wordListType)
                 } else {
                     emptyList()
                 }
@@ -106,11 +104,7 @@ fun WordListScreen(
         viewModel.events.collect { event ->
             when (event) {
                 is WordListEvent.NavigateToDetail -> {
-                    context.startActivity(
-                        Intent(context, DetailActivity::class.java).apply {
-                            putExtra("data", event.dataJson)
-                        },
-                    )
+                    onNavigateToDetail(event.dataJson)
                 }
 
                 is WordListEvent.ShowMessage -> {

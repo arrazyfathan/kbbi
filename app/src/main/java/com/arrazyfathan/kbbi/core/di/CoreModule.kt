@@ -11,6 +11,8 @@ import com.arrazyfathan.kbbi.utils.Constant
 import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
 import org.koin.android.ext.koin.androidContext
+import org.koin.core.module.dsl.bind
+import org.koin.core.module.dsl.singleOf
 import org.koin.dsl.module
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
@@ -61,7 +63,9 @@ val networkModule =
 
 val repositoryModule =
     module {
-        single { RemoteDataSource(get()) }
-        single { LocalDataSource(get()) }
-        factory<IWordRepository> { WordRepository(get(), get()) }
+        singleOf(::RemoteDataSource)
+        singleOf(::LocalDataSource)
+        singleOf(::WordRepository) {
+            bind<IWordRepository>()
+        }
     }

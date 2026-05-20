@@ -1,5 +1,8 @@
 package com.arrazyfathan.kbbi.presentation.home
 
+import android.app.Activity
+import android.content.Context
+import android.content.ContextWrapper
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -17,10 +20,12 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.ripple
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.saveable.rememberSerializable
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshots.SnapshotStateList
@@ -28,6 +33,7 @@ import androidx.compose.runtime.toMutableStateList
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat
@@ -43,11 +49,15 @@ import androidx.navigation3.runtime.serialization.NavKeySerializer
 import androidx.navigation3.ui.NavDisplay
 import androidx.savedstate.compose.serialization.serializers.MutableStateSerializer
 import com.arrazyfathan.kbbi.R
+import com.arrazyfathan.kbbi.core.domain.model.ListWordModel
 import com.arrazyfathan.kbbi.presentation.bookmark.BookmarksScreen
+import com.arrazyfathan.kbbi.presentation.detail.DetailScreen
+import com.arrazyfathan.kbbi.presentation.splash.SplashScreen
 import com.arrazyfathan.kbbi.presentation.theme.KBBITheme
 import com.arrazyfathan.kbbi.presentation.words.WordListScreen
 import com.arrazyfathan.kbbi.utils.enableEdgeToEdgeSystemBars
 import com.arrazyfathan.kbbi.utils.updateSystemBarStyle
+import com.google.gson.Gson
 import kotlinx.serialization.Serializable
 
 class MainActivity : ComponentActivity() {
@@ -61,7 +71,17 @@ class MainActivity : ComponentActivity() {
 
         setContent {
             KBBITheme {
-                MainApp()
+                var isSplashVisible by rememberSaveable { mutableStateOf(true) }
+
+                if (isSplashVisible) {
+                    SplashScreen(
+                        onTimeout = {
+                            isSplashVisible = false
+                        },
+                    )
+                } else {
+                    MainApp()
+                }
             }
         }
     }
@@ -94,8 +114,14 @@ sealed interface Screen : NavKey {
     }
 }
 
+@Serializable
+private data class DetailRoute(
+    val dataJson: String,
+) : NavKey
+
 @Composable
 fun MainApp() {
+    val context = LocalContext.current
     val screens =
         listOf(
             Screen.Home,
@@ -108,18 +134,53 @@ fun MainApp() {
             topLevelRoutes = screens,
         )
     val navigator = remember(navigationState) { Navigator(navigationState) }
+    val currentRoute = navigationState.currentRoute
+    val isDetailVisible = currentRoute is DetailRoute
+
+    LaunchedEffect(currentRoute) {
+        val activity = context.findActivity() ?: return@LaunchedEffect
+        val colorResId =
+            if (isDetailVisible) {
+                R.color.blue_bg
+            } else {
+                R.color.blue_primary
+            }
+        activity.updateSystemBarStyle(
+            ContextCompat.getColor(activity, colorResId),
+            ContextCompat.getColor(activity, android.R.color.white),
+        )
+    }
 
     val entries =
         navigationState.toEntries(
             entryProvider {
                 entry<Screen.Home> {
-                    HomeScreen()
+                    HomeScreen(
+                        onNavigateToDetail = { dataJson ->
+                            navigator.navigate(DetailRoute(dataJson))
+                        },
+                    )
                 }
                 entry<Screen.WordList> {
-                    WordListScreen()
+                    WordListScreen(
+                        onNavigateToDetail = { dataJson ->
+                            navigator.navigate(DetailRoute(dataJson))
+                        },
+                    )
                 }
                 entry<Screen.Bookmarks> {
-                    BookmarksScreen()
+                    BookmarksScreen(
+                        onNavigateToDetail = { dataJson ->
+                            navigator.navigate(DetailRoute(dataJson))
+                        },
+                    )
+                }
+                entry<DetailRoute> { route ->
+                    val listWordModel =
+                        remember(route.dataJson) {
+                            Gson().fromJson(route.dataJson, ListWordModel::class.java)
+                        }
+                    DetailScreen(listWordModel = listWordModel)
                 }
             },
         )
@@ -127,39 +188,41 @@ fun MainApp() {
     Scaffold(
         modifier = Modifier.fillMaxSize(),
         bottomBar = {
-            Row(
-                modifier =
-                    Modifier
-                        .fillMaxWidth()
-                        .height(55.dp)
-                        .background(Color.White),
-                verticalAlignment = Alignment.CenterVertically,
-            ) {
-                screens.forEach { screen ->
-                    val isSelected = navigationState.topLevelRoute == screen
-                    Box(
-                        modifier =
-                            Modifier
-                                .weight(1f)
-                                .fillMaxHeight()
-                                .clickable(
-                                    interactionSource = remember { MutableInteractionSource() },
-                                    indication = ripple(bounded = false, radius = 24.dp),
-                                ) {
-                                    if (!isSelected) {
-                                        navigator.navigate(screen)
-                                    }
-                                },
-                        contentAlignment = Alignment.Center,
-                    ) {
-                        Icon(
-                            painter =
-                                painterResource(
-                                    id = if (isSelected) screen.iconSelectedResId else screen.iconResId,
-                                ),
-                            contentDescription = null,
-                            tint = Color.Unspecified,
-                        )
+            if (!isDetailVisible) {
+                Row(
+                    modifier =
+                        Modifier
+                            .fillMaxWidth()
+                            .height(55.dp)
+                            .background(Color.White),
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    screens.forEach { screen ->
+                        val isSelected = navigationState.topLevelRoute == screen
+                        Box(
+                            modifier =
+                                Modifier
+                                    .weight(1f)
+                                    .fillMaxHeight()
+                                    .clickable(
+                                        interactionSource = remember { MutableInteractionSource() },
+                                        indication = ripple(bounded = false, radius = 24.dp),
+                                    ) {
+                                        if (!isSelected) {
+                                            navigator.navigate(screen)
+                                        }
+                                    },
+                            contentAlignment = Alignment.Center,
+                        ) {
+                            Icon(
+                                painter =
+                                    painterResource(
+                                        id = if (isSelected) screen.iconSelectedResId else screen.iconResId,
+                                    ),
+                                contentDescription = null,
+                                tint = Color.Unspecified,
+                            )
+                        }
                     }
                 }
             }
@@ -207,6 +270,11 @@ private class NavigationState(
     val backStacks: Map<NavKey, NavBackStack<NavKey>>,
 ) {
     var topLevelRoute: NavKey by topLevelRoute
+
+    val currentRoute: NavKey
+        get() =
+            backStacks[topLevelRoute]?.lastOrNull()
+                ?: topLevelRoute
 
     val stacksInUse: List<NavKey>
         get() =
@@ -263,3 +331,10 @@ private fun NavigationState.toEntries(
         .flatMap { decoratedEntries[it] ?: emptyList() }
         .toMutableStateList()
 }
+
+private tailrec fun Context.findActivity(): Activity? =
+    when (this) {
+        is Activity -> this
+        is ContextWrapper -> baseContext.findActivity()
+        else -> null
+    }

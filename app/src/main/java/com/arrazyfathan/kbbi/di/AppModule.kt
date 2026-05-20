@@ -6,6 +6,8 @@ import com.arrazyfathan.kbbi.presentation.bookmark.BookmarksViewModel
 import com.arrazyfathan.kbbi.presentation.detail.DetailViewModel
 import com.arrazyfathan.kbbi.presentation.home.HomeViewModel
 import com.arrazyfathan.kbbi.presentation.words.WordViewModel
+import org.koin.core.module.dsl.bind
+import org.koin.core.module.dsl.factoryOf
 import org.koin.core.module.dsl.viewModelOf
 import org.koin.dsl.module
 
@@ -15,7 +17,9 @@ import org.koin.dsl.module
 
 val useCaseModule =
     module {
-        factory<WordUseCase> { WordInteractor(get()) }
+        factoryOf(::WordInteractor) {
+            bind<WordUseCase>()
+        }
     }
 
 val viewModelModule =

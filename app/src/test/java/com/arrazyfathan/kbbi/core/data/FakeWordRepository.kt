@@ -1,7 +1,8 @@
 package com.arrazyfathan.kbbi.core.data
 
-import com.arrazyfathan.kbbi.core.data.source.local.entity.HistoryEntity
+import com.arrazyfathan.kbbi.core.domain.model.HistoryModel
 import com.arrazyfathan.kbbi.core.domain.model.ListWordModel
+import com.arrazyfathan.kbbi.core.domain.model.Resource
 import com.arrazyfathan.kbbi.core.domain.model.WordModel
 import com.arrazyfathan.kbbi.core.domain.repository.IWordRepository
 import kotlinx.coroutines.flow.Flow
@@ -11,7 +12,7 @@ import kotlinx.coroutines.flow.map
 
 class FakeWordRepository : IWordRepository {
     private val bookmarks = MutableStateFlow<Map<String, ListWordModel>>(emptyMap())
-    private val histories = MutableStateFlow<List<HistoryEntity>>(emptyList())
+    private val histories = MutableStateFlow<List<HistoryModel>>(emptyList())
     private val remoteMeanings = mutableMapOf<String, Resource<List<WordModel>>>()
 
     fun setRemoteData(
@@ -42,13 +43,13 @@ class FakeWordRepository : IWordRepository {
         return 1L
     }
 
-    override suspend fun addToHistory(historyEntity: HistoryEntity) {
+    override suspend fun addToHistory(history: HistoryModel) {
         val current = histories.value.toMutableList()
-        current.add(historyEntity)
+        current.add(history)
         histories.value = current
     }
 
-    override fun getAllHistories(): Flow<List<HistoryEntity>> = histories
+    override fun getAllHistories(): Flow<List<HistoryModel>> = histories
 
     override suspend fun deleteWord(word: String) {
         val current = bookmarks.value.toMutableMap()
