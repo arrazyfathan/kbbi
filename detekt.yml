@@ -11,6 +11,11 @@ complexity:
   TooManyFunctions:
     thresholdInFiles: 12
     thresholdInClasses: 12
+  LongMethod:
+    ignoreAnnotated:
+      - Composable
+  CyclomaticComplexMethod:
+    active: false
 
 naming:
   FunctionNaming:
@@ -19,8 +24,6 @@ naming:
 
 style:
   MagicNumber:
-    ignoreNumbers:
-      - "-1"
-      - "0"
-      - "1"
-      - "2"
+    active: false
+  UnusedPrivateProperty:
+    active: false

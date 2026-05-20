@@ -11,6 +11,7 @@ plugins {
     alias(libs.plugins.detekt)
     alias(libs.plugins.ktlint)
     alias(libs.plugins.kotlinx.kover)
+    alias(libs.plugins.kotlin.compose)
 }
 
 val packageName = "com.arrazyfathan.kbbi"
@@ -137,6 +138,7 @@ android {
         viewBinding = true
         buildConfig = true
         resValues = true
+        compose = true
     }
 }
 
@@ -238,4 +240,17 @@ dependencies {
 
     implementation(libs.rxbinding)
     implementation(libs.rxandroid)
+
+    // Compose
+    implementation(platform(libs.androidx.compose.bom))
+    implementation(libs.androidx.activity.compose)
+    implementation(libs.androidx.compose.ui)
+    implementation(libs.androidx.compose.ui.graphics)
+    implementation(libs.androidx.compose.ui.tooling.preview)
+    implementation(libs.androidx.compose.material3)
+    implementation(libs.androidx.compose.runtime.livedata)
+    implementation(libs.androidx.navigation.compose)
+    implementation(libs.koin.androidx.compose)
+    implementation(libs.lottie.compose)
+    debugImplementation(libs.androidx.compose.ui.tooling)
 }

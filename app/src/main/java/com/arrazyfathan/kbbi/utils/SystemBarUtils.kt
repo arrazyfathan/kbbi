@@ -1,10 +1,10 @@
 package com.arrazyfathan.kbbi.utils
 
+import android.app.Activity
 import android.graphics.Color
 import android.view.View
 import android.view.ViewGroup
 import androidx.annotation.ColorInt
-import androidx.appcompat.app.AppCompatActivity
 import androidx.core.graphics.ColorUtils
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowCompat
@@ -31,19 +31,21 @@ private data class InitialMargin(
 )
 
 @Suppress("DEPRECATION")
-fun AppCompatActivity.enableEdgeToEdgeSystemBars() {
+fun Activity.enableEdgeToEdgeSystemBars() {
     WindowCompat.setDecorFitsSystemWindows(window, false)
     window.statusBarColor = Color.TRANSPARENT
     window.navigationBarColor = Color.TRANSPARENT
 }
 
-fun AppCompatActivity.updateSystemBarStyle(
-    @ColorInt backgroundColor: Int,
+fun Activity.updateSystemBarStyle(
+    @ColorInt statusBarColor: Int,
+    @ColorInt navigationBarColor: Int = statusBarColor,
 ) {
-    val useDarkIcons = ColorUtils.calculateLuminance(backgroundColor) > DARK_ICON_LUMINANCE_THRESHOLD
+    val useDarkStatusIcons = ColorUtils.calculateLuminance(statusBarColor) > DARK_ICON_LUMINANCE_THRESHOLD
+    val useDarkNavigationIcons = ColorUtils.calculateLuminance(navigationBarColor) > DARK_ICON_LUMINANCE_THRESHOLD
     WindowInsetsControllerCompat(window, window.decorView).apply {
-        isAppearanceLightStatusBars = useDarkIcons
-        isAppearanceLightNavigationBars = useDarkIcons
+        isAppearanceLightStatusBars = useDarkStatusIcons
+        isAppearanceLightNavigationBars = useDarkNavigationIcons
     }
 }
 
