@@ -1,6 +1,7 @@
 package com.arrazyfathan.kbbi.presentation.home
 
 import android.widget.Toast
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.slideInHorizontally
@@ -45,7 +46,6 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -61,6 +61,7 @@ import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -69,17 +70,18 @@ import com.airbnb.lottie.compose.LottieCompositionSpec
 import com.airbnb.lottie.compose.LottieConstants
 import com.airbnb.lottie.compose.rememberLottieComposition
 import com.arrazyfathan.kbbi.R
+import com.arrazyfathan.kbbi.core.domain.model.HistoryModel
 import com.arrazyfathan.kbbi.presentation.theme.BlueBg
 import com.arrazyfathan.kbbi.presentation.theme.BluePrimary
 import com.arrazyfathan.kbbi.presentation.theme.BlueSecondary
 import com.arrazyfathan.kbbi.presentation.theme.InterFontFamily
+import com.arrazyfathan.kbbi.presentation.theme.KBBITheme
 import com.arrazyfathan.kbbi.presentation.theme.MetropolisFontFamily
 import com.arrazyfathan.kbbi.presentation.theme.SpaceGroteskFontFamily
 import com.arrazyfathan.kbbi.presentation.theme.TextH1
 import com.arrazyfathan.kbbi.presentation.theme.TextP
 import org.koin.androidx.compose.koinViewModel
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun HomeScreen(
     modifier: Modifier = Modifier,
@@ -87,14 +89,9 @@ fun HomeScreen(
     viewModel: HomeViewModel = koinViewModel(),
 ) {
     val context = LocalContext.current
-    val focusManager = LocalFocusManager.current
     val state by viewModel.state.collectAsStateWithLifecycle()
 
     var searchQuery by remember { mutableStateOf("") }
-    var showBottomSheet by remember { mutableStateOf(false) }
-
-    val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
-    val scope = rememberCoroutineScope()
 
     LaunchedEffect(Unit) {
         viewModel.onAction(HomeAction.OnStarted)
@@ -115,6 +112,29 @@ fun HomeScreen(
         }
     }
 
+    HomeContent(
+        state = state,
+        searchQuery = searchQuery,
+        onSearchQueryChange = { searchQuery = it },
+        onAction = viewModel::onAction,
+        modifier = modifier,
+    )
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun HomeContent(
+    state: HomeState,
+    searchQuery: String,
+    onSearchQueryChange: (String) -> Unit,
+    onAction: (HomeAction) -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    val focusManager = LocalFocusManager.current
+    var showBottomSheet by remember { mutableStateOf(false) }
+
+    val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+
     Box(
         modifier =
             modifier
@@ -124,7 +144,7 @@ fun HomeScreen(
                 .pointerInput(Unit) {
                     awaitPointerEventScope {
                         while (true) {
-                            val down = awaitFirstDown(requireUnconsumed = false)
+                            awaitFirstDown(requireUnconsumed = false)
                             var totalDragY = 0f
                             var isSwipeDetected = false
                             do {
@@ -203,7 +223,7 @@ fun HomeScreen(
                     value = searchQuery,
                     onValueChange = { text ->
                         val filteredText = text.replace(" ", "")
-                        searchQuery = filteredText
+                        onSearchQueryChange(filteredText)
                     },
                     modifier =
                         Modifier
@@ -234,7 +254,7 @@ fun HomeScreen(
                         KeyboardActions(
                             onSearch = {
                                 if (searchQuery.isNotBlank()) {
-                                    viewModel.onAction(HomeAction.OnSearchSubmitted(searchQuery))
+                                    onAction(HomeAction.OnSearchSubmitted(searchQuery))
                                     focusManager.clearFocus()
                                 }
                             },
@@ -254,7 +274,7 @@ fun HomeScreen(
                 )
 
                 // Search Button (Slides In / Out)
-                androidx.compose.animation.AnimatedVisibility(
+                this@Column.AnimatedVisibility(
                     visible = searchQuery.length > 2,
                     enter = slideInHorizontally(initialOffsetX = { it }) + fadeIn(),
                     exit = slideOutHorizontally(targetOffsetX = { it }) + fadeOut(),
@@ -263,18 +283,14 @@ fun HomeScreen(
                     IconButton(
                         onClick = {
                             if (searchQuery.isNotBlank()) {
-                                viewModel.onAction(HomeAction.OnSearchSubmitted(searchQuery))
+                                onAction(HomeAction.OnSearchSubmitted(searchQuery))
                                 focusManager.clearFocus()
                             }
                         },
-                        modifier =
-                            Modifier
-                                .size(55.dp)
-                                .clip(RoundedCornerShape(10.dp)),
-                        colors =
-                            IconButtonDefaults.iconButtonColors(
-                                containerColor = BlueSecondary,
-                            ),
+                        modifier = Modifier.size(55.dp).clip(RoundedCornerShape(10.dp)),
+                        colors = IconButtonDefaults.iconButtonColors(
+                            containerColor = BlueSecondary,
+                        ),
                     ) {
                         Icon(
                             painter = painterResource(id = R.drawable.ic_search),
@@ -313,7 +329,7 @@ fun HomeScreen(
                         Card(
                             modifier =
                                 Modifier.clickable {
-                                    viewModel.onAction(HomeAction.OnSearchSubmitted(history.word))
+                                    onAction(HomeAction.OnSearchSubmitted(history.word))
                                 },
                             shape = RoundedCornerShape(32.dp),
                             colors = CardDefaults.cardColors(containerColor = Color.Transparent),
@@ -453,5 +469,39 @@ fun HomeScreen(
                 }
             }
         }
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
+fun HomeContentPreview() {
+    KBBITheme {
+        HomeContent(
+            state = HomeState(
+                histories = listOf(
+                    HistoryModel("Kamus"),
+                    HistoryModel("Indonesia"),
+                    HistoryModel("Pintar"),
+                    HistoryModel("Belajar"),
+                    HistoryModel("Membaca"),
+                )
+            ),
+            searchQuery = "",
+            onSearchQueryChange = {},
+            onAction = {},
+        )
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
+fun HomeContentLoadingPreview() {
+    KBBITheme {
+        HomeContent(
+            state = HomeState(isLoading = true),
+            searchQuery = "Belajar",
+            onSearchQueryChange = {},
+            onAction = {},
+        )
     }
 }
