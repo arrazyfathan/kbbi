@@ -31,8 +31,10 @@ import com.airbnb.lottie.compose.LottieCompositionSpec
 import com.airbnb.lottie.compose.LottieConstants
 import com.airbnb.lottie.compose.rememberLottieComposition
 import com.arrazyfathan.kbbi.R
+import androidx.compose.ui.tooling.preview.Preview
 import com.arrazyfathan.kbbi.presentation.theme.BluePrimary
 import com.arrazyfathan.kbbi.presentation.theme.InterFontFamily
+import com.arrazyfathan.kbbi.presentation.theme.KBBITheme
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
@@ -130,5 +132,13 @@ fun SplashScreen(
                     .align(Alignment.BottomCenter)
                     .padding(bottom = 16.dp),
         )
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
+fun SplashScreenPreview() {
+    KBBITheme {
+        SplashScreen(onTimeout = {})
     }
 }

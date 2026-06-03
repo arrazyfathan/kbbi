@@ -46,6 +46,7 @@ import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -55,12 +56,12 @@ import com.arrazyfathan.kbbi.presentation.common.LocalAppLoadingController
 import com.arrazyfathan.kbbi.presentation.theme.BlueBg
 import com.arrazyfathan.kbbi.presentation.theme.BluePrimary
 import com.arrazyfathan.kbbi.presentation.theme.InterFontFamily
+import com.arrazyfathan.kbbi.presentation.theme.KBBITheme
 import com.arrazyfathan.kbbi.presentation.theme.MetropolisFontFamily
 import org.koin.androidx.compose.koinViewModel
 
 private const val WORD_LIST_SEARCH_LOADING_SOURCE = "word_list_search"
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun WordListScreen(
     modifier: Modifier = Modifier,
@@ -69,8 +70,6 @@ fun WordListScreen(
 ) {
     val context = LocalContext.current
     val loadingController = LocalAppLoadingController.current
-    val focusManager = LocalFocusManager.current
-    val density = LocalDensity.current
     val state by viewModel.state.collectAsStateWithLifecycle()
 
     LaunchedEffect(Unit) {
@@ -101,6 +100,22 @@ fun WordListScreen(
         }
     }
 
+    WordListScreenContent(
+        state = state,
+        onAction = viewModel::onAction,
+        modifier = modifier,
+    )
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun WordListScreenContent(
+    state: WordListState,
+    onAction: (WordListAction) -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    val focusManager = LocalFocusManager.current
+    val density = LocalDensity.current
     val lazyListState = rememberLazyListState()
 
     val minHeaderHeightPx = with(density) { 56.dp.toPx() }
@@ -131,8 +146,7 @@ fun WordListScreen(
                     source: NestedScrollSource,
                 ): Offset {
                     val delta = available.y
-                    return if (delta > 0 &&
-                        lazyListState.firstVisibleItemIndex == 0 &&
+                    return if (delta > 0 && lazyListState.firstVisibleItemIndex == 0 &&
                         lazyListState.firstVisibleItemScrollOffset == 0
                     ) {
                         val newHeight = (headerHeightPx + delta).coerceIn(minHeaderHeightPx, maxHeaderHeightPx)
@@ -154,23 +168,14 @@ fun WordListScreen(
         }
 
     Scaffold(
-        modifier =
-            modifier
-                .fillMaxSize()
-                .background(BlueBg),
+        modifier = modifier.fillMaxSize().background(BlueBg),
         containerColor = BlueBg,
     ) { innerPadding ->
         Box(
-            modifier =
-                Modifier
-                    .fillMaxSize()
-                    .padding(bottom = innerPadding.calculateBottomPadding()),
+            modifier = Modifier.fillMaxSize().padding(bottom = innerPadding.calculateBottomPadding()),
         ) {
             Column(
-                modifier =
-                    Modifier
-                        .fillMaxSize()
-                        .nestedScroll(nestedScrollConnection),
+                modifier = Modifier.fillMaxSize().nestedScroll(nestedScrollConnection),
             ) {
                 // Collapsing App Bar / Header
                 Box(
@@ -196,12 +201,9 @@ fun WordListScreen(
                 TextField(
                     value = state.searchQuery,
                     onValueChange = { query ->
-                        viewModel.onAction(WordListAction.OnSearchQueryChanged(query))
+                        onAction(WordListAction.OnSearchQueryChanged(query))
                     },
-                    modifier =
-                        Modifier
-                            .fillMaxWidth()
-                            .height(55.dp),
+                    modifier = Modifier.fillMaxWidth().height(55.dp),
                     placeholder = {
                         Text(
                             text = stringResource(id = R.string.search_word_list_hint),
@@ -246,20 +248,14 @@ fun WordListScreen(
                 // Words LazyColumn
                 LazyColumn(
                     state = lazyListState,
-                    modifier =
-                        Modifier
-                            .fillMaxSize()
-                            .padding(horizontal = 4.dp),
+                    modifier = Modifier.fillMaxSize().padding(horizontal = 4.dp),
                 ) {
                     items(state.filteredWords, key = { it }) { word ->
                         Card(
                             modifier =
-                                Modifier
-                                    .fillMaxWidth()
-                                    .padding(top = 4.dp)
-                                    .clickable {
-                                        viewModel.onAction(WordListAction.OnWordClicked(word))
-                                    },
+                                Modifier.fillMaxWidth().padding(top = 4.dp).clickable {
+                                    onAction(WordListAction.OnWordClicked(word))
+                                },
                             shape = RoundedCornerShape(10.dp),
                             colors = CardDefaults.cardColors(containerColor = Color.White),
                             elevation = CardDefaults.cardElevation(0.dp),
@@ -277,5 +273,53 @@ fun WordListScreen(
                 }
             }
         }
+    }
+}
+
+@Preview
+@Composable
+private fun WordListScreenPreview() {
+    KBBITheme {
+        WordListScreenContent(
+            state =
+                WordListState(
+                    words =
+                        listOf(
+                            "Abjad",
+                            "Baca",
+                            "Cacing",
+                            "Dadu",
+                            "Ember",
+                            "Abjad",
+                            "Baca",
+                            "Cacing",
+                            "Dadu",
+                            "Ember",
+                            "Abjad",
+                            "Baca",
+                            "Cacing",
+                            "Dadu",
+                            "Ember",
+                        ),
+                    filteredWords = listOf(
+                        "Abjad",
+                        "Baca",
+                        "Cacing",
+                        "Dadu",
+                        "Ember",
+                        "Abjad",
+                        "Baca",
+                        "Cacing",
+                        "Dadu",
+                        "Ember",
+                        "Abjad",
+                        "Baca",
+                        "Cacing",
+                        "Dadu",
+                        "Ember",
+                    ),
+                ),
+            onAction = {},
+        )
     }
 }
