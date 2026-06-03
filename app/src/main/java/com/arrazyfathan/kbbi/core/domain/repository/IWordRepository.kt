@@ -1,8 +1,9 @@
 package com.arrazyfathan.kbbi.core.domain.repository
 
 import com.arrazyfathan.kbbi.core.domain.model.HistoryModel
+import com.arrazyfathan.kbbi.core.domain.model.AppResult
 import com.arrazyfathan.kbbi.core.domain.model.ListWordModel
-import com.arrazyfathan.kbbi.core.domain.model.Resource
+import com.arrazyfathan.kbbi.core.domain.model.DataError
 import com.arrazyfathan.kbbi.core.domain.model.WordModel
 import kotlinx.coroutines.flow.Flow
 
@@ -10,7 +11,7 @@ import kotlinx.coroutines.flow.Flow
  * Created by Ar Razy Fathan Rabbani on 17/03/23.
  */
 interface IWordRepository {
-    fun getMeaningOfWord(word: String): Flow<Resource<List<WordModel>>>
+    fun getMeaningOfWord(word: String): Flow<AppResult<List<WordModel>, DataError>>
 
     suspend fun bookmarkWord(
         word: String,

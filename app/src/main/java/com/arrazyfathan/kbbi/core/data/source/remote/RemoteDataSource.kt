@@ -1,8 +1,9 @@
 package com.arrazyfathan.kbbi.core.data.source.remote
 
-import com.arrazyfathan.kbbi.core.data.source.remote.network.ApiResponse
 import com.arrazyfathan.kbbi.core.data.source.remote.network.ApiService
 import com.arrazyfathan.kbbi.core.data.source.remote.response.WordResponse
+import com.arrazyfathan.kbbi.core.domain.model.AppResult
+import com.arrazyfathan.kbbi.core.domain.model.DataError
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
@@ -21,7 +22,7 @@ class RemoteDataSource(
         const val HTTP_NOT_FOUND = 404
     }
 
-    fun getMeaningOfWord(word: String): Flow<ApiResponse<List<WordResponse>>> =
+    fun getMeaningOfWord(word: String): Flow<AppResult<List<WordResponse>, DataError>> =
         flow {
             try {
                 val response = apiService.getMeaningWord(word)
@@ -29,32 +30,32 @@ class RemoteDataSource(
                     val body = response.body()
                     val data = body?.data.orEmpty()
                     if (body?.success == true && data.isNotEmpty()) {
-                        emit(ApiResponse.Success(data))
+                        emit(AppResult.Success(data))
                     } else if (body?.success == false) {
-                        emit(ApiResponse.Error(body.message))
+                        emit(AppResult.Error(DataError.Remote(body.message)))
                     } else {
-                        emit(ApiResponse.Empty)
+                        emit(AppResult.Error(DataError.NotFound))
                     }
                 } else {
-                    val message =
+                    val error =
                         when (response.code()) {
-                            HTTP_NOT_FOUND -> "Data tidak ditemukan"
-                            else -> "Something went wrong"
+                            HTTP_NOT_FOUND -> DataError.NotFound
+                            else -> DataError.Unknown
                         }
-                    emit(ApiResponse.Error(message))
+                    emit(AppResult.Error(error))
                 }
             } catch (e: IOException) {
-                val message =
+                val error =
                     when (e) {
                         is ConnectException -> {
-                            "Tidak ada koneksi internet"
+                            DataError.NoInternet
                         }
                         is UnknownHostException -> {
-                            "Tidak ada koneksi internet"
+                            DataError.NoInternet
                         }
-                        else -> "Something went wrong"
+                        else -> DataError.Unknown
                     }
-                emit(ApiResponse.Error(message))
+                emit(AppResult.Error(error))
             }
         }.flowOn(Dispatchers.IO)
 }

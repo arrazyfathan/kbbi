@@ -2,10 +2,11 @@ package com.arrazyfathan.kbbi.presentation.home
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.arrazyfathan.kbbi.core.domain.model.AppResult
 import com.arrazyfathan.kbbi.core.domain.model.HistoryModel
-import com.arrazyfathan.kbbi.core.domain.model.Resource
 import com.arrazyfathan.kbbi.core.domain.usecase.ObserveSearchHistoryUseCase
 import com.arrazyfathan.kbbi.core.domain.usecase.SearchWordWithHistoryUseCase
+import com.arrazyfathan.kbbi.presentation.common.toMessage
 import com.arrazyfathan.kbbi.utils.toJson
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.channels.Channel
@@ -75,22 +76,16 @@ class HomeViewModel(
         searchJob?.cancel()
         searchJob =
             viewModelScope.launch {
-                searchWordWithHistory(word).collect { resource ->
-                    when (resource) {
-                        is Resource.Loading -> {
-                            _state.update { it.copy(isLoading = true) }
+                _state.update { it.copy(isLoading = true) }
+                searchWordWithHistory(word).collect { result ->
+                    _state.update { it.copy(isLoading = false) }
+                    when (result) {
+                        is AppResult.Success -> {
+                            _events.send(HomeEvent.NavigateToDetail(result.data.toJson()))
                         }
 
-                        is Resource.Success -> {
-                            _state.update { it.copy(isLoading = false) }
-                            resource.data?.let { word ->
-                                _events.send(HomeEvent.NavigateToDetail(word.toJson()))
-                            }
-                        }
-
-                        is Resource.Error -> {
-                            _state.update { it.copy(isLoading = false) }
-                            _events.send(HomeEvent.ShowMessage(resource.message ?: "Error occurred"))
+                        is AppResult.Error -> {
+                            _events.send(HomeEvent.ShowMessage(result.error.toMessage()))
                         }
                     }
                 }

@@ -2,8 +2,9 @@ package com.arrazyfathan.kbbi.presentation.words
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.arrazyfathan.kbbi.core.domain.model.Resource
+import com.arrazyfathan.kbbi.core.domain.model.AppResult
 import com.arrazyfathan.kbbi.core.domain.usecase.SearchWordUseCase
+import com.arrazyfathan.kbbi.presentation.common.toMessage
 import com.arrazyfathan.kbbi.utils.toJson
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.channels.Channel
@@ -86,22 +87,16 @@ class WordViewModel(
         searchJob?.cancel()
         searchJob =
             viewModelScope.launch {
+                _state.update { it.copy(isLoading = true) }
                 searchWord(word).collect { resource ->
+                    _state.update { it.copy(isLoading = false) }
                     when (resource) {
-                        is Resource.Loading -> {
-                            _state.update { it.copy(isLoading = true) }
+                        is AppResult.Success -> {
+                            _events.send(WordListEvent.NavigateToDetail(resource.data.toJson()))
                         }
 
-                        is Resource.Success -> {
-                            _state.update { it.copy(isLoading = false) }
-                            resource.data?.let { word ->
-                                _events.send(WordListEvent.NavigateToDetail(word.toJson()))
-                            }
-                        }
-
-                        is Resource.Error -> {
-                            _state.update { it.copy(isLoading = false) }
-                            _events.send(WordListEvent.ShowMessage(resource.message ?: "Error occurred"))
+                        is AppResult.Error -> {
+                            _events.send(WordListEvent.ShowMessage(resource.error.toMessage()))
                         }
                     }
                 }

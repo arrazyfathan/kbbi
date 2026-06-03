@@ -3,17 +3,16 @@ package com.arrazyfathan.kbbi.core.data
 import com.arrazyfathan.kbbi.core.data.source.local.LocalDataSource
 import com.arrazyfathan.kbbi.core.data.source.local.entity.ListWordEntity
 import com.arrazyfathan.kbbi.core.data.source.remote.RemoteDataSource
-import com.arrazyfathan.kbbi.core.data.source.remote.network.ApiResponse
+import com.arrazyfathan.kbbi.core.domain.model.AppResult
+import com.arrazyfathan.kbbi.core.domain.model.DataError
 import com.arrazyfathan.kbbi.core.domain.model.HistoryModel
 import com.arrazyfathan.kbbi.core.domain.model.ListWordModel
-import com.arrazyfathan.kbbi.core.domain.model.Resource
 import com.arrazyfathan.kbbi.core.domain.model.WordModel
+import com.arrazyfathan.kbbi.core.domain.model.map
 import com.arrazyfathan.kbbi.core.domain.repository.IWordRepository
 import com.arrazyfathan.kbbi.core.utils.DataMapper
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.withContext
 
@@ -24,20 +23,9 @@ class WordRepository(
     private val remoteDataSource: RemoteDataSource,
     private val localDataSource: LocalDataSource,
 ) : IWordRepository {
-    override fun getMeaningOfWord(word: String): Flow<Resource<List<WordModel>>> =
-        flow {
-            emit(Resource.Loading())
-            when (val response = remoteDataSource.getMeaningOfWord(word).first()) {
-                is ApiResponse.Success -> {
-                    emit(Resource.Success(DataMapper.mapResponseToDomain(response.data)))
-                }
-                is ApiResponse.Empty -> {
-                    emit(Resource.Error(message = "Data not found"))
-                }
-                is ApiResponse.Error -> {
-                    emit(Resource.Error(response.errorMessage))
-                }
-            }
+    override fun getMeaningOfWord(word: String): Flow<AppResult<List<WordModel>, DataError>> =
+        remoteDataSource.getMeaningOfWord(word).map { result ->
+            result.map(DataMapper::mapResponseToDomain)
         }
 
     override suspend fun bookmarkWord(
