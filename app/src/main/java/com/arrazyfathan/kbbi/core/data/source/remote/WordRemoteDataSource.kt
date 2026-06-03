@@ -11,7 +11,7 @@ class WordRemoteDataSource(
     private val apiService: ApiService,
 ) {
     suspend fun getMeaningOfWord(word: String): AppResult<List<WordDto>, DataError> =
-        when (val result = safeApiCall { apiService.getMeaningWord(word) }) {
+        when (val result = safeApiCall<ListWordDto> { apiService.getMeaningWord(word) }) {
             is AppResult.Success -> result.data.toWordResult()
             is AppResult.Error -> result
         }

@@ -21,6 +21,25 @@ This plan executes the 1-7 review findings while keeping the project as a single
 - [x] Remove JSON route serialization from ViewModels; navigation owns route serialization.
 - [x] Update stale tests from removed `Resource` / `WordInteractor` APIs to current use case and `AppResult` APIs.
 
+## Ktor + Kotlinx Serialization Migration Plan
+
+Scope: replace Retrofit + Gson API networking with Ktor Client + kotlinx.serialization while keeping the project as a single `:app` module.
+
+- [x] Add Ktor client dependencies to the version catalog:
+  - `ktor-client-core`
+  - `ktor-client-okhttp`
+  - `ktor-client-content-negotiation`
+  - `ktor-serialization-kotlinx-json`
+  - `ktor-client-logging`
+- [x] Replace Retrofit and Gson converter dependencies in `app/build.gradle.kts`.
+- [x] Convert remote DTOs to `@Serializable` models.
+- [x] Replace Retrofit `ApiService` with a Ktor-backed API service.
+- [x] Update `safeApiCall` to work with Ktor responses/exceptions.
+- [x] Configure `HttpClient` in DI using `BuildConfig.BASE_URL`, content negotiation, JSON settings, timeouts, and logging.
+- [x] Remove API-layer Gson usage.
+- [x] Migrate local asset parsing, Room converters, and navigation route serialization to kotlinx.serialization for a consistent JSON stack.
+- [ ] Verification intentionally skipped for this migration request.
+
 ## Future Modularization Preparation
 
 When the app is ready for multi-module migration, split the current packages into:

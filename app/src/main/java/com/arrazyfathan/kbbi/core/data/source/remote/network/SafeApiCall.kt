@@ -2,10 +2,12 @@ package com.arrazyfathan.kbbi.core.data.source.remote.network
 
 import com.arrazyfathan.kbbi.core.domain.model.AppResult
 import com.arrazyfathan.kbbi.core.domain.model.DataError
-import com.google.gson.JsonParseException
+import io.ktor.client.call.body
+import io.ktor.client.statement.HttpResponse
+import io.ktor.http.isSuccess
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
-import retrofit2.Response
+import kotlinx.serialization.SerializationException
 import java.io.IOException
 import java.net.ConnectException
 import java.net.SocketTimeoutException
@@ -23,22 +25,20 @@ private const val HTTP_REQUEST_TIMEOUT = 408
 private const val HTTP_SERVER_ERROR_START = 500
 private const val HTTP_SERVICE_UNAVAILABLE = 503
 
-suspend fun <T> safeApiCall(apiCall: suspend () -> Response<T>): AppResult<T, DataError> =
+suspend inline fun <reified T> safeApiCall(noinline apiCall: suspend () -> HttpResponse): AppResult<T, DataError> =
     withContext(Dispatchers.IO) {
         try {
             val response = apiCall()
-            val body = response.body()
 
             when {
-                response.isSuccessful && body != null -> AppResult.Success(body)
-                response.isSuccessful -> AppResult.Error(DataError.EmptyBody)
-                else -> AppResult.Error(response.code().toDataError())
+                response.status.isSuccess() -> AppResult.Success(response.body<T>())
+                else -> AppResult.Error(response.status.value.toDataError())
             }
         } catch (e: IOException) {
             AppResult.Error(e.toDataError())
         } catch (e: CancellationException) {
             throw e
-        } catch (_: JsonParseException) {
+        } catch (_: SerializationException) {
             AppResult.Error(DataError.Serialization)
         } catch (_: IllegalArgumentException) {
             AppResult.Error(DataError.Serialization)
@@ -47,16 +47,20 @@ suspend fun <T> safeApiCall(apiCall: suspend () -> Response<T>): AppResult<T, Da
         }
     }
 
-private fun IOException.toDataError(): DataError =
+@PublishedApi
+internal fun IOException.toDataError(): DataError =
     when (this) {
         is ConnectException,
         is UnknownHostException,
         -> DataError.NoInternet
+
         is SocketTimeoutException -> DataError.RequestTimeout
+
         else -> DataError.Unknown
     }
 
-private fun Int.toDataError(): DataError =
+@PublishedApi
+internal fun Int.toDataError(): DataError =
     when (this) {
         HTTP_BAD_REQUEST -> DataError.BadRequest
         HTTP_UNAUTHORIZED -> DataError.Unauthorized

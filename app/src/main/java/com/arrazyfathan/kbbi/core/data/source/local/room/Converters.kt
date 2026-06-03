@@ -6,73 +6,68 @@ import androidx.room.TypeConverter
 import com.arrazyfathan.kbbi.core.data.source.local.entity.ListWordEntity
 import com.arrazyfathan.kbbi.core.data.source.local.entity.MeaningEntity
 import com.arrazyfathan.kbbi.core.data.source.local.entity.WordEntity
-import com.google.gson.Gson
-import com.google.gson.reflect.TypeToken
+import kotlinx.serialization.decodeFromString
+import kotlinx.serialization.encodeToString
+import kotlinx.serialization.json.Json
 
 object Converters {
-    @JvmStatic
-    @TypeConverter
-    fun toWordList(string: String?): List<ListWordEntity>? {
-        val listType = object : TypeToken<List<ListWordEntity>>() {}.type
-        return if (string != null) {
-            Gson().fromJson<List<ListWordEntity>>(string, listType)
-        } else {
-            null
+    private val json =
+        Json {
+            ignoreUnknownKeys = true
+            encodeDefaults = true
         }
-    }
 
     @JvmStatic
     @TypeConverter
-    fun toListWord(string: String?): List<WordEntity>? {
-        val listType = object : TypeToken<List<WordEntity>>() {}.type
-        return if (string != null) {
-            Gson().fromJson<List<WordEntity>>(string, listType)
+    fun toWordList(string: String?): List<ListWordEntity>? =
+        if (string != null) {
+            json.decodeFromString<List<ListWordEntity>>(string)
         } else {
             null
         }
-    }
 
     @JvmStatic
     @TypeConverter
-    fun fromListWord(list: List<WordEntity>?): String? {
-        val type = object : TypeToken<List<WordEntity>>() {}.type
-        return if (list != null) {
-            Gson().toJson(list, type)
+    fun toListWord(string: String?): List<WordEntity>? =
+        if (string != null) {
+            json.decodeFromString<List<WordEntity>>(string)
         } else {
             null
         }
-    }
 
     @JvmStatic
     @TypeConverter
-    fun fromWordList(list: List<ListWordEntity>?): String? {
-        val type = object : TypeToken<List<ListWordEntity>>() {}.type
-        return if (list != null) {
-            Gson().toJson(list, type)
+    fun fromListWord(list: List<WordEntity>?): String? =
+        if (list != null) {
+            json.encodeToString(list)
         } else {
             null
         }
-    }
 
     @JvmStatic
     @TypeConverter
-    fun toListMeanings(string: String?): List<MeaningEntity>? {
-        val listType = object : TypeToken<List<MeaningEntity>>() {}.type
-        return if (string != null) {
-            Gson().fromJson<List<MeaningEntity>>(string, listType)
+    fun fromWordList(list: List<ListWordEntity>?): String? =
+        if (list != null) {
+            json.encodeToString(list)
         } else {
             null
         }
-    }
 
     @JvmStatic
     @TypeConverter
-    fun fromListMeanings(list: List<MeaningEntity>?): String? {
-        val type = object : TypeToken<List<MeaningEntity>>() {}.type
-        return if (list != null) {
-            Gson().toJson(list, type)
+    fun toListMeanings(string: String?): List<MeaningEntity>? =
+        if (string != null) {
+            json.decodeFromString<List<MeaningEntity>>(string)
         } else {
             null
         }
-    }
+
+    @JvmStatic
+    @TypeConverter
+    fun fromListMeanings(list: List<MeaningEntity>?): String? =
+        if (list != null) {
+            json.encodeToString(list)
+        } else {
+            null
+        }
 }

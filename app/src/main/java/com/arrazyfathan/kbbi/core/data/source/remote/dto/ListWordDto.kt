@@ -1,15 +1,17 @@
 package com.arrazyfathan.kbbi.core.data.source.remote.dto
 
-import com.google.gson.annotations.SerializedName
+import kotlinx.serialization.SerialName
+import kotlinx.serialization.Serializable
 
 /**
  * Created by Ar Razy Fathan Rabbani on 17/03/23.
  */
+@Serializable
 data class ListWordDto(
-    @SerializedName("success")
+    @SerialName("success")
     val success: Boolean,
-    @SerializedName("message")
+    @SerialName("message")
     val message: String,
-    @SerializedName("data")
+    @SerialName("data")
     val data: List<WordDto>,
 )

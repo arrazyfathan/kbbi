@@ -2,14 +2,15 @@ package com.arrazyfathan.kbbi.core.data.source.local
 
 import android.content.Context
 import com.arrazyfathan.kbbi.core.domain.repository.WordCatalogRepository
-import com.google.gson.GsonBuilder
-import com.google.gson.reflect.TypeToken
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
+import kotlinx.serialization.decodeFromString
+import kotlinx.serialization.json.Json
 
 class AssetWordCatalogRepository(
     private val context: Context,
+    private val json: Json,
     private val ioDispatcher: CoroutineDispatcher = Dispatchers.IO,
 ) : WordCatalogRepository {
     override suspend fun getWords(): List<String> =
@@ -24,8 +25,7 @@ class AssetWordCatalogRepository(
                     return@withContext emptyList()
                 }
 
-            val wordListType = object : TypeToken<List<String>>() {}.type
-            GsonBuilder().create().fromJson<List<String>>(jsonString, wordListType)
+            json.decodeFromString<List<String>>(jsonString)
         }
 
     private companion object {

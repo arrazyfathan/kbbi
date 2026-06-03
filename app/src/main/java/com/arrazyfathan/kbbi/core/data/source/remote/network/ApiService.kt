@@ -1,13 +1,17 @@
 package com.arrazyfathan.kbbi.core.data.source.remote.network
 
-import com.arrazyfathan.kbbi.core.data.source.remote.dto.ListWordDto
-import retrofit2.Response
-import retrofit2.http.GET
-import retrofit2.http.Path
+import io.ktor.client.HttpClient
+import io.ktor.client.request.get
+import io.ktor.client.statement.HttpResponse
+import io.ktor.http.appendPathSegments
 
-interface ApiService {
-    @GET("/search/{word}")
-    suspend fun getMeaningWord(
-        @Path("word") word: String,
-    ): Response<ListWordDto>
+class ApiService(
+    private val httpClient: HttpClient,
+) {
+    suspend fun getMeaningWord(word: String): HttpResponse =
+        httpClient.get {
+            url {
+                appendPathSegments("search", word)
+            }
+        }
 }

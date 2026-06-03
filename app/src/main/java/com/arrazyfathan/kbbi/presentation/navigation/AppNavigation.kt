@@ -64,8 +64,10 @@ import com.arrazyfathan.kbbi.presentation.detail.DetailScreen
 import com.arrazyfathan.kbbi.presentation.home.HomeScreen
 import com.arrazyfathan.kbbi.presentation.words.WordListScreen
 import com.arrazyfathan.kbbi.utils.updateSystemBarStyle
-import com.google.gson.Gson
 import kotlinx.serialization.Serializable
+import kotlinx.serialization.decodeFromString
+import kotlinx.serialization.encodeToString
+import kotlinx.serialization.json.Json
 
 sealed interface Screen : NavKey {
     val titleResId: Int
@@ -117,6 +119,12 @@ fun MainApp() {
     val currentRoute = navigationState.currentRoute
     val isDetailVisible = currentRoute is DetailRoute
     val loadingController = rememberAppLoadingController()
+    val routeJson =
+        remember {
+            Json {
+                ignoreUnknownKeys = true
+            }
+        }
     val isUiBlocked by remember {
         derivedStateOf { loadingController.isBlocking }
     }
@@ -141,28 +149,28 @@ fun MainApp() {
                 entry<Screen.Home> {
                     HomeScreen(
                         onNavigateToDetail = { word ->
-                            navigator.navigate(DetailRoute(Gson().toJson(word)))
+                            navigator.navigate(DetailRoute(routeJson.encodeToString(word)))
                         },
                     )
                 }
                 entry<Screen.WordList> {
                     WordListScreen(
                         onNavigateToDetail = { word ->
-                            navigator.navigate(DetailRoute(Gson().toJson(word)))
+                            navigator.navigate(DetailRoute(routeJson.encodeToString(word)))
                         },
                     )
                 }
                 entry<Screen.Bookmarks> {
                     BookmarksScreen(
                         onNavigateToDetail = { word ->
-                            navigator.navigate(DetailRoute(Gson().toJson(word)))
+                            navigator.navigate(DetailRoute(routeJson.encodeToString(word)))
                         },
                     )
                 }
                 entry<DetailRoute> { route ->
                     val listWordModel =
                         remember(route.dataJson) {
-                            Gson().fromJson(route.dataJson, ListWordModel::class.java)
+                            routeJson.decodeFromString<ListWordModel>(route.dataJson)
                         }
                     DetailScreen(listWordModel = listWordModel)
                 }

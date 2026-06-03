@@ -16,6 +16,7 @@ plugins {
 
 val packageName = "com.arrazyfathan.kbbi"
 val appAliasName = "KBBI"
+val productionBaseUrl = "https://kbbi-api-green.vercel.app/"
 val versionPropertiesFile = file("version.properties")
 
 if (!versionPropertiesFile.canRead()) {
@@ -57,6 +58,7 @@ fun ApplicationProductFlavor.configureAppMetadata(applicationName: String) {
     resValue("string", "app_name", applicationName)
     manifestPlaceholders["application_name"] = applicationName
     buildConfigField("String", "application_name", "\"$applicationName\"")
+    buildConfigField("String", "BASE_URL", "\"$productionBaseUrl\"")
 }
 
 android {
@@ -214,11 +216,11 @@ dependencies {
     ksp(libs.androidx.room.compiler)
     implementation(libs.androidx.room.ktx)
 
-    implementation(libs.retrofit)
-    implementation(libs.retrofit.converter.gson)
-
-    implementation(libs.okhttp)
-    implementation(libs.okhttp.logging.interceptor)
+    implementation(libs.ktor.client.core)
+    implementation(libs.ktor.client.okhttp)
+    implementation(libs.ktor.client.content.negotiation)
+    implementation(libs.ktor.client.logging)
+    implementation(libs.ktor.serialization.kotlinx.json)
 
     implementation(libs.kotlinx.coroutines.core)
     implementation(libs.kotlinx.coroutines.android)
@@ -241,6 +243,7 @@ dependencies {
     implementation(libs.androidx.navigation3.ui)
     implementation(libs.androidx.lifecycle.viewmodel.navigation3)
     implementation(libs.kotlinx.serialization.core)
+    implementation(libs.kotlinx.serialization.json)
     implementation(libs.koin.androidx.compose)
     implementation(libs.lottie.compose)
     debugImplementation(libs.androidx.compose.ui.tooling)

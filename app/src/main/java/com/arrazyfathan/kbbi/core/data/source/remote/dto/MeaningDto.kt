@@ -1,13 +1,15 @@
 package com.arrazyfathan.kbbi.core.data.source.remote.dto
 
-import com.google.gson.annotations.SerializedName
+import kotlinx.serialization.SerialName
+import kotlinx.serialization.Serializable
 
 /**
  * Created by Ar Razy Fathan Rabbani on 17/03/23.
  */
+@Serializable
 data class MeaningDto(
-    @SerializedName("wordClass")
+    @SerialName("wordClass")
     val wordClass: String,
-    @SerializedName("description")
+    @SerialName("description")
     val description: String,
 )
