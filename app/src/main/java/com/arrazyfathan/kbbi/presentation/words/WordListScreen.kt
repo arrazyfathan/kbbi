@@ -9,7 +9,6 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -25,6 +24,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
@@ -49,11 +49,8 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.airbnb.lottie.compose.LottieAnimation
-import com.airbnb.lottie.compose.LottieCompositionSpec
-import com.airbnb.lottie.compose.LottieConstants
-import com.airbnb.lottie.compose.rememberLottieComposition
 import com.arrazyfathan.kbbi.R
+import com.arrazyfathan.kbbi.presentation.common.LocalAppLoadingController
 import com.arrazyfathan.kbbi.presentation.theme.BlueBg
 import com.arrazyfathan.kbbi.presentation.theme.BluePrimary
 import com.arrazyfathan.kbbi.presentation.theme.InterFontFamily
@@ -64,6 +61,8 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import org.koin.androidx.compose.koinViewModel
 
+private const val WORD_LIST_SEARCH_LOADING_SOURCE = "word_list_search"
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun WordListScreen(
@@ -72,6 +71,7 @@ fun WordListScreen(
     viewModel: WordViewModel = koinViewModel(),
 ) {
     val context = LocalContext.current
+    val loadingController = LocalAppLoadingController.current
     val focusManager = LocalFocusManager.current
     val density = LocalDensity.current
     val state by viewModel.state.collectAsStateWithLifecycle()
@@ -111,6 +111,16 @@ fun WordListScreen(
                     Toast.makeText(context, event.message, Toast.LENGTH_SHORT).show()
                 }
             }
+        }
+    }
+
+    LaunchedEffect(state.isLoading) {
+        loadingController.setBlocking(WORD_LIST_SEARCH_LOADING_SOURCE, state.isLoading)
+    }
+
+    DisposableEffect(Unit) {
+        onDispose {
+            loadingController.setBlocking(WORD_LIST_SEARCH_LOADING_SOURCE, false)
         }
     }
 
@@ -290,32 +300,6 @@ fun WordListScreen(
                 }
             }
 
-            // Search Loading Overlay
-            if (state.isLoading) {
-                Box(
-                    modifier =
-                        Modifier
-                            .fillMaxSize()
-                            .background(Color.Black.copy(alpha = 0.3f)),
-                    contentAlignment = Alignment.Center,
-                ) {
-                    Card(
-                        modifier = Modifier.size(80.dp),
-                        shape = RoundedCornerShape(20.dp),
-                        colors = CardDefaults.cardColors(containerColor = Color.White),
-                        elevation = CardDefaults.cardElevation(defaultElevation = 8.dp),
-                    ) {
-                        val searchLoadingComposition by rememberLottieComposition(
-                            LottieCompositionSpec.RawRes(R.raw.loading_search),
-                        )
-                        LottieAnimation(
-                            composition = searchLoadingComposition,
-                            iterations = LottieConstants.IterateForever,
-                            modifier = Modifier.fillMaxSize(),
-                        )
-                    }
-                }
-            }
         }
     }
 }

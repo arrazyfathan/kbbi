@@ -14,12 +14,17 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.ripple
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.MutableState
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -30,6 +35,7 @@ import androidx.compose.runtime.toMutableStateList
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
@@ -45,9 +51,15 @@ import androidx.navigation3.runtime.rememberSaveableStateHolderNavEntryDecorator
 import androidx.navigation3.runtime.serialization.NavKeySerializer
 import androidx.navigation3.ui.NavDisplay
 import androidx.savedstate.compose.serialization.serializers.MutableStateSerializer
+import com.airbnb.lottie.compose.LottieAnimation
+import com.airbnb.lottie.compose.LottieCompositionSpec
+import com.airbnb.lottie.compose.LottieConstants
+import com.airbnb.lottie.compose.rememberLottieComposition
 import com.arrazyfathan.kbbi.R
 import com.arrazyfathan.kbbi.core.domain.model.ListWordModel
 import com.arrazyfathan.kbbi.presentation.bookmark.BookmarksScreen
+import com.arrazyfathan.kbbi.presentation.common.LocalAppLoadingController
+import com.arrazyfathan.kbbi.presentation.common.rememberAppLoadingController
 import com.arrazyfathan.kbbi.presentation.detail.DetailScreen
 import com.arrazyfathan.kbbi.presentation.home.HomeScreen
 import com.arrazyfathan.kbbi.presentation.words.WordListScreen
@@ -104,6 +116,10 @@ fun MainApp() {
     val navigator = remember(navigationState) { Navigator(navigationState) }
     val currentRoute = navigationState.currentRoute
     val isDetailVisible = currentRoute is DetailRoute
+    val loadingController = rememberAppLoadingController()
+    val isUiBlocked by remember {
+        derivedStateOf { loadingController.isBlocking }
+    }
 
     LaunchedEffect(currentRoute) {
         val activity = context.findActivity() ?: return@LaunchedEffect
@@ -153,48 +169,95 @@ fun MainApp() {
             },
         )
 
-    Scaffold(
-        modifier = Modifier.fillMaxSize(),
-        bottomBar = {
-            if (!isDetailVisible) {
-                Row(
-                    modifier = Modifier.fillMaxWidth().height(70.dp).background(Color.White),
-                    verticalAlignment = Alignment.CenterVertically,
-                ) {
-                    screens.forEach { screen ->
-                        val isSelected = navigationState.topLevelRoute == screen
-                        Box(
-                            modifier =
-                                Modifier.weight(1f).fillMaxHeight().clickable(
-                                    interactionSource = remember { MutableInteractionSource() },
-                                    indication = ripple(bounded = false, radius = 24.dp),
-                                ) {
-                                    if (!isSelected) {
-                                        navigator.navigate(screen)
-                                    }
-                                },
-                            contentAlignment = Alignment.Center,
+    CompositionLocalProvider(LocalAppLoadingController provides loadingController) {
+        Box(modifier = Modifier.fillMaxSize()) {
+            Scaffold(
+                modifier = Modifier.fillMaxSize(),
+                bottomBar = {
+                    if (!isDetailVisible) {
+                        Row(
+                            modifier = Modifier.fillMaxWidth().height(70.dp).background(Color.White),
+                            verticalAlignment = Alignment.CenterVertically,
                         ) {
-                            Icon(
-                                modifier = Modifier.size(24.dp),
-                                painter =
-                                    painterResource(
-                                        id = if (isSelected) screen.iconSelectedResId else screen.iconResId,
-                                    ),
-                                contentDescription = null,
-                                tint = Color.Unspecified,
-                            )
+                            screens.forEach { screen ->
+                                val isSelected = navigationState.topLevelRoute == screen
+                                Box(
+                                    modifier =
+                                        Modifier.weight(1f).fillMaxHeight().clickable(
+                                            interactionSource = remember { MutableInteractionSource() },
+                                            indication = ripple(bounded = false, radius = 24.dp),
+                                        ) {
+                                            if (!isUiBlocked && !isSelected) {
+                                                navigator.navigate(screen)
+                                            }
+                                        },
+                                    contentAlignment = Alignment.Center,
+                                ) {
+                                    Icon(
+                                        modifier = Modifier.size(24.dp),
+                                        painter =
+                                            painterResource(
+                                                id = if (isSelected) screen.iconSelectedResId else screen.iconResId,
+                                            ),
+                                        contentDescription = null,
+                                        tint = Color.Unspecified,
+                                    )
+                                }
+                            }
                         }
                     }
-                }
+                },
+            ) { innerPadding ->
+                NavDisplay(
+                    entries = entries,
+                    onBack = {
+                        if (!isUiBlocked) {
+                            navigator.goBack()
+                        }
+                    },
+                    modifier = Modifier.padding(bottom = innerPadding.calculateBottomPadding()),
+                )
             }
-        },
-    ) { innerPadding ->
-        NavDisplay(
-            entries = entries,
-            onBack = navigator::goBack,
-            modifier = Modifier.padding(bottom = innerPadding.calculateBottomPadding()),
-        )
+
+            if (isUiBlocked) {
+                BlockingLoadingOverlay()
+            }
+        }
+    }
+}
+
+@Composable
+private fun BlockingLoadingOverlay() {
+    Box(
+        modifier =
+            Modifier
+                .fillMaxSize()
+                .background(Color.Black.copy(alpha = 0.3f))
+                .pointerInput(Unit) {
+                    awaitPointerEventScope {
+                        while (true) {
+                            val event = awaitPointerEvent()
+                            event.changes.forEach { it.consume() }
+                        }
+                    }
+                },
+        contentAlignment = Alignment.Center,
+    ) {
+        Card(
+            modifier = Modifier.size(80.dp),
+            shape = RoundedCornerShape(20.dp),
+            colors = CardDefaults.cardColors(containerColor = Color.White),
+            elevation = CardDefaults.cardElevation(defaultElevation = 8.dp),
+        ) {
+            val searchLoadingComposition by rememberLottieComposition(
+                LottieCompositionSpec.RawRes(R.raw.loading_search),
+            )
+            LottieAnimation(
+                composition = searchLoadingComposition,
+                iterations = LottieConstants.IterateForever,
+                modifier = Modifier.fillMaxSize(),
+            )
+        }
     }
 }
 

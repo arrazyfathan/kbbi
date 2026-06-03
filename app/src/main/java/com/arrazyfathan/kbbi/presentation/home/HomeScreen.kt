@@ -42,6 +42,7 @@ import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -70,6 +71,7 @@ import com.airbnb.lottie.compose.LottieConstants
 import com.airbnb.lottie.compose.rememberLottieComposition
 import com.arrazyfathan.kbbi.R
 import com.arrazyfathan.kbbi.core.domain.model.HistoryModel
+import com.arrazyfathan.kbbi.presentation.common.LocalAppLoadingController
 import com.arrazyfathan.kbbi.presentation.theme.BlueBg
 import com.arrazyfathan.kbbi.presentation.theme.BluePrimary
 import com.arrazyfathan.kbbi.presentation.theme.BlueSecondary
@@ -81,6 +83,8 @@ import com.arrazyfathan.kbbi.presentation.theme.TextH1
 import com.arrazyfathan.kbbi.presentation.theme.TextP
 import org.koin.androidx.compose.koinViewModel
 
+private const val HOME_SEARCH_LOADING_SOURCE = "home_search"
+
 @Composable
 fun HomeScreen(
     modifier: Modifier = Modifier,
@@ -88,6 +92,7 @@ fun HomeScreen(
     viewModel: HomeViewModel = koinViewModel(),
 ) {
     val context = LocalContext.current
+    val loadingController = LocalAppLoadingController.current
     val state by viewModel.state.collectAsStateWithLifecycle()
 
     var searchQuery by remember { mutableStateOf("") }
@@ -108,6 +113,16 @@ fun HomeScreen(
                     Toast.makeText(context, event.message, Toast.LENGTH_SHORT).show()
                 }
             }
+        }
+    }
+
+    LaunchedEffect(state.isLoading) {
+        loadingController.setBlocking(HOME_SEARCH_LOADING_SOURCE, state.isLoading)
+    }
+
+    DisposableEffect(Unit) {
+        onDispose {
+            loadingController.setBlocking(HOME_SEARCH_LOADING_SOURCE, false)
         }
     }
 
@@ -392,33 +407,6 @@ fun HomeContent(
                 fontFamily = InterFontFamily,
                 fontWeight = FontWeight.Normal,
             )
-        }
-
-        // Search Loading Overlay
-        if (state.isLoading) {
-            Box(
-                modifier =
-                    Modifier
-                        .fillMaxSize()
-                        .background(Color.Black.copy(alpha = 0.3f)),
-                contentAlignment = Alignment.Center,
-            ) {
-                Card(
-                    modifier = Modifier.size(80.dp),
-                    shape = RoundedCornerShape(20.dp),
-                    colors = CardDefaults.cardColors(containerColor = Color.White),
-                    elevation = CardDefaults.cardElevation(defaultElevation = 8.dp),
-                ) {
-                    val searchLoadingComposition by rememberLottieComposition(
-                        LottieCompositionSpec.RawRes(R.raw.loading_search),
-                    )
-                    LottieAnimation(
-                        composition = searchLoadingComposition,
-                        iterations = LottieConstants.IterateForever,
-                        modifier = Modifier.fillMaxSize(),
-                    )
-                }
-            }
         }
 
         // Modal Bottom Sheet Menu
