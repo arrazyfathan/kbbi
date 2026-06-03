@@ -6,8 +6,6 @@ import androidx.room.TypeConverter
 import com.arrazyfathan.kbbi.core.data.source.local.entity.ListWordEntity
 import com.arrazyfathan.kbbi.core.data.source.local.entity.MeaningEntity
 import com.arrazyfathan.kbbi.core.data.source.local.entity.WordEntity
-import kotlinx.serialization.decodeFromString
-import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 
 object Converters {

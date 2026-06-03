@@ -75,26 +75,18 @@ fun BookmarksScreen(
     onNavigateToDetail: (ListWordModel) -> Unit,
     viewModel: BookmarksViewModel = koinViewModel(),
 ) {
-    val context = LocalContext.current
     val state by viewModel.state.collectAsStateWithLifecycle()
     var wordToDelete by remember { mutableStateOf<ListWordModel?>(null) }
 
     Box(
-        modifier =
-            modifier
-                .fillMaxSize()
-                .background(BluePrimary)
-                .statusBarsPadding(),
+        modifier = modifier.fillMaxSize().background(BluePrimary).statusBarsPadding(),
     ) {
         // Background Hero Image if not empty
         if (state.bookmarks.isNotEmpty()) {
             Image(
                 painter = painterResource(id = R.drawable.hero_saved),
                 contentDescription = stringResource(id = R.string.app_name),
-                modifier =
-                    Modifier
-                        .align(Alignment.BottomEnd)
-                        .fillMaxHeight(0.35f),
+                modifier = Modifier.align(Alignment.BottomEnd).fillMaxHeight(0.35f),
                 contentScale = ContentScale.FillHeight,
             )
         }
@@ -102,10 +94,7 @@ fun BookmarksScreen(
         // Empty layout if empty
         if (state.bookmarks.isEmpty()) {
             Column(
-                modifier =
-                    Modifier
-                        .align(Alignment.Center)
-                        .padding(horizontal = 16.dp),
+                modifier = Modifier.align(Alignment.Center).padding(horizontal = 16.dp),
                 horizontalAlignment = Alignment.CenterHorizontally,
             ) {
                 val emptyComposition by rememberLottieComposition(LottieCompositionSpec.RawRes(R.raw.empty))
@@ -130,10 +119,7 @@ fun BookmarksScreen(
 
         // Bookmarks List / Grid
         Column(
-            modifier =
-                Modifier
-                    .fillMaxSize()
-                    .padding(horizontal = 8.dp),
+            modifier = Modifier.fillMaxSize().padding(horizontal = 8.dp),
         ) {
             Spacer(modifier = Modifier.height(24.dp))
 
@@ -226,38 +212,28 @@ fun BookmarkItem(
     }
 
     Box(
-        modifier =
-            modifier
-                .padding(8.dp)
-                .fillMaxWidth()
-                .height(110.dp),
+        modifier = modifier.padding(8.dp).fillMaxWidth().height(110.dp),
     ) {
         // Standard Content Card
         Card(
             modifier =
-                Modifier
-                    .fillMaxSize()
-                    .clip(RoundedCornerShape(10.dp))
-                    .combinedClickable(
-                        onClick = {
-                            if (!isDeleteOverlayVisible) {
-                                onClick()
-                            }
-                        },
-                        onLongClick = {
-                            triggerVibration()
-                            isDeleteOverlayVisible = true
-                        },
-                    ),
+                Modifier.fillMaxSize().clip(RoundedCornerShape(10.dp)).combinedClickable(
+                    onClick = {
+                        if (!isDeleteOverlayVisible) {
+                            onClick()
+                        }
+                    },
+                    onLongClick = {
+                        triggerVibration()
+                        isDeleteOverlayVisible = true
+                    },
+                ),
             shape = RoundedCornerShape(10.dp),
             colors = CardDefaults.cardColors(containerColor = Color.White),
             elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
         ) {
             Column(
-                modifier =
-                    Modifier
-                        .fillMaxSize()
-                        .padding(start = 16.dp, top = 16.dp, end = 16.dp, bottom = 32.dp),
+                modifier = Modifier.fillMaxSize().padding(start = 16.dp, top = 16.dp, end = 16.dp, bottom = 32.dp),
             ) {
                 Text(
                     text = model.word.replaceFirstChar { it.uppercase() },
@@ -291,13 +267,10 @@ fun BookmarkItem(
         ) {
             Card(
                 modifier =
-                    Modifier
-                        .fillMaxSize()
-                        .clip(RoundedCornerShape(10.dp))
-                        .clickable {
-                            onDeleteInitiated()
-                            isDeleteOverlayVisible = false
-                        },
+                    Modifier.fillMaxSize().clip(RoundedCornerShape(10.dp)).clickable {
+                        onDeleteInitiated()
+                        isDeleteOverlayVisible = false
+                    },
                 shape = RoundedCornerShape(10.dp),
                 colors = CardDefaults.cardColors(containerColor = Red),
                 elevation = CardDefaults.cardElevation(0.dp),
@@ -306,11 +279,7 @@ fun BookmarkItem(
                     // Close/Cancel overlay button on top right
                     IconButton(
                         onClick = { isDeleteOverlayVisible = false },
-                        modifier =
-                            Modifier
-                                .align(Alignment.TopEnd)
-                                .padding(8.dp)
-                                .size(24.dp),
+                        modifier = Modifier.align(Alignment.TopEnd).padding(8.dp).size(24.dp),
                     ) {
                         Icon(
                             painter = painterResource(id = R.drawable.close),
@@ -325,10 +294,7 @@ fun BookmarkItem(
                         painter = painterResource(id = R.drawable.ic_delete),
                         contentDescription = "Delete",
                         tint = Color.White,
-                        modifier =
-                            Modifier
-                                .align(Alignment.Center)
-                                .size(28.dp),
+                        modifier = Modifier.align(Alignment.Center).size(28.dp),
                     )
                 }
             }
@@ -347,19 +313,13 @@ fun DeleteConfirmationDialog(
 ) {
     Dialog(onDismissRequest = onDismiss) {
         Card(
-            modifier =
-                Modifier
-                    .fillMaxWidth()
-                    .padding(16.dp),
+            modifier = Modifier.fillMaxWidth().padding(16.dp),
             shape = RoundedCornerShape(12.dp),
             colors = CardDefaults.cardColors(containerColor = Color.White),
             elevation = CardDefaults.cardElevation(defaultElevation = 8.dp),
         ) {
             Column(
-                modifier =
-                    Modifier
-                        .fillMaxWidth()
-                        .padding(24.dp),
+                modifier = Modifier.fillMaxWidth().padding(24.dp),
             ) {
                 Text(
                     text = title,

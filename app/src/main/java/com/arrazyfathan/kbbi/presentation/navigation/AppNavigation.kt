@@ -65,8 +65,6 @@ import com.arrazyfathan.kbbi.presentation.home.HomeScreen
 import com.arrazyfathan.kbbi.presentation.words.WordListScreen
 import com.arrazyfathan.kbbi.utils.updateSystemBarStyle
 import kotlinx.serialization.Serializable
-import kotlinx.serialization.decodeFromString
-import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 
 sealed interface Screen : NavKey {
@@ -238,17 +236,14 @@ fun MainApp() {
 private fun BlockingLoadingOverlay() {
     Box(
         modifier =
-            Modifier
-                .fillMaxSize()
-                .background(Color.Black.copy(alpha = 0.3f))
-                .pointerInput(Unit) {
-                    awaitPointerEventScope {
-                        while (true) {
-                            val event = awaitPointerEvent()
-                            event.changes.forEach { it.consume() }
-                        }
+            Modifier.fillMaxSize().background(Color.Black.copy(alpha = 0.3f)).pointerInput(Unit) {
+                awaitPointerEventScope {
+                    while (true) {
+                        val event = awaitPointerEvent()
+                        event.changes.forEach { it.consume() }
                     }
-                },
+                }
+            },
         contentAlignment = Alignment.Center,
     ) {
         Card(

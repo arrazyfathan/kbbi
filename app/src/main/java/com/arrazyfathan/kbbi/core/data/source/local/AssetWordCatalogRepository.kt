@@ -5,7 +5,6 @@ import com.arrazyfathan.kbbi.core.domain.repository.WordCatalogRepository
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
-import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.json.Json
 
 class AssetWordCatalogRepository(

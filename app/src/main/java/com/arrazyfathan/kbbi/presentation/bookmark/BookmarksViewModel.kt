@@ -22,17 +22,15 @@ sealed interface BookmarksAction {
 }
 
 class BookmarksViewModel(
-    private val observeBookmarks: ObserveBookmarksUseCase,
+    observeBookmarks: ObserveBookmarksUseCase,
     private val deleteBookmark: DeleteBookmarkUseCase,
 ) : ViewModel() {
     val state: StateFlow<BookmarksState> =
-        observeBookmarks()
-            .map { bookmarks -> BookmarksState(bookmarks = bookmarks) }
-            .stateIn(
-                scope = viewModelScope,
-                started = SharingStarted.WhileSubscribed(5_000),
-                initialValue = BookmarksState(),
-            )
+        observeBookmarks().map { bookmarks -> BookmarksState(bookmarks = bookmarks) }.stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.WhileSubscribed(5_000),
+            initialValue = BookmarksState(),
+        )
 
     fun onAction(action: BookmarksAction) {
         when (action) {
