@@ -49,6 +49,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
@@ -59,9 +60,12 @@ import com.airbnb.lottie.compose.LottieConstants
 import com.airbnb.lottie.compose.rememberLottieComposition
 import com.arrazyfathan.kbbi.R
 import com.arrazyfathan.kbbi.core.domain.model.ListWordModel
+import com.arrazyfathan.kbbi.core.domain.model.MeaningModel
+import com.arrazyfathan.kbbi.core.domain.model.WordModel
 import com.arrazyfathan.kbbi.presentation.theme.BluePrimary
 import com.arrazyfathan.kbbi.presentation.theme.Grey
 import com.arrazyfathan.kbbi.presentation.theme.InterFontFamily
+import com.arrazyfathan.kbbi.presentation.theme.KBBITheme
 import com.arrazyfathan.kbbi.presentation.theme.MetropolisFontFamily
 import com.arrazyfathan.kbbi.presentation.theme.Red
 import com.arrazyfathan.kbbi.presentation.theme.SpaceGroteskFontFamily
@@ -76,6 +80,21 @@ fun BookmarksScreen(
     viewModel: BookmarksViewModel = koinViewModel(),
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
+    BookmarksScreenContent(
+        state = state,
+        onNavigateToDetail = onNavigateToDetail,
+        onAction = viewModel::onAction,
+        modifier = modifier,
+    )
+}
+
+@Composable
+private fun BookmarksScreenContent(
+    state: BookmarksState,
+    onNavigateToDetail: (ListWordModel) -> Unit,
+    onAction: (BookmarksAction) -> Unit,
+    modifier: Modifier = Modifier,
+) {
     var wordToDelete by remember { mutableStateOf<ListWordModel?>(null) }
 
     Box(
@@ -172,7 +191,7 @@ fun BookmarksScreen(
                 okTitle = stringResource(id = R.string.delete),
                 cancelTitle = stringResource(id = R.string.cancel),
                 onConfirm = {
-                    viewModel.onAction(BookmarksAction.OnDeleteConfirmed(item.word))
+                    onAction(BookmarksAction.OnDeleteConfirmed(item.word))
                     wordToDelete = null
                 },
                 onDismiss = {
@@ -389,5 +408,62 @@ fun DeleteConfirmationDialog(
                 }
             }
         }
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
+fun BookmarksScreenPreview() {
+    val sampleBookmarks =
+        listOf(
+            ListWordModel(
+                word = "belajar",
+                listWords =
+                    listOf(
+                        WordModel(
+                            entry = "belajar",
+                            meanings =
+                                listOf(
+                                    MeaningModel(wordClass = "v", description = "berusaha memperoleh kepandaian atau ilmu"),
+                                ),
+                        ),
+                    ),
+            ),
+            ListWordModel(
+                word = "makan",
+                listWords =
+                    listOf(
+                        WordModel(
+                            entry = "makan",
+                            meanings =
+                                listOf(
+                                    MeaningModel(
+                                        wordClass = "v",
+                                        description = "memasukkan bahan makanan ke dalam mulut serta mengunyah dan menelannya",
+                                    ),
+                                ),
+                        ),
+                    ),
+            ),
+        )
+
+    KBBITheme {
+        BookmarksScreenContent(
+            state = BookmarksState(bookmarks = sampleBookmarks),
+            onNavigateToDetail = {},
+            onAction = {},
+        )
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
+fun BookmarksScreenEmptyPreview() {
+    KBBITheme {
+        BookmarksScreenContent(
+            state = BookmarksState(bookmarks = emptyList()),
+            onNavigateToDetail = {},
+            onAction = {},
+        )
     }
 }
