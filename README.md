@@ -16,12 +16,12 @@ KBBI is an unofficial Android dictionary app for **Kamus Besar Bahasa Indonesia*
 This repository contains the Android client for KBBI. The current project setup is:
 
 - Single Android application module: `:app`
-- Kotlin + XML/View system UI
-- MVVM + repository pattern
+- Kotlin + Jetpack Compose UI
+- MVVM-style presentation with ViewModels, state, and one-shot UI events
 - Koin for dependency injection
 - Room for local persistence
-- Retrofit + OkHttp for API access
-- Navigation Component with a bottom-navigation based main flow
+- Ktor + OkHttp for API access
+- Navigation3 with a bottom-navigation based main flow
 - Product flavors for `development` and `production`
 - Static analysis with Detekt and Ktlint
 - GitHub Actions CI and Fastlane automation
@@ -33,8 +33,8 @@ This repository contains the Android client for KBBI. The current project setup 
 - View detailed word entries and meanings
 - Save bookmarked words locally
 - Keep recent search history locally
-- Animated splash screen and motion-based UI touches
-- Edge-to-edge system bar support
+- Animated splash screen and Lottie-based loading/empty states
+- Edge-to-edge system bar support through AndroidX Activity
 
 <p align="right">
   <img src="media/preview.gif" alt="Animated preview" width="32%" />
@@ -47,11 +47,12 @@ This repository contains the Android client for KBBI. The current project setup 
 - **Java target:** Java 17
 - **Minimum SDK:** 23
 - **Target/Compile SDK:** 37
-- **UI:** Android Views, ViewBinding, Material Components, MotionLayout, Lottie
-- **Architecture:** MVVM, Repository pattern, UseCase layer
-- **Async/data:** Coroutines, LiveData, RxBinding
+- **UI:** Jetpack Compose, Material 3, Lottie Compose
+- **Navigation:** AndroidX Navigation3
+- **Architecture:** MVVM-style presentation, Repository pattern, UseCase layer
+- **Async/data:** Coroutines, StateFlow, Channel-based events
 - **Local storage:** Room
-- **Networking:** Retrofit, Gson, OkHttp logging interceptor
+- **Networking:** Ktor Client, kotlinx.serialization, OkHttp engine/logging
 - **Dependency injection:** Koin `4.2.1`
 - **Code quality:** Detekt, Ktlint
 - **Distribution/automation:** Fastlane, GitHub Actions
@@ -62,13 +63,13 @@ This repository contains the Android client for KBBI. The current project setup 
 .
 ├── app/
 │   ├── src/main/java/com/arrazyfathan/kbbi/
-│   │   ├── core/               # Data, domain, repository, Room, Retrofit
+│   │   ├── core/               # Data, domain, repositories, Room, Ktor
 │   │   ├── di/                 # App-level Koin modules
-│   │   ├── presentation/       # Activities, fragments, adapters, custom views
+│   │   ├── presentation/       # Compose screens, navigation, theme, ViewModels
 │   │   └── utils/              # Extensions and window/system-bar helpers
 │   ├── src/main/assets/
 │   │   └── entries.json        # Bundled word list used by Word List screen
-│   ├── src/main/res/           # XML layouts, drawables, animations, navigation
+│   ├── src/main/res/           # Drawables, icons, fonts, raw Lottie files, themes
 │   ├── build.gradle.kts
 │   └── version.properties      # Version naming and versionCode inputs
 ├── fastlane/                   # Release/distribution automation
@@ -78,7 +79,7 @@ This repository contains the Android client for KBBI. The current project setup 
 
 ## Application Flow
 
-The app currently has three main destinations inside the bottom navigation:
+The app has three main destinations inside the Compose bottom navigation:
 
 1. **Home**  
    Search for a word, see loading/error states, and store recent searches.
@@ -87,7 +88,7 @@ The app currently has three main destinations inside the bottom navigation:
 3. **Bookmarks**  
    View and remove locally saved entries.
 
-Detailed meaning results open in `DetailActivity`, where users can bookmark or remove saved words.
+Detailed meaning results open through the Navigation3 detail route, where users can bookmark or remove saved words.
 
 ## Data Sources
 
@@ -294,10 +295,12 @@ Required GitHub secrets:
 
 The current app includes:
 
+- Compose-first screen implementation
+- Material 3 components and app theming
 - Custom splash screen animation
-- Motion/transition-driven interactions on the home screen
 - Lottie-based loading and empty states
-- Custom system bar and inset handling helpers
+- AndroidX edge-to-edge system bar setup
+- Compose previews for key screens and content components
 
 ## Screenshots and Metrics
 
@@ -330,4 +333,3 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 ```
-
