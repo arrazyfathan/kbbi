@@ -5,7 +5,9 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.arrazyfathan.kbbi.R
 import com.arrazyfathan.kbbi.core.domain.model.WordModel
-import com.arrazyfathan.kbbi.core.domain.usecase.WordUseCase
+import com.arrazyfathan.kbbi.core.domain.usecase.CheckWordSavedUseCase
+import com.arrazyfathan.kbbi.core.domain.usecase.DeleteBookmarkUseCase
+import com.arrazyfathan.kbbi.core.domain.usecase.SaveBookmarkUseCase
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -36,7 +38,9 @@ sealed interface DetailEvent {
 }
 
 class DetailViewModel(
-    private val wordUseCase: WordUseCase,
+    private val checkWordSaved: CheckWordSavedUseCase,
+    private val saveBookmark: SaveBookmarkUseCase,
+    private val deleteBookmark: DeleteBookmarkUseCase,
 ) : ViewModel() {
     private val _state = MutableStateFlow(DetailState())
     val state = _state.asStateFlow()
@@ -57,7 +61,7 @@ class DetailViewModel(
         if (savedStateJob != null) return
         savedStateJob =
             viewModelScope.launch {
-                wordUseCase.checkIfWordIsSaved(word).collect { isSaved ->
+                checkWordSaved(word).collect { isSaved ->
                     _state.update { it.copy(isSaved = isSaved) }
                 }
             }
@@ -69,11 +73,11 @@ class DetailViewModel(
     ) {
         viewModelScope.launch {
             if (state.value.isSaved) {
-                wordUseCase.deleteWord(word)
+                deleteBookmark(word)
                 _events.send(DetailEvent.ShowMessage(R.string.word_deleted_success))
             } else {
-                val result = wordUseCase.bookmarkWord(word, wordList, true)
-                if (result != -1L) {
+                val isSaved = saveBookmark(word, wordList)
+                if (isSaved) {
                     _events.send(DetailEvent.ShowMessage(R.string.word_saved_success))
                 }
             }

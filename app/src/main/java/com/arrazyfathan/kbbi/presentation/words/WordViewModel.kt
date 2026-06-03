@@ -2,9 +2,8 @@ package com.arrazyfathan.kbbi.presentation.words
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.arrazyfathan.kbbi.core.domain.model.ListWordModel
 import com.arrazyfathan.kbbi.core.domain.model.Resource
-import com.arrazyfathan.kbbi.core.domain.usecase.WordUseCase
+import com.arrazyfathan.kbbi.core.domain.usecase.SearchWordUseCase
 import com.arrazyfathan.kbbi.utils.toJson
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.channels.Channel
@@ -49,7 +48,7 @@ sealed interface WordListEvent {
 }
 
 class WordViewModel(
-    private val wordUseCase: WordUseCase,
+    private val searchWord: SearchWordUseCase,
 ) : ViewModel() {
     private val _state = MutableStateFlow(WordListState())
     val state = _state.asStateFlow()
@@ -84,13 +83,10 @@ class WordViewModel(
     }
 
     private fun search(word: String) {
-        val wordToSearch = word.trim()
-        if (wordToSearch.isBlank()) return
-
         searchJob?.cancel()
         searchJob =
             viewModelScope.launch {
-                wordUseCase.getMeaningOfWord(word = wordToSearch).collect { resource ->
+                searchWord(word).collect { resource ->
                     when (resource) {
                         is Resource.Loading -> {
                             _state.update { it.copy(isLoading = true) }
@@ -98,12 +94,9 @@ class WordViewModel(
 
                         is Resource.Success -> {
                             _state.update { it.copy(isLoading = false) }
-                            val dataJson =
-                                ListWordModel(
-                                    word = wordToSearch,
-                                    listWords = resource.data ?: emptyList(),
-                                ).toJson()
-                            _events.send(WordListEvent.NavigateToDetail(dataJson))
+                            resource.data?.let { word ->
+                                _events.send(WordListEvent.NavigateToDetail(word.toJson()))
+                            }
                         }
 
                         is Resource.Error -> {

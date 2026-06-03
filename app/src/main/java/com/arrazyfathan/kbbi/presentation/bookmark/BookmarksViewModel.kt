@@ -3,7 +3,8 @@ package com.arrazyfathan.kbbi.presentation.bookmark
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.arrazyfathan.kbbi.core.domain.model.ListWordModel
-import com.arrazyfathan.kbbi.core.domain.usecase.WordUseCase
+import com.arrazyfathan.kbbi.core.domain.usecase.DeleteBookmarkUseCase
+import com.arrazyfathan.kbbi.core.domain.usecase.ObserveBookmarksUseCase
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.map
@@ -21,11 +22,11 @@ sealed interface BookmarksAction {
 }
 
 class BookmarksViewModel(
-    private val wordUseCase: WordUseCase,
+    private val observeBookmarks: ObserveBookmarksUseCase,
+    private val deleteBookmark: DeleteBookmarkUseCase,
 ) : ViewModel() {
     val state: StateFlow<BookmarksState> =
-        wordUseCase
-            .getBookmarks()
+        observeBookmarks()
             .map { bookmarks -> BookmarksState(bookmarks = bookmarks) }
             .stateIn(
                 scope = viewModelScope,
@@ -37,7 +38,7 @@ class BookmarksViewModel(
         when (action) {
             is BookmarksAction.OnDeleteConfirmed -> {
                 viewModelScope.launch {
-                    wordUseCase.deleteWord(action.word)
+                    deleteBookmark(action.word)
                 }
             }
         }

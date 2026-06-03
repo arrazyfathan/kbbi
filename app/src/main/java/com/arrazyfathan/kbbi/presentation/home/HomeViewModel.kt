@@ -3,9 +3,9 @@ package com.arrazyfathan.kbbi.presentation.home
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.arrazyfathan.kbbi.core.domain.model.HistoryModel
-import com.arrazyfathan.kbbi.core.domain.model.ListWordModel
 import com.arrazyfathan.kbbi.core.domain.model.Resource
-import com.arrazyfathan.kbbi.core.domain.usecase.WordUseCase
+import com.arrazyfathan.kbbi.core.domain.usecase.ObserveSearchHistoryUseCase
+import com.arrazyfathan.kbbi.core.domain.usecase.SearchWordWithHistoryUseCase
 import com.arrazyfathan.kbbi.utils.toJson
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.channels.Channel
@@ -42,7 +42,8 @@ sealed interface HomeEvent {
 }
 
 class HomeViewModel(
-    private val wordUseCase: WordUseCase,
+    private val searchWordWithHistory: SearchWordWithHistoryUseCase,
+    private val observeSearchHistory: ObserveSearchHistoryUseCase,
 ) : ViewModel() {
     private val _state = MutableStateFlow(HomeState())
     val state = _state.asStateFlow()
@@ -64,20 +65,17 @@ class HomeViewModel(
         if (historiesJob != null) return
         historiesJob =
             viewModelScope.launch {
-                wordUseCase.getAllHistories().collect { histories ->
+                observeSearchHistory().collect { histories ->
                     _state.update { it.copy(histories = histories) }
                 }
             }
     }
 
     private fun search(word: String) {
-        val wordToSearch = word.trim()
-        if (wordToSearch.isBlank()) return
-
         searchJob?.cancel()
         searchJob =
             viewModelScope.launch {
-                wordUseCase.getMeaningOfWord(wordToSearch).collect { resource ->
+                searchWordWithHistory(word).collect { resource ->
                     when (resource) {
                         is Resource.Loading -> {
                             _state.update { it.copy(isLoading = true) }
@@ -85,14 +83,9 @@ class HomeViewModel(
 
                         is Resource.Success -> {
                             _state.update { it.copy(isLoading = false) }
-                            wordUseCase.addToHistory(HistoryModel(wordToSearch.lowercase()))
-
-                            val dataJson =
-                                ListWordModel(
-                                    word = wordToSearch,
-                                    listWords = resource.data ?: emptyList(),
-                                ).toJson()
-                            _events.send(HomeEvent.NavigateToDetail(dataJson))
+                            resource.data?.let { word ->
+                                _events.send(HomeEvent.NavigateToDetail(word.toJson()))
+                            }
                         }
 
                         is Resource.Error -> {
