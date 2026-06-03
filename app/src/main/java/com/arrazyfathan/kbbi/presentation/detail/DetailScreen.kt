@@ -46,14 +46,17 @@ import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.withStyle
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.arrazyfathan.kbbi.R
 import com.arrazyfathan.kbbi.core.domain.model.ListWordModel
+import com.arrazyfathan.kbbi.core.domain.model.MeaningModel
 import com.arrazyfathan.kbbi.core.domain.model.WordModel
 import com.arrazyfathan.kbbi.presentation.theme.BlueBg
 import com.arrazyfathan.kbbi.presentation.theme.InterFontFamily
+import com.arrazyfathan.kbbi.presentation.theme.KBBITheme
 import com.arrazyfathan.kbbi.presentation.theme.TextH1
 import com.arrazyfathan.kbbi.presentation.theme.TextP
 import org.koin.androidx.compose.koinViewModel
@@ -80,6 +83,20 @@ fun DetailScreen(
         }
     }
 
+    DetailContent(
+        listWordModel = listWordModel,
+        state = state,
+        onAction = viewModel::onAction,
+    )
+}
+
+@Composable
+fun DetailContent(
+    listWordModel: ListWordModel,
+    state: DetailState,
+    onAction: (DetailAction) -> Unit,
+) {
+    val context = LocalContext.current
     val lazyListState = rememberLazyListState()
     val collapsedTitleAlpha by remember {
         derivedStateOf {
@@ -98,31 +115,24 @@ fun DetailScreen(
     }
 
     Scaffold(
-        modifier =
-            Modifier
-                .fillMaxSize()
-                .background(BlueBg),
+        modifier = Modifier.fillMaxSize().background(BlueBg),
         containerColor = BlueBg,
         bottomBar = {
             // Bookmark Floating Bar
             Box(
-                modifier =
-                    Modifier
-                        .fillMaxWidth()
-                        .padding(bottom = 24.dp),
+                modifier = Modifier.fillMaxWidth().padding(bottom = 24.dp),
                 contentAlignment = Alignment.Center,
             ) {
                 Card(
                     modifier =
-                        Modifier
-                            .clickable {
-                                viewModel.onAction(
-                                    DetailAction.OnBookmarkClick(
-                                        listWordModel.word.lowercase(),
-                                        listWordModel.listWords,
-                                    ),
-                                )
-                            },
+                        Modifier.clickable {
+                            onAction(
+                                DetailAction.OnBookmarkClick(
+                                    listWordModel.word.lowercase(),
+                                    listWordModel.listWords,
+                                ),
+                            )
+                        },
                     shape = RoundedCornerShape(100.dp),
                     colors =
                         CardDefaults.cardColors(
@@ -174,10 +184,7 @@ fun DetailScreen(
                 // Header spacing and expanded title
                 item {
                     Spacer(
-                        modifier =
-                            Modifier
-                                .statusBarsPadding()
-                                .height(90.dp),
+                        modifier = Modifier.statusBarsPadding().height(90.dp),
                     )
                     Text(
                         text = listWordModel.word.replaceFirstChar { it.uppercase() },
@@ -243,19 +250,13 @@ fun WordEntryCard(
     modifier: Modifier = Modifier,
 ) {
     Card(
-        modifier =
-            modifier
-                .fillMaxWidth()
-                .padding(vertical = 8.dp),
+        modifier = modifier.fillMaxWidth().padding(vertical = 8.dp),
         shape = RoundedCornerShape(10.dp),
         colors = CardDefaults.cardColors(containerColor = Color.White),
         elevation = CardDefaults.cardElevation(defaultElevation = 0.dp),
     ) {
         Column(
-            modifier =
-                Modifier
-                    .fillMaxWidth()
-                    .padding(16.dp),
+            modifier = Modifier.fillMaxWidth().padding(16.dp),
         ) {
             Row(
                 verticalAlignment = Alignment.CenterVertically,
@@ -263,10 +264,7 @@ fun WordEntryCard(
             ) {
                 // Circular Badge
                 Box(
-                    modifier =
-                        Modifier
-                            .size(30.dp)
-                            .background(TextH1, shape = RoundedCornerShape(100.dp)),
+                    modifier = Modifier.size(30.dp).background(TextH1, shape = RoundedCornerShape(100.dp)),
                     contentAlignment = Alignment.Center,
                 ) {
                     Text(
@@ -293,10 +291,7 @@ fun WordEntryCard(
 
             // Meanings list (aligned start with entry_text, i.e., 30.dp circular badge + 16.dp spacer = 46.dp)
             Column(
-                modifier =
-                    Modifier
-                        .fillMaxWidth()
-                        .padding(start = 46.dp),
+                modifier = Modifier.fillMaxWidth().padding(start = 46.dp),
             ) {
                 wordModel.meanings.forEachIndexed { meaningIndex, meaning ->
                     val annotatedText =
@@ -312,10 +307,7 @@ fun WordEntryCard(
                         fontFamily = InterFontFamily,
                         fontWeight = FontWeight.Normal,
                         fontSize = 16.sp,
-                        modifier =
-                            Modifier
-                                .fillMaxWidth()
-                                .padding(vertical = 8.dp),
+                        modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp),
                     )
                 }
             }
@@ -329,9 +321,9 @@ fun WordEntryCard(
             ) {
                 Button(
                     onClick = onCopyClick,
-                    shape = RoundedCornerShape(4.dp),
+                    shape = RoundedCornerShape(100.dp),
                     colors = ButtonDefaults.buttonColors(containerColor = TextH1),
-                    contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp),
+                    contentPadding = PaddingValues(horizontal = 24.dp),
                     modifier = Modifier.height(50.dp),
                 ) {
                     Row(verticalAlignment = Alignment.CenterVertically) {
@@ -380,5 +372,61 @@ fun buildMeaningText(
             append(cleanWordClass)
         }
         append(cleanDescription)
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
+fun DetailContentPreview() {
+    val sampleListWordModel =
+        ListWordModel(
+            word = "belajar",
+            listWords =
+                listOf(
+                    WordModel(
+                        entry = "belajar",
+                        meanings =
+                            listOf(
+                                MeaningModel(wordClass = "v", description = "berusaha memperoleh kepandaian atau ilmu"),
+                                MeaningModel(wordClass = "v", description = "berlatih"),
+                                MeaningModel(wordClass = "v", description = "berubah tingkah laku atau tanggapan"),
+                            ),
+                    ),
+                ),
+        )
+
+    KBBITheme {
+        DetailContent(
+            listWordModel = sampleListWordModel,
+            state = DetailState(isSaved = false),
+            onAction = {},
+        )
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
+fun DetailContentSavedPreview() {
+    val sampleListWordModel =
+        ListWordModel(
+            word = "belajar",
+            listWords =
+                listOf(
+                    WordModel(
+                        entry = "belajar",
+                        meanings =
+                            listOf(
+                                MeaningModel(wordClass = "v", description = "berusaha memperoleh kepandaian atau ilmu"),
+                            ),
+                    ),
+                ),
+        )
+
+    KBBITheme {
+        DetailContent(
+            listWordModel = sampleListWordModel,
+            state = DetailState(isSaved = true),
+            onAction = {},
+        )
     }
 }
