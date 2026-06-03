@@ -1,13 +1,11 @@
 package com.arrazyfathan.kbbi.utils
 
 import android.app.Activity
-import android.graphics.Color
 import android.view.View
 import android.view.ViewGroup
 import androidx.annotation.ColorInt
 import androidx.core.graphics.ColorUtils
 import androidx.core.view.ViewCompat
-import androidx.core.view.WindowCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.WindowInsetsControllerCompat
 import androidx.core.view.doOnAttach
@@ -29,13 +27,6 @@ private data class InitialMargin(
     val right: Int,
     val bottom: Int,
 )
-
-@Suppress("DEPRECATION")
-fun Activity.enableEdgeToEdgeSystemBars() {
-    WindowCompat.setDecorFitsSystemWindows(window, false)
-    window.statusBarColor = Color.TRANSPARENT
-    window.navigationBarColor = Color.TRANSPARENT
-}
 
 fun Activity.updateSystemBarStyle(
     @ColorInt statusBarColor: Int,
