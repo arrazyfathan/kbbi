@@ -88,16 +88,15 @@ class WordViewModel(
         searchJob =
             viewModelScope.launch {
                 _state.update { it.copy(isLoading = true) }
-                searchWord(word).collect { resource ->
-                    _state.update { it.copy(isLoading = false) }
-                    when (resource) {
-                        is AppResult.Success -> {
-                            _events.send(WordListEvent.NavigateToDetail(resource.data.toJson()))
-                        }
+                val result = searchWord(word)
+                _state.update { it.copy(isLoading = false) }
+                when (result) {
+                    is AppResult.Success -> {
+                        _events.send(WordListEvent.NavigateToDetail(result.data.toJson()))
+                    }
 
-                        is AppResult.Error -> {
-                            _events.send(WordListEvent.ShowMessage(resource.error.toMessage()))
-                        }
+                    is AppResult.Error -> {
+                        _events.send(WordListEvent.ShowMessage(result.error.toMessage()))
                     }
                 }
             }

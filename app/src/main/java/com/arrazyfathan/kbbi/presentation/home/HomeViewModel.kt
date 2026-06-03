@@ -77,16 +77,15 @@ class HomeViewModel(
         searchJob =
             viewModelScope.launch {
                 _state.update { it.copy(isLoading = true) }
-                searchWordWithHistory(word).collect { result ->
-                    _state.update { it.copy(isLoading = false) }
-                    when (result) {
-                        is AppResult.Success -> {
-                            _events.send(HomeEvent.NavigateToDetail(result.data.toJson()))
-                        }
+                val result = searchWordWithHistory(word)
+                _state.update { it.copy(isLoading = false) }
+                when (result) {
+                    is AppResult.Success -> {
+                        _events.send(HomeEvent.NavigateToDetail(result.data.toJson()))
+                    }
 
-                        is AppResult.Error -> {
-                            _events.send(HomeEvent.ShowMessage(result.error.toMessage()))
-                        }
+                    is AppResult.Error -> {
+                        _events.send(HomeEvent.ShowMessage(result.error.toMessage()))
                     }
                 }
             }

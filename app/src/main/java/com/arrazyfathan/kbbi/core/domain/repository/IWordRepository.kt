@@ -11,7 +11,7 @@ import kotlinx.coroutines.flow.Flow
  * Created by Ar Razy Fathan Rabbani on 17/03/23.
  */
 interface IWordRepository {
-    fun getMeaningOfWord(word: String): Flow<AppResult<List<WordModel>, DataError>>
+    suspend fun getMeaningOfWord(word: String): AppResult<List<WordModel>, DataError>
 
     suspend fun bookmarkWord(
         word: String,

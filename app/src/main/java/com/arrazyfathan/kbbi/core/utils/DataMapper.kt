@@ -4,8 +4,8 @@ import com.arrazyfathan.kbbi.core.data.source.local.entity.HistoryEntity
 import com.arrazyfathan.kbbi.core.data.source.local.entity.ListWordEntity
 import com.arrazyfathan.kbbi.core.data.source.local.entity.MeaningEntity
 import com.arrazyfathan.kbbi.core.data.source.local.entity.WordEntity
-import com.arrazyfathan.kbbi.core.data.source.remote.response.Meaning
-import com.arrazyfathan.kbbi.core.data.source.remote.response.WordResponse
+import com.arrazyfathan.kbbi.core.data.source.remote.dto.MeaningDto
+import com.arrazyfathan.kbbi.core.data.source.remote.dto.WordDto
 import com.arrazyfathan.kbbi.core.domain.model.HistoryModel
 import com.arrazyfathan.kbbi.core.domain.model.ListWordModel
 import com.arrazyfathan.kbbi.core.domain.model.MeaningModel
@@ -15,15 +15,15 @@ import com.arrazyfathan.kbbi.core.domain.model.WordModel
  * Created by Ar Razy Fathan Rabbani on 17/03/23.
  */
 object DataMapper {
-    fun mapResponseToDomain(input: List<WordResponse>): List<WordModel> =
+    fun mapWordDtosToDomain(input: List<WordDto>): List<WordModel> =
         input.map {
             WordModel(
                 it.entry,
-                mapMeaningResponseToMeaningDomain(it.meanings),
+                mapMeaningDtosToDomain(it.meanings),
             )
         }
 
-    private fun mapMeaningResponseToMeaningDomain(input: List<Meaning>): List<MeaningModel> =
+    private fun mapMeaningDtosToDomain(input: List<MeaningDto>): List<MeaningModel> =
         input.map {
             MeaningModel(
                 it.wordClass,

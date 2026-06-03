@@ -23,10 +23,8 @@ class WordRepository(
     private val remoteDataSource: RemoteDataSource,
     private val localDataSource: LocalDataSource,
 ) : IWordRepository {
-    override fun getMeaningOfWord(word: String): Flow<AppResult<List<WordModel>, DataError>> =
-        remoteDataSource.getMeaningOfWord(word).map { result ->
-            result.map(DataMapper::mapResponseToDomain)
-        }
+    override suspend fun getMeaningOfWord(word: String): AppResult<List<WordModel>, DataError> =
+        remoteDataSource.getMeaningOfWord(word).map(DataMapper::mapWordDtosToDomain)
 
     override suspend fun bookmarkWord(
         word: String,
