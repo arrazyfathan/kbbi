@@ -1,11 +1,11 @@
 package com.arrazyfathan.kbbi.core.domain.usecase
 
-import com.arrazyfathan.kbbi.core.domain.repository.IWordRepository
+import com.arrazyfathan.kbbi.core.domain.repository.BookmarkRepository
 
 class DeleteBookmarkUseCase(
-    private val wordRepository: IWordRepository,
+    private val bookmarkRepository: BookmarkRepository,
 ) {
     suspend operator fun invoke(word: String) {
-        wordRepository.deleteWord(word)
+        bookmarkRepository.deleteWord(word)
     }
 }

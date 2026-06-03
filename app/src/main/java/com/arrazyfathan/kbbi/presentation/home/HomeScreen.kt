@@ -71,6 +71,7 @@ import com.airbnb.lottie.compose.LottieConstants
 import com.airbnb.lottie.compose.rememberLottieComposition
 import com.arrazyfathan.kbbi.R
 import com.arrazyfathan.kbbi.core.domain.model.HistoryModel
+import com.arrazyfathan.kbbi.core.domain.model.ListWordModel
 import com.arrazyfathan.kbbi.presentation.common.LocalAppLoadingController
 import com.arrazyfathan.kbbi.presentation.theme.BlueBg
 import com.arrazyfathan.kbbi.presentation.theme.BluePrimary
@@ -88,7 +89,7 @@ private const val HOME_SEARCH_LOADING_SOURCE = "home_search"
 @Composable
 fun HomeScreen(
     modifier: Modifier = Modifier,
-    onNavigateToDetail: (String) -> Unit,
+    onNavigateToDetail: (ListWordModel) -> Unit,
     viewModel: HomeViewModel = koinViewModel(),
 ) {
     val context = LocalContext.current
@@ -106,7 +107,7 @@ fun HomeScreen(
             when (event) {
                 is HomeEvent.NavigateToDetail -> {
                     searchQuery = ""
-                    onNavigateToDetail(event.dataJson)
+                    onNavigateToDetail(event.word)
                 }
 
                 is HomeEvent.ShowMessage -> {

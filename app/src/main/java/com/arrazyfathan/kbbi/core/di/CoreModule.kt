@@ -4,11 +4,15 @@ import androidx.room.Room
 import androidx.room.migration.Migration
 import androidx.sqlite.db.SupportSQLiteDatabase
 import com.arrazyfathan.kbbi.core.data.WordRepository
-import com.arrazyfathan.kbbi.core.data.source.local.LocalDataSource
+import com.arrazyfathan.kbbi.core.data.source.local.AssetWordCatalogRepository
+import com.arrazyfathan.kbbi.core.data.source.local.WordLocalDataSource
 import com.arrazyfathan.kbbi.core.data.source.local.room.WordDatabase
-import com.arrazyfathan.kbbi.core.data.source.remote.RemoteDataSource
+import com.arrazyfathan.kbbi.core.data.source.remote.WordRemoteDataSource
 import com.arrazyfathan.kbbi.core.data.source.remote.network.ApiService
-import com.arrazyfathan.kbbi.core.domain.repository.IWordRepository
+import com.arrazyfathan.kbbi.core.domain.repository.BookmarkRepository
+import com.arrazyfathan.kbbi.core.domain.repository.SearchHistoryRepository
+import com.arrazyfathan.kbbi.core.domain.repository.WordCatalogRepository
+import com.arrazyfathan.kbbi.core.domain.repository.WordSearchRepository
 import com.arrazyfathan.kbbi.utils.Constant
 import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
@@ -73,9 +77,12 @@ val networkModule =
 
 val repositoryModule =
     module {
-        singleOf(::RemoteDataSource)
-        singleOf(::LocalDataSource)
+        singleOf(::WordRemoteDataSource)
+        singleOf(::WordLocalDataSource)
+        single<WordCatalogRepository> { AssetWordCatalogRepository(androidContext()) }
         singleOf(::WordRepository) {
-            bind<IWordRepository>()
+            bind<WordSearchRepository>()
+            bind<BookmarkRepository>()
+            bind<SearchHistoryRepository>()
         }
     }

@@ -67,13 +67,12 @@ import com.arrazyfathan.kbbi.presentation.theme.Red
 import com.arrazyfathan.kbbi.presentation.theme.SpaceGroteskFontFamily
 import com.arrazyfathan.kbbi.presentation.theme.TextH1
 import com.arrazyfathan.kbbi.presentation.theme.TextP
-import com.arrazyfathan.kbbi.utils.toJson
 import org.koin.androidx.compose.koinViewModel
 
 @Composable
 fun BookmarksScreen(
     modifier: Modifier = Modifier,
-    onNavigateToDetail: (String) -> Unit,
+    onNavigateToDetail: (ListWordModel) -> Unit,
     viewModel: BookmarksViewModel = koinViewModel(),
 ) {
     val context = LocalContext.current
@@ -169,7 +168,7 @@ fun BookmarksScreen(
                     BookmarkItem(
                         model = item,
                         onClick = {
-                            onNavigateToDetail(item.toJson())
+                            onNavigateToDetail(item)
                         },
                         onDeleteInitiated = {
                             wordToDelete = item

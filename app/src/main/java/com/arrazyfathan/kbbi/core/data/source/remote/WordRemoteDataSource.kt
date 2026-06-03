@@ -7,10 +7,7 @@ import com.arrazyfathan.kbbi.core.data.source.remote.network.safeApiCall
 import com.arrazyfathan.kbbi.core.domain.model.AppResult
 import com.arrazyfathan.kbbi.core.domain.model.DataError
 
-/**
- * Created by Ar Razy Fathan Rabbani on 17/03/23.
- */
-class RemoteDataSource(
+class WordRemoteDataSource(
     private val apiService: ApiService,
 ) {
     suspend fun getMeaningOfWord(word: String): AppResult<List<WordDto>, DataError> =

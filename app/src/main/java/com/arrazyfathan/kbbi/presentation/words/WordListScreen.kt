@@ -50,15 +50,12 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.arrazyfathan.kbbi.R
+import com.arrazyfathan.kbbi.core.domain.model.ListWordModel
 import com.arrazyfathan.kbbi.presentation.common.LocalAppLoadingController
 import com.arrazyfathan.kbbi.presentation.theme.BlueBg
 import com.arrazyfathan.kbbi.presentation.theme.BluePrimary
 import com.arrazyfathan.kbbi.presentation.theme.InterFontFamily
 import com.arrazyfathan.kbbi.presentation.theme.MetropolisFontFamily
-import com.google.gson.GsonBuilder
-import com.google.gson.reflect.TypeToken
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.withContext
 import org.koin.androidx.compose.koinViewModel
 
 private const val WORD_LIST_SEARCH_LOADING_SOURCE = "word_list_search"
@@ -67,7 +64,7 @@ private const val WORD_LIST_SEARCH_LOADING_SOURCE = "word_list_search"
 @Composable
 fun WordListScreen(
     modifier: Modifier = Modifier,
-    onNavigateToDetail: (String) -> Unit,
+    onNavigateToDetail: (ListWordModel) -> Unit,
     viewModel: WordViewModel = koinViewModel(),
 ) {
     val context = LocalContext.current
@@ -76,35 +73,15 @@ fun WordListScreen(
     val density = LocalDensity.current
     val state by viewModel.state.collectAsStateWithLifecycle()
 
-    // Load words in background
     LaunchedEffect(Unit) {
-        val words =
-            withContext(Dispatchers.IO) {
-                val jsonString =
-                    try {
-                        context.assets
-                            .open("entries.json")
-                            .bufferedReader()
-                            .use { it.readText() }
-                    } catch (_: Exception) {
-                        null
-                    }
-                if (jsonString != null) {
-                    val gson = GsonBuilder().create()
-                    val wordListType = object : TypeToken<List<String>>() {}.type
-                    gson.fromJson<List<String>>(jsonString, wordListType)
-                } else {
-                    emptyList()
-                }
-            }
-        viewModel.onAction(WordListAction.OnWordsLoaded(words))
+        viewModel.onAction(WordListAction.OnStarted)
     }
 
     LaunchedEffect(Unit) {
         viewModel.events.collect { event ->
             when (event) {
                 is WordListEvent.NavigateToDetail -> {
-                    onNavigateToDetail(event.dataJson)
+                    onNavigateToDetail(event.word)
                 }
 
                 is WordListEvent.ShowMessage -> {
@@ -299,7 +276,6 @@ fun WordListScreen(
                     }
                 }
             }
-
         }
     }
 }

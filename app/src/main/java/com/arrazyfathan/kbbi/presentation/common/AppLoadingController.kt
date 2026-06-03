@@ -1,10 +1,10 @@
 package com.arrazyfathan.kbbi.presentation.common
 
+import androidx.compose.runtime.Composable
 import androidx.compose.runtime.Stable
 import androidx.compose.runtime.mutableStateMapOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.staticCompositionLocalOf
-import androidx.compose.runtime.Composable
 
 @Stable
 class AppLoadingController {

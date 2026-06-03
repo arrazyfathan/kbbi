@@ -4,10 +4,7 @@ import com.arrazyfathan.kbbi.core.data.source.local.entity.HistoryEntity
 import com.arrazyfathan.kbbi.core.data.source.local.entity.ListWordEntity
 import com.arrazyfathan.kbbi.core.data.source.local.room.WordDao
 
-/**
- * Created by Ar Razy Fathan Rabbani on 17/03/23.
- */
-class LocalDataSource(
+class WordLocalDataSource(
     private val wordDao: WordDao,
 ) {
     fun getAllWords() = wordDao.getAllWords()

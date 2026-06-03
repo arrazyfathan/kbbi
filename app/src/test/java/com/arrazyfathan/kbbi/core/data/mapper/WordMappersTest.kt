@@ -1,23 +1,23 @@
-package com.arrazyfathan.kbbi.core.utils
+package com.arrazyfathan.kbbi.core.data.mapper
 
 import com.arrazyfathan.kbbi.core.data.source.local.entity.ListWordEntity
 import com.arrazyfathan.kbbi.core.data.source.local.entity.MeaningEntity
 import com.arrazyfathan.kbbi.core.data.source.local.entity.WordEntity
-import com.arrazyfathan.kbbi.core.data.source.remote.response.Meaning
-import com.arrazyfathan.kbbi.core.data.source.remote.response.WordResponse
+import com.arrazyfathan.kbbi.core.data.source.remote.dto.MeaningDto
+import com.arrazyfathan.kbbi.core.data.source.remote.dto.WordDto
 import com.arrazyfathan.kbbi.core.domain.model.MeaningModel
 import com.arrazyfathan.kbbi.core.domain.model.WordModel
 import org.junit.Assert.assertEquals
 import org.junit.Test
 
-class DataMapperTest {
+class WordMappersTest {
     @Test
-    fun testMapResponseToDomain() {
-        val meaning1 = Meaning(wordClass = "n", description = "kata benda")
-        val meaning2 = Meaning(wordClass = "v", description = "kata kerja")
-        val wordResponse = WordResponse(entry = "makan", meanings = listOf(meaning1, meaning2))
+    fun wordDtosMapToDomainModels() {
+        val meaning1 = MeaningDto(wordClass = "n", description = "kata benda")
+        val meaning2 = MeaningDto(wordClass = "v", description = "kata kerja")
+        val wordDto = WordDto(entry = "makan", meanings = listOf(meaning1, meaning2))
 
-        val domainList = DataMapper.mapResponseToDomain(listOf(wordResponse))
+        val domainList = listOf(wordDto).toWordModels()
 
         assertEquals(1, domainList.size)
         val domainWord = domainList[0]
@@ -30,31 +30,26 @@ class DataMapperTest {
     }
 
     @Test
-    fun testMapListWordEntityToDomain() {
+    fun listWordEntityMapsToDomainModel() {
         val meaningEntity = MeaningEntity(wordClass = "adj", description = "sifat")
         val wordEntity = WordEntity(entry = "indah", meanings = listOf(meaningEntity))
         val listWordEntity = ListWordEntity(word = "indah", listWords = listOf(wordEntity), isSaved = true)
 
-        val domainList = DataMapper.mapListWordEntityToDomain(listOf(listWordEntity))
+        val domainListWord = listWordEntity.toDomain()
 
-        assertEquals(1, domainList.size)
-        val domainListWord = domainList[0]
         assertEquals("indah", domainListWord.word)
         assertEquals(1, domainListWord.listWords.size)
-
-        val firstWord = domainListWord.listWords[0]
-        assertEquals("indah", firstWord.entry)
-        assertEquals(1, firstWord.meanings.size)
-        assertEquals("adj", firstWord.meanings[0].wordClass)
-        assertEquals("sifat", firstWord.meanings[0].description)
+        assertEquals("indah", domainListWord.listWords[0].entry)
+        assertEquals("adj", domainListWord.listWords[0].meanings[0].wordClass)
+        assertEquals("sifat", domainListWord.listWords[0].meanings[0].description)
     }
 
     @Test
-    fun testMapDomainToEntity() {
+    fun domainModelsMapToWordEntities() {
         val meaningModel = MeaningModel(wordClass = "adv", description = "keterangan")
         val wordModel = WordModel(entry = "cepat", meanings = listOf(meaningModel))
 
-        val entityList = DataMapper.mapDomainToEntity(listOf(wordModel))
+        val entityList = listOf(wordModel).toWordEntities()
 
         assertEquals(1, entityList.size)
         val entityWord = entityList[0]

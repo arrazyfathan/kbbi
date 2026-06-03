@@ -4,10 +4,10 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.arrazyfathan.kbbi.core.domain.model.AppResult
 import com.arrazyfathan.kbbi.core.domain.model.HistoryModel
+import com.arrazyfathan.kbbi.core.domain.model.ListWordModel
 import com.arrazyfathan.kbbi.core.domain.usecase.ObserveSearchHistoryUseCase
 import com.arrazyfathan.kbbi.core.domain.usecase.SearchWordWithHistoryUseCase
 import com.arrazyfathan.kbbi.presentation.common.toMessage
-import com.arrazyfathan.kbbi.utils.toJson
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -34,7 +34,7 @@ sealed interface HomeAction {
 
 sealed interface HomeEvent {
     data class NavigateToDetail(
-        val dataJson: String,
+        val word: ListWordModel,
     ) : HomeEvent
 
     data class ShowMessage(
@@ -81,7 +81,7 @@ class HomeViewModel(
                 _state.update { it.copy(isLoading = false) }
                 when (result) {
                     is AppResult.Success -> {
-                        _events.send(HomeEvent.NavigateToDetail(result.data.toJson()))
+                        _events.send(HomeEvent.NavigateToDetail(result.data))
                     }
 
                     is AppResult.Error -> {

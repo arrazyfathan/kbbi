@@ -140,22 +140,22 @@ fun MainApp() {
             entryProvider {
                 entry<Screen.Home> {
                     HomeScreen(
-                        onNavigateToDetail = { dataJson ->
-                            navigator.navigate(DetailRoute(dataJson))
+                        onNavigateToDetail = { word ->
+                            navigator.navigate(DetailRoute(Gson().toJson(word)))
                         },
                     )
                 }
                 entry<Screen.WordList> {
                     WordListScreen(
-                        onNavigateToDetail = { dataJson ->
-                            navigator.navigate(DetailRoute(dataJson))
+                        onNavigateToDetail = { word ->
+                            navigator.navigate(DetailRoute(Gson().toJson(word)))
                         },
                     )
                 }
                 entry<Screen.Bookmarks> {
                     BookmarksScreen(
-                        onNavigateToDetail = { dataJson ->
-                            navigator.navigate(DetailRoute(dataJson))
+                        onNavigateToDetail = { word ->
+                            navigator.navigate(DetailRoute(Gson().toJson(word)))
                         },
                     )
                 }

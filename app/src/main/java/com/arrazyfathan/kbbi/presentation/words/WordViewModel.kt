@@ -3,9 +3,10 @@ package com.arrazyfathan.kbbi.presentation.words
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.arrazyfathan.kbbi.core.domain.model.AppResult
+import com.arrazyfathan.kbbi.core.domain.model.ListWordModel
+import com.arrazyfathan.kbbi.core.domain.usecase.GetWordEntriesUseCase
 import com.arrazyfathan.kbbi.core.domain.usecase.SearchWordUseCase
 import com.arrazyfathan.kbbi.presentation.common.toMessage
-import com.arrazyfathan.kbbi.utils.toJson
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -25,9 +26,7 @@ data class WordListState(
 )
 
 sealed interface WordListAction {
-    data class OnWordsLoaded(
-        val words: List<String>,
-    ) : WordListAction
+    data object OnStarted : WordListAction
 
     data class OnSearchQueryChanged(
         val query: String,
@@ -40,7 +39,7 @@ sealed interface WordListAction {
 
 sealed interface WordListEvent {
     data class NavigateToDetail(
-        val dataJson: String,
+        val word: ListWordModel,
     ) : WordListEvent
 
     data class ShowMessage(
@@ -50,6 +49,7 @@ sealed interface WordListEvent {
 
 class WordViewModel(
     private val searchWord: SearchWordUseCase,
+    private val getWordEntries: GetWordEntriesUseCase,
 ) : ViewModel() {
     private val _state = MutableStateFlow(WordListState())
     val state = _state.asStateFlow()
@@ -58,17 +58,11 @@ class WordViewModel(
     val events = _events.receiveAsFlow()
 
     private var searchJob: Job? = null
+    private var wordsJob: Job? = null
 
     fun onAction(action: WordListAction) {
         when (action) {
-            is WordListAction.OnWordsLoaded -> {
-                _state.update {
-                    it.copy(
-                        words = action.words,
-                        filteredWords = filterWords(action.words, it.searchQuery),
-                    )
-                }
-            }
+            WordListAction.OnStarted -> loadWords()
 
             is WordListAction.OnSearchQueryChanged -> {
                 _state.update {
@@ -83,6 +77,20 @@ class WordViewModel(
         }
     }
 
+    private fun loadWords() {
+        if (wordsJob != null) return
+        wordsJob =
+            viewModelScope.launch {
+                val words = getWordEntries()
+                _state.update {
+                    it.copy(
+                        words = words,
+                        filteredWords = filterWords(words, it.searchQuery),
+                    )
+                }
+            }
+    }
+
     private fun search(word: String) {
         searchJob?.cancel()
         searchJob =
@@ -92,7 +100,7 @@ class WordViewModel(
                 _state.update { it.copy(isLoading = false) }
                 when (result) {
                     is AppResult.Success -> {
-                        _events.send(WordListEvent.NavigateToDetail(result.data.toJson()))
+                        _events.send(WordListEvent.NavigateToDetail(result.data))
                     }
 
                     is AppResult.Error -> {

@@ -3,6 +3,7 @@ package com.arrazyfathan.kbbi.di
 import com.arrazyfathan.kbbi.core.domain.usecase.AddSearchHistoryUseCase
 import com.arrazyfathan.kbbi.core.domain.usecase.CheckWordSavedUseCase
 import com.arrazyfathan.kbbi.core.domain.usecase.DeleteBookmarkUseCase
+import com.arrazyfathan.kbbi.core.domain.usecase.GetWordEntriesUseCase
 import com.arrazyfathan.kbbi.core.domain.usecase.ObserveBookmarksUseCase
 import com.arrazyfathan.kbbi.core.domain.usecase.ObserveSearchHistoryUseCase
 import com.arrazyfathan.kbbi.core.domain.usecase.SaveBookmarkUseCase
@@ -30,6 +31,7 @@ val useCaseModule =
         factoryOf(::DeleteBookmarkUseCase)
         factoryOf(::CheckWordSavedUseCase)
         factoryOf(::ObserveBookmarksUseCase)
+        factoryOf(::GetWordEntriesUseCase)
     }
 
 val viewModelModule =

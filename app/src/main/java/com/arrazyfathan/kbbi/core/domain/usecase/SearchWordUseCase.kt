@@ -4,10 +4,10 @@ import com.arrazyfathan.kbbi.core.domain.model.AppResult
 import com.arrazyfathan.kbbi.core.domain.model.DataError
 import com.arrazyfathan.kbbi.core.domain.model.ListWordModel
 import com.arrazyfathan.kbbi.core.domain.model.map
-import com.arrazyfathan.kbbi.core.domain.repository.IWordRepository
+import com.arrazyfathan.kbbi.core.domain.repository.WordSearchRepository
 
 class SearchWordUseCase(
-    private val wordRepository: IWordRepository,
+    private val wordSearchRepository: WordSearchRepository,
 ) {
     suspend operator fun invoke(word: String): AppResult<ListWordModel, DataError> {
         val wordToSearch = word.trim()
@@ -15,7 +15,8 @@ class SearchWordUseCase(
             return AppResult.Error(DataError.EmptyQuery)
         }
 
-        return wordRepository.getMeaningOfWord(wordToSearch)
+        return wordSearchRepository
+            .getMeaningOfWord(wordToSearch)
             .map { words ->
                 ListWordModel(
                     word = wordToSearch,
