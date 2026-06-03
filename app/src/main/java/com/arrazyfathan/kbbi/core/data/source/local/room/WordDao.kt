@@ -2,6 +2,7 @@ package com.arrazyfathan.kbbi.core.data.source.local.room
 
 import androidx.room.Dao
 import androidx.room.Query
+import androidx.room.Transaction
 import androidx.room.Upsert
 import com.arrazyfathan.kbbi.core.data.source.local.entity.HistoryEntity
 import com.arrazyfathan.kbbi.core.data.source.local.entity.ListWordEntity
@@ -28,6 +29,20 @@ interface WordDao {
     @Upsert
     suspend fun insertHistory(historyEntity: HistoryEntity)
 
-    @Query("SELECT * FROM history_table ORDER BY word DESC")
+    @Query(
+        "DELETE FROM history_table WHERE word NOT IN (SELECT word FROM history_table ORDER BY searchedAt DESC, word DESC LIMIT :limit)",
+    )
+    suspend fun trimHistories(limit: Int)
+
+    @Transaction
+    suspend fun insertHistoryAndTrim(
+        historyEntity: HistoryEntity,
+        limit: Int = 5,
+    ) {
+        insertHistory(historyEntity)
+        trimHistories(limit)
+    }
+
+    @Query("SELECT * FROM history_table ORDER BY searchedAt DESC, word DESC")
     fun getListHistory(): Flow<List<HistoryEntity>>
 }

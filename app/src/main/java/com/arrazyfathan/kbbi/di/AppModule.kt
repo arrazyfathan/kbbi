@@ -1,11 +1,19 @@
 package com.arrazyfathan.kbbi.di
 
-import com.arrazyfathan.kbbi.core.domain.usecase.WordInteractor
-import com.arrazyfathan.kbbi.core.domain.usecase.WordUseCase
+import com.arrazyfathan.kbbi.core.domain.usecase.AddSearchHistoryUseCase
+import com.arrazyfathan.kbbi.core.domain.usecase.CheckWordSavedUseCase
+import com.arrazyfathan.kbbi.core.domain.usecase.DeleteBookmarkUseCase
+import com.arrazyfathan.kbbi.core.domain.usecase.GetWordEntriesUseCase
+import com.arrazyfathan.kbbi.core.domain.usecase.ObserveBookmarksUseCase
+import com.arrazyfathan.kbbi.core.domain.usecase.ObserveSearchHistoryUseCase
+import com.arrazyfathan.kbbi.core.domain.usecase.SaveBookmarkUseCase
+import com.arrazyfathan.kbbi.core.domain.usecase.SearchWordUseCase
+import com.arrazyfathan.kbbi.core.domain.usecase.SearchWordWithHistoryUseCase
 import com.arrazyfathan.kbbi.presentation.bookmark.BookmarksViewModel
 import com.arrazyfathan.kbbi.presentation.detail.DetailViewModel
 import com.arrazyfathan.kbbi.presentation.home.HomeViewModel
 import com.arrazyfathan.kbbi.presentation.words.WordViewModel
+import org.koin.core.module.dsl.factoryOf
 import org.koin.core.module.dsl.viewModelOf
 import org.koin.dsl.module
 
@@ -15,7 +23,15 @@ import org.koin.dsl.module
 
 val useCaseModule =
     module {
-        factory<WordUseCase> { WordInteractor(get()) }
+        factoryOf(::SearchWordUseCase)
+        factoryOf(::SearchWordWithHistoryUseCase)
+        factoryOf(::AddSearchHistoryUseCase)
+        factoryOf(::ObserveSearchHistoryUseCase)
+        factoryOf(::SaveBookmarkUseCase)
+        factoryOf(::DeleteBookmarkUseCase)
+        factoryOf(::CheckWordSavedUseCase)
+        factoryOf(::ObserveBookmarksUseCase)
+        factoryOf(::GetWordEntriesUseCase)
     }
 
 val viewModelModule =

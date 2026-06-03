@@ -1,62 +1,63 @@
 package com.arrazyfathan.kbbi.core.data
 
-import com.arrazyfathan.kbbi.core.data.source.local.entity.HistoryEntity
+import com.arrazyfathan.kbbi.core.domain.model.AppResult
+import com.arrazyfathan.kbbi.core.domain.model.DataError
+import com.arrazyfathan.kbbi.core.domain.model.HistoryModel
 import com.arrazyfathan.kbbi.core.domain.model.ListWordModel
 import com.arrazyfathan.kbbi.core.domain.model.WordModel
-import com.arrazyfathan.kbbi.core.domain.repository.IWordRepository
+import com.arrazyfathan.kbbi.core.domain.repository.BookmarkRepository
+import com.arrazyfathan.kbbi.core.domain.repository.SearchHistoryRepository
+import com.arrazyfathan.kbbi.core.domain.repository.WordCatalogRepository
+import com.arrazyfathan.kbbi.core.domain.repository.WordSearchRepository
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.map
 
-class FakeWordRepository : IWordRepository {
+class FakeWordRepository :
+    WordSearchRepository,
+    BookmarkRepository,
+    SearchHistoryRepository,
+    WordCatalogRepository {
     private val bookmarks = MutableStateFlow<Map<String, ListWordModel>>(emptyMap())
-    private val histories = MutableStateFlow<List<HistoryEntity>>(emptyList())
-    private val remoteMeanings = mutableMapOf<String, Resource<List<WordModel>>>()
+    private val histories = MutableStateFlow<List<HistoryModel>>(emptyList())
+    private val remoteMeanings = mutableMapOf<String, AppResult<List<WordModel>, DataError>>()
+    private var catalogWords = emptyList<String>()
 
     fun setRemoteData(
         word: String,
-        resource: Resource<List<WordModel>>,
+        result: AppResult<List<WordModel>, DataError>,
     ) {
-        remoteMeanings[word] = resource
+        remoteMeanings[word] = result
     }
 
-    override fun getMeaningOfWord(word: String): Flow<Resource<List<WordModel>>> =
-        flow {
-            val result = remoteMeanings[word] ?: Resource.Error("Word not found in remote source")
-            emit(result)
-        }
+    fun setCatalogWords(words: List<String>) {
+        catalogWords = words
+    }
+
+    override suspend fun getMeaningOfWord(word: String): AppResult<List<WordModel>, DataError> =
+        remoteMeanings[word] ?: AppResult.Error(DataError.NotFound)
 
     override suspend fun bookmarkWord(
         word: String,
         result: List<WordModel>,
-        isSaved: Boolean,
-    ): Long {
-        val current = bookmarks.value.toMutableMap()
-        if (isSaved) {
-            current[word] = ListWordModel(word, result)
-        } else {
-            current.remove(word)
-        }
-        bookmarks.value = current
-        return 1L
+    ): Boolean {
+        bookmarks.value = bookmarks.value + (word to ListWordModel(word, result))
+        return true
     }
-
-    override suspend fun addToHistory(historyEntity: HistoryEntity) {
-        val current = histories.value.toMutableList()
-        current.add(historyEntity)
-        histories.value = current
-    }
-
-    override fun getAllHistories(): Flow<List<HistoryEntity>> = histories
 
     override suspend fun deleteWord(word: String) {
-        val current = bookmarks.value.toMutableMap()
-        current.remove(word)
-        bookmarks.value = current
+        bookmarks.value = bookmarks.value - word
     }
 
     override fun checkIfWordIsSaved(word: String): Flow<Boolean> = bookmarks.map { it.containsKey(word) }
 
     override fun getBookmarks(): Flow<List<ListWordModel>> = bookmarks.map { it.values.toList() }
+
+    override suspend fun addToHistory(history: HistoryModel) {
+        histories.value = histories.value + history
+    }
+
+    override fun getAllHistories(): Flow<List<HistoryModel>> = histories
+
+    override suspend fun getWords(): List<String> = catalogWords
 }

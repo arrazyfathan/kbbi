@@ -1,21 +1,44 @@
 package com.arrazyfathan.kbbi.presentation.bookmark
 
-import androidx.lifecycle.LiveData
 import androidx.lifecycle.ViewModel
-import androidx.lifecycle.asLiveData
 import androidx.lifecycle.viewModelScope
 import com.arrazyfathan.kbbi.core.domain.model.ListWordModel
-import com.arrazyfathan.kbbi.core.domain.usecase.WordUseCase
+import com.arrazyfathan.kbbi.core.domain.usecase.DeleteBookmarkUseCase
+import com.arrazyfathan.kbbi.core.domain.usecase.ObserveBookmarksUseCase
+import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 
-class BookmarksViewModel(
-    private val wordUseCase: WordUseCase,
-) : ViewModel() {
-    fun getBookmarks(): LiveData<List<ListWordModel>> = wordUseCase.getBookmarks().asLiveData()
+data class BookmarksState(
+    val bookmarks: List<ListWordModel> = emptyList(),
+)
 
-    fun removeFromBookmark(word: String) {
-        viewModelScope.launch {
-            wordUseCase.deleteWord(word)
+sealed interface BookmarksAction {
+    data class OnDeleteConfirmed(
+        val word: String,
+    ) : BookmarksAction
+}
+
+class BookmarksViewModel(
+    observeBookmarks: ObserveBookmarksUseCase,
+    private val deleteBookmark: DeleteBookmarkUseCase,
+) : ViewModel() {
+    val state: StateFlow<BookmarksState> =
+        observeBookmarks().map { bookmarks -> BookmarksState(bookmarks = bookmarks) }.stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.WhileSubscribed(5_000),
+            initialValue = BookmarksState(),
+        )
+
+    fun onAction(action: BookmarksAction) {
+        when (action) {
+            is BookmarksAction.OnDeleteConfirmed -> {
+                viewModelScope.launch {
+                    deleteBookmark(action.word)
+                }
+            }
         }
     }
 }
