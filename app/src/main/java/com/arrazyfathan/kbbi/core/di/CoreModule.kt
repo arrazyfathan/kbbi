@@ -1,6 +1,8 @@
 package com.arrazyfathan.kbbi.core.di
 
 import androidx.room.Room
+import androidx.room.migration.Migration
+import androidx.sqlite.db.SupportSQLiteDatabase
 import com.arrazyfathan.kbbi.core.data.WordRepository
 import com.arrazyfathan.kbbi.core.data.source.local.LocalDataSource
 import com.arrazyfathan.kbbi.core.data.source.local.room.WordDatabase
@@ -24,6 +26,13 @@ import java.util.concurrent.TimeUnit
 
 private const val NETWORK_TIMEOUT_SECONDS = 120L
 
+private val MIGRATION_7_8 =
+    object : Migration(7, 8) {
+        override fun migrate(db: SupportSQLiteDatabase) {
+            db.execSQL("ALTER TABLE history_table ADD COLUMN searchedAt INTEGER NOT NULL DEFAULT 0")
+        }
+    }
+
 val databaseModule =
     module {
         factory { get<WordDatabase>().wordDao() }
@@ -33,7 +42,8 @@ val databaseModule =
                     androidContext(),
                     WordDatabase::class.java,
                     "kbbi_db",
-                ).fallbackToDestructiveMigration(dropAllTables = true)
+                ).addMigrations(MIGRATION_7_8)
+                .fallbackToDestructiveMigration(dropAllTables = true)
                 .build()
         }
     }

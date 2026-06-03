@@ -18,7 +18,7 @@ class LocalDataSource(
 
     fun checkWordIsExist(word: String) = wordDao.checkWordIsExist(word)
 
-    suspend fun insertHistory(historyEntity: HistoryEntity) = wordDao.insertHistory(historyEntity)
+    suspend fun insertHistory(historyEntity: HistoryEntity) = wordDao.insertHistoryAndTrim(historyEntity)
 
     fun getAllHistories() = wordDao.getListHistory()
 }

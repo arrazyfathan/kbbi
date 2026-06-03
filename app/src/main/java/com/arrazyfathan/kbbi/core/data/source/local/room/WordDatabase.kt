@@ -10,7 +10,7 @@ import com.arrazyfathan.kbbi.core.data.source.local.entity.ListWordEntity
     entities = [
         ListWordEntity::class, HistoryEntity::class,
     ],
-    version = 7,
+    version = 8,
     exportSchema = false,
 )
 @TypeConverters(Converters::class)

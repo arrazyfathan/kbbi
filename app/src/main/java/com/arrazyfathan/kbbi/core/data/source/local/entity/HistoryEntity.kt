@@ -10,4 +10,5 @@ import androidx.room.PrimaryKey
 data class HistoryEntity(
     @PrimaryKey(autoGenerate = false)
     var word: String = "",
+    val searchedAt: Long = System.currentTimeMillis(),
 )
