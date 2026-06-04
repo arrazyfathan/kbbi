@@ -5,7 +5,6 @@ import java.util.Properties
 
 plugins {
     alias(libs.plugins.android.application)
-    alias(libs.plugins.google.devtools.ksp)
     alias(libs.plugins.kotlin.parcelize)
     alias(libs.plugins.detekt)
     alias(libs.plugins.ktlint)
@@ -224,16 +223,6 @@ dependencies {
     androidTestImplementation(libs.androidx.espresso.core)
 
     implementation(libs.lottie)
-
-    implementation(libs.androidx.room.runtime)
-    ksp(libs.androidx.room.compiler)
-    implementation(libs.androidx.room.ktx)
-
-    implementation(libs.ktor.client.core)
-    implementation(libs.ktor.client.okhttp)
-    implementation(libs.ktor.client.content.negotiation)
-    implementation(libs.ktor.client.logging)
-    implementation(libs.ktor.serialization.kotlinx.json)
 
     implementation(libs.kotlinx.coroutines.core)
     implementation(libs.kotlinx.coroutines.android)

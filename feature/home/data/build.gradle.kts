@@ -27,6 +27,10 @@ android {
     }
 }
 
+ksp {
+    arg("room.incremental", "true")
+}
+
 kotlin {
     compilerOptions {
         jvmTarget = JvmTarget.JVM_17
