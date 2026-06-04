@@ -1,0 +1,9 @@
+com.arrazyfathan.kbbi.core.designsystem-pngs-0 /Users/macintosh/Personal/Android/Samples/kbbi/core/presentation/designsystem/build/generated/res/pngs/debug
+com.arrazyfathan.kbbi.core.designsystem-updated_navigation_xml-1 /Users/macintosh/Personal/Android/Samples/kbbi/core/presentation/designsystem/build/generated/updated_navigation_xml/debug
+com.arrazyfathan.kbbi.core.designsystem-mergeDebugResources-2 /Users/macintosh/Personal/Android/Samples/kbbi/core/presentation/designsystem/build/intermediates/incremental/debug/mergeDebugResources/merged.dir
+com.arrazyfathan.kbbi.core.designsystem-mergeDebugResources-3 /Users/macintosh/Personal/Android/Samples/kbbi/core/presentation/designsystem/build/intermediates/incremental/debug/mergeDebugResources/stripped.dir
+com.arrazyfathan.kbbi.core.designsystem-debug-4 /Users/macintosh/Personal/Android/Samples/kbbi/core/presentation/designsystem/build/intermediates/merged_res/debug/mergeDebugResources
+com.arrazyfathan.kbbi.core.designsystem-debug-5 /Users/macintosh/Personal/Android/Samples/kbbi/core/presentation/designsystem/build/intermediates/packaged_res/debug/packageDebugResources
+com.arrazyfathan.kbbi.core.designsystem-debug-6 /Users/macintosh/Personal/Android/Samples/kbbi/core/presentation/designsystem/src/debug/res
+com.arrazyfathan.kbbi.core.designsystem-main-7 /Users/macintosh/Personal/Android/Samples/kbbi/core/presentation/designsystem/src/main/res
+gradleHome-0 /Users/macintosh/.gradle

@@ -1,10 +1,10 @@
 package com.arrazyfathan.kbbi
 
 import android.app.Application
-import com.arrazyfathan.kbbi.core.di.databaseModule
 import com.arrazyfathan.kbbi.core.di.networkModule
-import com.arrazyfathan.kbbi.core.di.repositoryModule
 import com.arrazyfathan.kbbi.core.logging.AppLogger
+import com.arrazyfathan.kbbi.feature.home.data.di.databaseModule
+import com.arrazyfathan.kbbi.feature.home.data.di.repositoryModule
 import com.arrazyfathan.kbbi.di.useCaseModule
 import com.arrazyfathan.kbbi.di.viewModelModule
 import org.koin.android.ext.koin.androidContext

@@ -204,6 +204,19 @@ gradle.taskGraph.whenReady {
 }
 
 dependencies {
+    implementation(project(":core:di"))
+    implementation(project(":core:logging"))
+    implementation(project(":core:presentation:designsystem"))
+    implementation(project(":core:presentation:ui"))
+    implementation(project(":core:utils"))
+    implementation(project(":feature:bookmark:presentation"))
+    implementation(project(":feature:detail:presentation"))
+    implementation(project(":feature:home:data"))
+    implementation(project(":feature:home:domain"))
+    implementation(project(":feature:home:presentation"))
+    implementation(project(":feature:splash:presentation"))
+    implementation(project(":feature:words:presentation"))
+
     implementation(libs.androidx.core.ktx)
     implementation(libs.material)
     testImplementation(libs.junit)

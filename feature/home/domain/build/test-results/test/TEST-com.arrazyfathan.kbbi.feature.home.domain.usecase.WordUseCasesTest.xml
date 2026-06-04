@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.arrazyfathan.kbbi.feature.home.domain.usecase.WordUseCasesTest" tests="5" skipped="0" failures="0" errors="0" timestamp="2026-06-04T03:37:09.154Z" hostname="Macintoshs-MacBook-Pro.local" time="0.357">
+  <properties/>
+  <testcase name="searchWordWithHistoryAddsHistoryOnlyAfterSuccess" classname="com.arrazyfathan.kbbi.feature.home.domain.usecase.WordUseCasesTest" time="0.196"/>
+  <testcase name="bookmarkUseCasesSaveObserveAndDeleteWord" classname="com.arrazyfathan.kbbi.feature.home.domain.usecase.WordUseCasesTest" time="0.015"/>
+  <testcase name="searchWordRejectsBlankQuery" classname="com.arrazyfathan.kbbi.feature.home.domain.usecase.WordUseCasesTest" time="0.001"/>
+  <testcase name="getWordEntriesReturnsCatalogWords" classname="com.arrazyfathan.kbbi.feature.home.domain.usecase.WordUseCasesTest" time="0.134"/>
+  <testcase name="searchWordReturnsListWordModel" classname="com.arrazyfathan.kbbi.feature.home.domain.usecase.WordUseCasesTest" time="0.002"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>
