@@ -1,6 +1,6 @@
 # KBBI
 
-KBBI is an unofficial Android dictionary app for **Kamus Besar Bahasa Indonesia**. The app combines a remote dictionary API with a bundled local word index so users can search words quickly, inspect meanings in detail, and keep a personal bookmark/history collection on-device.
+KBBI is an unofficial Android dictionary app for **Kamus Besar Bahasa Indonesia**. The app combines a remote dictionary API with a bundled local word index so users can search words quickly, inspect meanings in detail, and keep bookmarks and recent search history on-device.
 
 <p align="center">
   <a href="https://opensource.org/licenses/Apache-2.0"><img alt="License" src="https://img.shields.io/badge/License-Apache%202.0-blue.svg"/></a>
@@ -13,28 +13,26 @@ KBBI is an unofficial Android dictionary app for **Kamus Besar Bahasa Indonesia*
 
 ## Overview
 
-This repository contains the Android client for KBBI. The current project setup is:
+This repository contains the Android client for KBBI. The project is organized as a multi-module Clean Architecture codebase:
 
-- Single Android application module: `:app`
-- Kotlin + Jetpack Compose UI
-- MVVM-style presentation with ViewModels, state, and one-shot UI events
-- Koin for dependency injection
-- Room for local persistence
-- Ktor + OkHttp for API access
-- Navigation3 with a bottom-navigation based main flow
-- Product flavors for `development` and `production`
-- Static analysis with Detekt and Ktlint
-- GitHub Actions CI and Fastlane automation
+- `:app` owns application startup, Koin assembly, and the root Navigation3 graph.
+- `:core:*` contains shared data, domain, logging, presentation, and utility code.
+- `:feature:*` contains feature-specific presentation, data, and domain modules.
+- Feature navigation is exposed through each feature's `navigation` package and wired from `:app`.
+- Presentation uses Jetpack Compose, ViewModels, state, and one-shot UI events.
+- Data access uses repositories, use cases, Room, Ktor, OkHttp, and kotlinx.serialization.
+- Dependency injection uses Koin modules composed at the app boundary.
+- Product flavors are available for `development` and `production`.
 
 ## Features
 
 - Search Indonesian words from the home screen
-- Browse a bundled word list from `app/src/main/assets/entries.json`
+- Browse a bundled local word list from `feature/home/data/src/main/assets/entries.json`
 - View detailed word entries and meanings
 - Save bookmarked words locally
 - Keep recent search history locally
 - Animated splash screen and Lottie-based loading/empty states
-- Edge-to-edge system bar support through AndroidX Activity
+- Shared design system, UI text handling, error mapping, networking, and logging
 
 <p align="right">
   <img src="media/preview.gif" alt="Animated preview" width="32%" />
@@ -49,7 +47,7 @@ This repository contains the Android client for KBBI. The current project setup 
 - **Target/Compile SDK:** 37
 - **UI:** Jetpack Compose, Material 3, Lottie Compose
 - **Navigation:** AndroidX Navigation3
-- **Architecture:** MVVM-style presentation, Repository pattern, UseCase layer
+- **Architecture:** Clean Architecture, MVVM-style presentation, Repository pattern, UseCase layer
 - **Async/data:** Coroutines, StateFlow, Channel-based events
 - **Local storage:** Room
 - **Networking:** Ktor Client, kotlinx.serialization, OkHttp engine/logging
@@ -57,38 +55,81 @@ This repository contains the Android client for KBBI. The current project setup 
 - **Code quality:** Detekt, Ktlint
 - **Distribution/automation:** Fastlane, GitHub Actions
 
-## Project Structure
+## Module Structure
 
 ```text
 .
 ├── app/
-│   ├── src/main/java/com/arrazyfathan/kbbi/
-│   │   ├── core/               # Data, domain, repositories, Room, Ktor
-│   │   ├── di/                 # App-level Koin modules
-│   │   ├── presentation/       # Compose screens, navigation, theme, ViewModels
-│   │   └── utils/              # Extensions and window/system-bar helpers
-│   ├── src/main/assets/
-│   │   └── entries.json        # Bundled word list used by Word List screen
-│   ├── src/main/res/           # Drawables, icons, fonts, raw Lottie files, themes
-│   ├── build.gradle.kts
-│   └── version.properties      # Version naming and versionCode inputs
-├── fastlane/                   # Release/distribution automation
-├── gradle/libs.versions.toml   # Centralized dependency and plugin versions
-└── .github/workflows/          # CI and tagged release pipeline
+│   └── src/main/java/com/arrazyfathan/kbbi/
+│       ├── BaseApplication.kt       # Koin startup
+│       ├── MainActivity.kt          # Activity entry point
+│       ├── di/                      # App-level module assembly
+│       └── navigation/              # Root app navigation graph
+├── core/
+│   ├── data/                        # Shared Ktor client and safe API call helpers
+│   ├── di/                          # Shared core Koin modules
+│   ├── domain/                      # AppResult, DataError, shared domain primitives
+│   ├── logging/                     # App and network logging helpers
+│   ├── presentation/
+│   │   ├── designsystem/            # Theme, colors, type, icons, resources, components
+│   │   └── ui/                      # UiText, DataErrorToText, shared UI helpers
+│   └── utils/                       # System bar and platform utilities
+├── feature/
+│   ├── bookmark/
+│   │   └── presentation/            # Bookmark screen, ViewModel, route
+│   ├── detail/
+│   │   └── presentation/            # Detail screen, ViewModel, route
+│   ├── home/
+│   │   ├── data/                    # Room, remote/local data sources, repository impl
+│   │   ├── domain/                  # Word models, repositories, use cases
+│   │   └── presentation/            # Home screen, ViewModel, route
+│   ├── splash/
+│   │   └── presentation/            # Splash screen and route
+│   └── words/
+│       └── presentation/            # Word list screen, ViewModel, route
+├── fastlane/                        # Release/distribution automation
+├── gradle/libs.versions.toml        # Centralized dependency and plugin versions
+└── .github/workflows/               # CI and tagged release pipeline
 ```
+
+## Architecture
+
+The dependency direction is kept inward:
+
+```text
+app
+ ├── feature:*:presentation
+ ├── core:di
+ └── core:presentation:designsystem
+
+feature:*:presentation
+ ├── feature:home:domain
+ ├── core:domain
+ ├── core:presentation:ui
+ └── core:presentation:designsystem
+
+feature:home:data
+ ├── feature:home:domain
+ ├── core:data
+ ├── core:domain
+ └── core:logging
+
+core modules
+ └── shared primitives with no feature ownership
+```
+
+`HttpClientFactory` and `SafeApiCall` live in `:core:data` so every feature data module can reuse the same network setup. `UiText` and `DataErrorToText` live in `:core:presentation:ui` so presentation modules can map domain/data errors to localized UI messages consistently.
 
 ## Application Flow
 
-The app has three main destinations inside the Compose bottom navigation:
+The app starts at the splash destination, then enters the main flow owned by the root navigation graph in `:app`.
 
-1. **Home**  
-   Search for a word, see loading/error states, and store recent searches.
-2. **Word List**  
-   Filter the bundled local word index from `entries.json`, then fetch details from the API.
-3. **Bookmarks**  
-   View and remove locally saved entries.
+- **Home:** Search words, display loading/error states, and store recent searches.
+- **Words:** Filter the bundled local word index, then fetch word details.
+- **Bookmarks:** View and remove locally saved entries.
+- **Detail:** Show meanings for a selected word and toggle bookmark state.
 
-Detailed meaning results open through the Navigation3 detail route, where users can bookmark or remove saved words.
+Each feature exposes its route from a `navigation` package, while `AppNavigation` in `:app` composes those destinations into the app graph.
 
 ## Data Sources
 
@@ -96,11 +137,12 @@ Detailed meaning results open through the Navigation3 detail route, where users 
 
 - Base URL: `https://kbbi-api-green.vercel.app`
 - API repository: <https://github.com/arrazyfathan/kbbi-api>
+- Shared network helpers: `core/data/src/main/java/com/arrazyfathan/kbbi/core/data/remote/network`
 
 ### Local Data
 
 - **Room database:** stores history and bookmark data in `kbbi_db`
-- **Asset file:** `app/src/main/assets/entries.json` provides the local searchable word list
+- **Asset file:** `feature/home/data/src/main/assets/entries.json` provides the local searchable word list
 
 ## Requirements
 
@@ -120,9 +162,9 @@ git clone https://github.com/arrazyfathan/kbbi.git
 cd kbbi
 ```
 
-### 2. Make sure local Android SDK is configured
+### 2. Configure the Android SDK
 
-Your `local.properties` should point to a valid Android SDK installation, for example:
+Your `local.properties` should point to a valid Android SDK installation:
 
 ```properties
 sdk.dir=/path/to/Android/sdk
@@ -140,10 +182,8 @@ If Gradle sync succeeds, the project is ready to open in Android Studio.
 
 The app defines one flavor dimension, `stage`, with two product flavors:
 
-- `development`
-  Uses application ID `com.arrazyfathan.kbbi.dev`
-- `production`
-  Uses application ID `com.arrazyfathan.kbbi`
+- `development` uses application ID `com.arrazyfathan.kbbi.dev`
+- `production` uses application ID `com.arrazyfathan.kbbi`
 
 Examples:
 
@@ -169,53 +209,54 @@ For local development, the normal entry point is the development debug build:
 
 Or from Android Studio, choose the `developmentDebug` variant and run the `app` configuration.
 
-## Code Quality and Testing
+## Testing
 
-The project contains two suites of tests:
-1. **Local Unit Tests** (located in `app/src/test`): Test pure logic and business interactors using mock/fake repositories directly on the host JVM.
-2. **Instrumented Integration Tests** (located in `app/src/androidTest`): Test database operations and Android-dependent integrations on a physical device or emulator.
+Local unit tests are split across the app, core, and feature modules. Instrumented tests currently live under the feature data layer where Android-dependent Room behavior is validated.
 
-### Running Local Unit Tests
-To run JVM unit tests:
+Run JVM unit tests:
+
 ```sh
-./gradlew testDevelopmentDebugUnitTest
+./gradlew testDevelopmentDebugUnitTest :core:logging:testDebugUnitTest :core:domain:test :feature:home:data:testDebugUnitTest :feature:home:domain:test
 ```
 
-### Running Instrumented Integration Tests
-To compile instrumented tests without running them:
+Compile Android tests:
+
 ```sh
-./gradlew compileDevelopmentDebugAndroidTestKotlin
+./gradlew :feature:home:data:compileDebugAndroidTestKotlin
 ```
 
-To run instrumented tests (requires a running emulator or connected device):
+Run Android tests on a connected device or emulator:
+
 ```sh
-./gradlew connectedDevelopmentDebugAndroidTest
+./gradlew :feature:home:data:connectedDebugAndroidTest
 ```
 
-### Checking Test Coverage
-We use the JetBrains Kover plugin to measure unit test coverage. Since the project includes product flavors and signing rules, run the coverage tasks specifically for the development debug variant:
+## Coverage
 
-- **Console Summary**: Print coverage statistics directly to the terminal:
-  ```sh
-  ./gradlew app:koverLogDevelopmentDebug
-  ```
-- **HTML Report**: Generate a detailed HTML report:
-  ```sh
-  ./gradlew app:koverHtmlReportDevelopmentDebug
-  ```
-  The report is saved at `app/build/reports/kover/htmlDevelopmentDebug/index.html`.
+The project uses the JetBrains Kover plugin. For the development debug variant:
 
-### Quality and Validation Commands
-Other useful check tasks:
+```sh
+./gradlew app:koverLogDevelopmentDebug
+./gradlew app:koverHtmlReportDevelopmentDebug
+```
+
+The HTML report is generated at `app/build/reports/kover/htmlDevelopmentDebug/index.html`.
+
+## Quality and Validation
+
+Useful validation commands:
+
 ```sh
 ./gradlew lintDevelopmentDebug
 ./gradlew detekt
 ./gradlew ktlintCheck
+./gradlew assembleDevelopmentDebug
 ```
 
-You can run a broader validation pass including unit tests and build tasks:
+A focused post-refactor validation pass:
+
 ```sh
-./gradlew testDevelopmentDebugUnitTest lintDevelopmentDebug assembleDevelopmentDebug
+./gradlew testDevelopmentDebugUnitTest :core:logging:testDebugUnitTest :core:domain:test :feature:home:data:testDebugUnitTest :feature:home:domain:test :feature:home:data:compileDebugAndroidTestKotlin
 ```
 
 ## Release Signing
@@ -243,7 +284,7 @@ Without those values, any signed release packaging task will fail by design.
 
 ## Fastlane
 
-The repository already includes Fastlane setup.
+The repository includes Fastlane setup.
 
 Install Ruby dependencies:
 
@@ -251,7 +292,7 @@ Install Ruby dependencies:
 bundle install
 ```
 
-Available lanes:
+Available lane:
 
 ```sh
 bundle exec fastlane android test
@@ -297,6 +338,8 @@ The current app includes:
 
 - Compose-first screen implementation
 - Material 3 components and app theming
+- Shared design system module for theme, type, colors, icons, resources, and components
+- Shared `UiText` and `DataErrorToText` for localized presentation messages
 - Custom splash screen animation
 - Lottie-based loading and empty states
 - AndroidX edge-to-edge system bar setup

@@ -1,0 +1,16 @@
+-- Merging decision tree log ---
+manifest
+ADDED from /Users/macintosh/Personal/Android/Samples/kbbi/feature/splash/presentation/build/intermediates/tmp/ProcessLibraryManifest/debug/tempAndroidManifest12972618111072717826.xml:2:13-83
+INJECTED from /Users/macintosh/Personal/Android/Samples/kbbi/feature/splash/presentation/build/intermediates/tmp/ProcessLibraryManifest/debug/tempAndroidManifest12972618111072717826.xml:2:13-83
+	package
+		INJECTED from /Users/macintosh/Personal/Android/Samples/kbbi/feature/splash/presentation/build/intermediates/tmp/ProcessLibraryManifest/debug/tempAndroidManifest12972618111072717826.xml
+	xmlns:android
+		ADDED from /Users/macintosh/Personal/Android/Samples/kbbi/feature/splash/presentation/build/intermediates/tmp/ProcessLibraryManifest/debug/tempAndroidManifest12972618111072717826.xml:2:23-81
+uses-sdk
+INJECTED from /Users/macintosh/Personal/Android/Samples/kbbi/feature/splash/presentation/build/intermediates/tmp/ProcessLibraryManifest/debug/tempAndroidManifest12972618111072717826.xml reason: use-sdk injection requested
+INJECTED from /Users/macintosh/Personal/Android/Samples/kbbi/feature/splash/presentation/build/intermediates/tmp/ProcessLibraryManifest/debug/tempAndroidManifest12972618111072717826.xml
+INJECTED from /Users/macintosh/Personal/Android/Samples/kbbi/feature/splash/presentation/build/intermediates/tmp/ProcessLibraryManifest/debug/tempAndroidManifest12972618111072717826.xml
+	android:targetSdkVersion
+		INJECTED from /Users/macintosh/Personal/Android/Samples/kbbi/feature/splash/presentation/build/intermediates/tmp/ProcessLibraryManifest/debug/tempAndroidManifest12972618111072717826.xml
+	android:minSdkVersion
+		INJECTED from /Users/macintosh/Personal/Android/Samples/kbbi/feature/splash/presentation/build/intermediates/tmp/ProcessLibraryManifest/debug/tempAndroidManifest12972618111072717826.xml

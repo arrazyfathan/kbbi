@@ -1,0 +1,9 @@
+com.arrazyfathan.kbbi.core.presentation.ui-pngs-0 /Users/macintosh/Personal/Android/Samples/kbbi/core/presentation/ui/build/generated/res/pngs/debug
+com.arrazyfathan.kbbi.core.presentation.ui-updated_navigation_xml-1 /Users/macintosh/Personal/Android/Samples/kbbi/core/presentation/ui/build/generated/updated_navigation_xml/debug
+com.arrazyfathan.kbbi.core.presentation.ui-mergeDebugResources-2 /Users/macintosh/Personal/Android/Samples/kbbi/core/presentation/ui/build/intermediates/incremental/debug/mergeDebugResources/merged.dir
+com.arrazyfathan.kbbi.core.presentation.ui-mergeDebugResources-3 /Users/macintosh/Personal/Android/Samples/kbbi/core/presentation/ui/build/intermediates/incremental/debug/mergeDebugResources/stripped.dir
+com.arrazyfathan.kbbi.core.presentation.ui-debug-4 /Users/macintosh/Personal/Android/Samples/kbbi/core/presentation/ui/build/intermediates/merged_res/debug/mergeDebugResources
+com.arrazyfathan.kbbi.core.presentation.ui-debug-5 /Users/macintosh/Personal/Android/Samples/kbbi/core/presentation/ui/build/intermediates/packaged_res/debug/packageDebugResources
+com.arrazyfathan.kbbi.core.presentation.ui-debug-6 /Users/macintosh/Personal/Android/Samples/kbbi/core/presentation/ui/src/debug/res
+com.arrazyfathan.kbbi.core.presentation.ui-main-7 /Users/macintosh/Personal/Android/Samples/kbbi/core/presentation/ui/src/main/res
+gradleHome-0 /Users/macintosh/.gradle

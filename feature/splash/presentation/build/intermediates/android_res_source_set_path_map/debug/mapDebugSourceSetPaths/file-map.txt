@@ -1,0 +1,9 @@
+com.arrazyfathan.kbbi.feature.splash.presentation-pngs-0 /Users/macintosh/Personal/Android/Samples/kbbi/feature/splash/presentation/build/generated/res/pngs/debug
+com.arrazyfathan.kbbi.feature.splash.presentation-updated_navigation_xml-1 /Users/macintosh/Personal/Android/Samples/kbbi/feature/splash/presentation/build/generated/updated_navigation_xml/debug
+com.arrazyfathan.kbbi.feature.splash.presentation-mergeDebugResources-2 /Users/macintosh/Personal/Android/Samples/kbbi/feature/splash/presentation/build/intermediates/incremental/debug/mergeDebugResources/merged.dir
+com.arrazyfathan.kbbi.feature.splash.presentation-mergeDebugResources-3 /Users/macintosh/Personal/Android/Samples/kbbi/feature/splash/presentation/build/intermediates/incremental/debug/mergeDebugResources/stripped.dir
+com.arrazyfathan.kbbi.feature.splash.presentation-debug-4 /Users/macintosh/Personal/Android/Samples/kbbi/feature/splash/presentation/build/intermediates/merged_res/debug/mergeDebugResources
+com.arrazyfathan.kbbi.feature.splash.presentation-debug-5 /Users/macintosh/Personal/Android/Samples/kbbi/feature/splash/presentation/build/intermediates/packaged_res/debug/packageDebugResources
+com.arrazyfathan.kbbi.feature.splash.presentation-debug-6 /Users/macintosh/Personal/Android/Samples/kbbi/feature/splash/presentation/src/debug/res
+com.arrazyfathan.kbbi.feature.splash.presentation-main-7 /Users/macintosh/Personal/Android/Samples/kbbi/feature/splash/presentation/src/main/res
+gradleHome-0 /Users/macintosh/.gradle

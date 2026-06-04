@@ -1,0 +1,9 @@
+com.arrazyfathan.kbbi.core.logging-pngs-0 /Users/macintosh/Personal/Android/Samples/kbbi/core/logging/build/generated/res/pngs/debug
+com.arrazyfathan.kbbi.core.logging-updated_navigation_xml-1 /Users/macintosh/Personal/Android/Samples/kbbi/core/logging/build/generated/updated_navigation_xml/debug
+com.arrazyfathan.kbbi.core.logging-mergeDebugResources-2 /Users/macintosh/Personal/Android/Samples/kbbi/core/logging/build/intermediates/incremental/debug/mergeDebugResources/merged.dir
+com.arrazyfathan.kbbi.core.logging-mergeDebugResources-3 /Users/macintosh/Personal/Android/Samples/kbbi/core/logging/build/intermediates/incremental/debug/mergeDebugResources/stripped.dir
+com.arrazyfathan.kbbi.core.logging-debug-4 /Users/macintosh/Personal/Android/Samples/kbbi/core/logging/build/intermediates/merged_res/debug/mergeDebugResources
+com.arrazyfathan.kbbi.core.logging-debug-5 /Users/macintosh/Personal/Android/Samples/kbbi/core/logging/build/intermediates/packaged_res/debug/packageDebugResources
+com.arrazyfathan.kbbi.core.logging-debug-6 /Users/macintosh/Personal/Android/Samples/kbbi/core/logging/src/debug/res
+com.arrazyfathan.kbbi.core.logging-main-7 /Users/macintosh/Personal/Android/Samples/kbbi/core/logging/src/main/res
+gradleHome-0 /Users/macintosh/.gradle
