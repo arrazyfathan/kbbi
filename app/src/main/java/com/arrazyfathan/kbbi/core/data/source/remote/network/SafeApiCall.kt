@@ -1,12 +1,21 @@
 package com.arrazyfathan.kbbi.core.data.source.remote.network
 
+import com.arrazyfathan.kbbi.BuildConfig
 import com.arrazyfathan.kbbi.core.domain.model.AppResult
 import com.arrazyfathan.kbbi.core.domain.model.DataError
+import io.ktor.client.HttpClient
 import io.ktor.client.call.body
+import io.ktor.client.plugins.HttpRequestTimeoutException
+import io.ktor.client.request.delete
+import io.ktor.client.request.get
+import io.ktor.client.request.parameter
+import io.ktor.client.request.patch
+import io.ktor.client.request.post
+import io.ktor.client.request.put
+import io.ktor.client.request.setBody
+import io.ktor.client.request.url
 import io.ktor.client.statement.HttpResponse
-import io.ktor.http.isSuccess
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.withContext
+import io.ktor.util.network.UnresolvedAddressException
 import kotlinx.serialization.SerializationException
 import java.io.IOException
 import java.net.ConnectException
@@ -25,26 +34,114 @@ private const val HTTP_REQUEST_TIMEOUT = 408
 private const val HTTP_SERVER_ERROR_START = 500
 private const val HTTP_SERVICE_UNAVAILABLE = 503
 
-suspend inline fun <reified T> safeApiCall(noinline apiCall: suspend () -> HttpResponse): AppResult<T, DataError> =
-    withContext(Dispatchers.IO) {
-        try {
-            val response = apiCall()
-
-            when {
-                response.status.isSuccess() -> AppResult.Success(response.body<T>())
-                else -> AppResult.Error(response.status.value.toDataError())
+suspend inline fun <reified Response : Any> HttpClient.get(
+    route: String,
+    queryParameters: Map<String, Any?> = emptyMap(),
+): AppResult<Response, DataError> =
+    safeCall {
+        get {
+            url(constructRoute(route))
+            queryParameters.forEach { (key, value) ->
+                parameter(key, value)
             }
+        }
+    }
+
+suspend inline fun <reified Request : Any, reified Response : Any> HttpClient.post(
+    route: String,
+    body: Request,
+): AppResult<Response, DataError> =
+    safeCall {
+        post {
+            url(constructRoute(route))
+            setBody(body)
+        }
+    }
+
+suspend inline fun <reified Request : Any, reified Response : Any> HttpClient.put(
+    route: String,
+    body: Request,
+): AppResult<Response, DataError> =
+    safeCall {
+        put {
+            url(constructRoute(route))
+            setBody(body)
+        }
+    }
+
+suspend inline fun <reified Request : Any, reified Response : Any> HttpClient.patch(
+    route: String,
+    body: Request,
+): AppResult<Response, DataError> =
+    safeCall {
+        patch {
+            url(constructRoute(route))
+            setBody(body)
+        }
+    }
+
+suspend inline fun <reified Response : Any> HttpClient.delete(
+    route: String,
+    queryParameters: Map<String, Any?> = emptyMap(),
+): AppResult<Response, DataError> =
+    safeCall {
+        delete {
+            url(constructRoute(route))
+            queryParameters.forEach { (key, value) ->
+                parameter(key, value)
+            }
+        }
+    }
+
+suspend inline fun <reified T : Any> safeCall(noinline execute: suspend () -> HttpResponse): AppResult<T, DataError> {
+    val response =
+        try {
+            execute()
+        } catch (_: UnresolvedAddressException) {
+            return AppResult.Error(DataError.NoInternet)
+        } catch (_: HttpRequestTimeoutException) {
+            return AppResult.Error(DataError.RequestTimeout)
         } catch (e: IOException) {
-            AppResult.Error(e.toDataError())
+            return AppResult.Error(e.toDataError())
         } catch (e: CancellationException) {
             throw e
         } catch (_: SerializationException) {
-            AppResult.Error(DataError.Serialization)
+            return AppResult.Error(DataError.Serialization)
         } catch (_: IllegalArgumentException) {
-            AppResult.Error(DataError.Serialization)
+            return AppResult.Error(DataError.Serialization)
         } catch (_: Exception) {
-            AppResult.Error(DataError.Unknown)
+            return AppResult.Error(DataError.Unknown)
         }
+
+    return responseToResult(response)
+}
+
+suspend inline fun <reified T : Any> responseToResult(response: HttpResponse): AppResult<T, DataError> =
+    when (response.status.value) {
+        in 200..299 -> readSuccessBody(response)
+        else -> AppResult.Error(response.status.value.toDataError())
+    }
+
+suspend inline fun <reified T : Any> readSuccessBody(response: HttpResponse): AppResult<T, DataError> =
+    try {
+        AppResult.Success(response.body<T>())
+    } catch (e: CancellationException) {
+        throw e
+    } catch (e: SerializationException) {
+        AppResult.Error(DataError.Serialization)
+    } catch (e: IllegalArgumentException) {
+        AppResult.Error(DataError.Serialization)
+    } catch (e: NoSuchElementException) {
+        AppResult.Error(DataError.EmptyBody)
+    } catch (e: Exception) {
+        AppResult.Error(DataError.Unknown)
+    }
+
+fun constructRoute(route: String): String =
+    when {
+        route.contains(BuildConfig.BASE_URL) -> route
+        route.startsWith("/") -> BuildConfig.BASE_URL.trimEnd('/') + route
+        else -> BuildConfig.BASE_URL.trimEnd('/') + "/$route"
     }
 
 @PublishedApi

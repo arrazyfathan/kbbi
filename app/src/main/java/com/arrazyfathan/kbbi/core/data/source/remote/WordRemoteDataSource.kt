@@ -2,16 +2,16 @@ package com.arrazyfathan.kbbi.core.data.source.remote
 
 import com.arrazyfathan.kbbi.core.data.source.remote.dto.ListWordDto
 import com.arrazyfathan.kbbi.core.data.source.remote.dto.WordDto
-import com.arrazyfathan.kbbi.core.data.source.remote.network.ApiService
-import com.arrazyfathan.kbbi.core.data.source.remote.network.safeApiCall
+import com.arrazyfathan.kbbi.core.data.source.remote.network.get
 import com.arrazyfathan.kbbi.core.domain.model.AppResult
 import com.arrazyfathan.kbbi.core.domain.model.DataError
+import io.ktor.client.HttpClient
 
 class WordRemoteDataSource(
-    private val apiService: ApiService,
+    private val httpClient: HttpClient,
 ) {
     suspend fun getMeaningOfWord(word: String): AppResult<List<WordDto>, DataError> =
-        when (val result = safeApiCall<ListWordDto> { apiService.getMeaningWord(word) }) {
+        when (val result = httpClient.get<ListWordDto>(route = "/search/$word")) {
             is AppResult.Success -> result.data.toWordResult()
             is AppResult.Error -> result
         }
