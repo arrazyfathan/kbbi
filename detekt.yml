@@ -18,6 +18,8 @@ complexity:
     active: false
 
 naming:
+  MatchingDeclarationName:
+    active: false
   FunctionNaming:
     ignoreAnnotated:
       - Composable

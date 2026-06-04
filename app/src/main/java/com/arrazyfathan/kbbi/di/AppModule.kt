@@ -1,5 +1,7 @@
 package com.arrazyfathan.kbbi.di
 
+import com.arrazyfathan.kbbi.feature.bookmark.presentation.bookmark.BookmarksViewModel
+import com.arrazyfathan.kbbi.feature.detail.presentation.detail.DetailViewModel
 import com.arrazyfathan.kbbi.feature.home.domain.usecase.AddSearchHistoryUseCase
 import com.arrazyfathan.kbbi.feature.home.domain.usecase.CheckWordSavedUseCase
 import com.arrazyfathan.kbbi.feature.home.domain.usecase.DeleteBookmarkUseCase
@@ -9,8 +11,6 @@ import com.arrazyfathan.kbbi.feature.home.domain.usecase.ObserveSearchHistoryUse
 import com.arrazyfathan.kbbi.feature.home.domain.usecase.SaveBookmarkUseCase
 import com.arrazyfathan.kbbi.feature.home.domain.usecase.SearchWordUseCase
 import com.arrazyfathan.kbbi.feature.home.domain.usecase.SearchWordWithHistoryUseCase
-import com.arrazyfathan.kbbi.feature.bookmark.presentation.bookmark.BookmarksViewModel
-import com.arrazyfathan.kbbi.feature.detail.presentation.detail.DetailViewModel
 import com.arrazyfathan.kbbi.feature.home.presentation.home.HomeViewModel
 import com.arrazyfathan.kbbi.feature.words.presentation.words.WordViewModel
 import org.koin.core.module.dsl.factoryOf

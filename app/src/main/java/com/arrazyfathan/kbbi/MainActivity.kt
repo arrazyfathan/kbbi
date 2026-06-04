@@ -12,10 +12,10 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.core.content.ContextCompat
 import com.arrazyfathan.kbbi.core.R
-import com.arrazyfathan.kbbi.navigation.MainApp
 import com.arrazyfathan.kbbi.core.presentation.designsystem.KBBITheme
 import com.arrazyfathan.kbbi.core.utils.updateSystemBarStyle
 import com.arrazyfathan.kbbi.feature.splash.presentation.navigation.SplashRoute
+import com.arrazyfathan.kbbi.navigation.MainApp
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
