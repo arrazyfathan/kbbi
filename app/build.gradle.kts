@@ -231,6 +231,7 @@ dependencies {
 
     implementation(libs.koin.core)
     implementation(libs.koin.android)
+    implementation(libs.timber)
 
     // Compose
     implementation(platform(libs.androidx.compose.bom))
