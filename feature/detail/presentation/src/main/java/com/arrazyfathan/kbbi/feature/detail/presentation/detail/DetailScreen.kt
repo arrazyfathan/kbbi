@@ -3,7 +3,6 @@ package com.arrazyfathan.kbbi.feature.detail.presentation.detail
 import android.content.ClipData
 import android.content.ClipboardManager
 import android.content.Context
-import android.widget.Toast
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
@@ -27,15 +26,18 @@ import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
-import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.platform.LocalContext
@@ -51,15 +53,21 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.arrazyfathan.kbbi.core.R
-import com.arrazyfathan.kbbi.feature.home.domain.model.ListWordModel
-import com.arrazyfathan.kbbi.feature.home.domain.model.MeaningModel
-import com.arrazyfathan.kbbi.feature.home.domain.model.WordModel
 import com.arrazyfathan.kbbi.core.presentation.designsystem.BlueBg
 import com.arrazyfathan.kbbi.core.presentation.designsystem.InterFontFamily
 import com.arrazyfathan.kbbi.core.presentation.designsystem.KBBITheme
 import com.arrazyfathan.kbbi.core.presentation.designsystem.TextH1
 import com.arrazyfathan.kbbi.core.presentation.designsystem.TextP
+import com.arrazyfathan.kbbi.core.presentation.ui.AppAlertState
+import com.arrazyfathan.kbbi.core.presentation.ui.AppAlertType
+import com.arrazyfathan.kbbi.core.presentation.ui.AppTopAlert
+import com.arrazyfathan.kbbi.feature.home.domain.model.ListWordModel
+import com.arrazyfathan.kbbi.feature.home.domain.model.MeaningModel
+import com.arrazyfathan.kbbi.feature.home.domain.model.WordModel
+import kotlinx.coroutines.delay
 import org.koin.androidx.compose.koinViewModel
+
+private const val DETAIL_ALERT_DURATION_MILLIS = 2_200L
 
 @Composable
 fun DetailScreen(
@@ -68,6 +76,16 @@ fun DetailScreen(
 ) {
     val context = LocalContext.current
     val state by viewModel.state.collectAsStateWithLifecycle()
+    var alertState by remember { mutableStateOf<AppAlertState?>(null) }
+    var alertKey by remember { mutableIntStateOf(0) }
+
+    fun showAlert(
+        message: String,
+        type: AppAlertType = AppAlertType.Success,
+    ) {
+        alertState = AppAlertState(message = message, type = type)
+        alertKey++
+    }
 
     LaunchedEffect(listWordModel.word) {
         viewModel.onAction(DetailAction.OnStarted(listWordModel.word.lowercase()))
@@ -77,9 +95,16 @@ fun DetailScreen(
         viewModel.events.collect { event ->
             when (event) {
                 is DetailEvent.ShowMessage -> {
-                    Toast.makeText(context, event.messageResId, Toast.LENGTH_SHORT).show()
+                    showAlert(context.getString(event.messageResId))
                 }
             }
+        }
+    }
+
+    LaunchedEffect(alertKey) {
+        if (alertState != null) {
+            delay(DETAIL_ALERT_DURATION_MILLIS)
+            alertState = null
         }
     }
 
@@ -87,6 +112,8 @@ fun DetailScreen(
         listWordModel = listWordModel,
         state = state,
         onAction = viewModel::onAction,
+        onShowAlert = { message, type -> showAlert(message, type) },
+        alertState = alertState,
     )
 }
 
@@ -95,6 +122,8 @@ fun DetailContent(
     listWordModel: ListWordModel,
     state: DetailState,
     onAction: (DetailAction) -> Unit,
+    onShowAlert: (String, AppAlertType) -> Unit,
+    alertState: AppAlertState?,
 ) {
     val context = LocalContext.current
     val lazyListState = rememberLazyListState()
@@ -114,131 +143,121 @@ fun DetailContent(
         }
     }
 
-    Scaffold(
+    Box(
         modifier = Modifier.fillMaxSize().background(BlueBg),
-        containerColor = BlueBg,
-        bottomBar = {
-            // Bookmark Floating Bar
-            Box(
-                modifier = Modifier.fillMaxWidth().padding(bottom = 24.dp),
-                contentAlignment = Alignment.Center,
-            ) {
-                Card(
-                    modifier =
-                        Modifier.clickable {
-                            onAction(
-                                DetailAction.OnBookmarkClick(
-                                    listWordModel.word.lowercase(),
-                                    listWordModel.listWords,
-                                ),
-                            )
-                        },
-                    shape = RoundedCornerShape(100.dp),
-                    colors =
-                        CardDefaults.cardColors(
-                            containerColor = if (state.isSaved) TextH1 else Color.White,
-                        ),
-                    elevation = CardDefaults.cardElevation(defaultElevation = 8.dp),
-                ) {
-                    Row(
-                        modifier = Modifier.padding(horizontal = 24.dp, vertical = 16.dp),
-                        verticalAlignment = Alignment.CenterVertically,
-                    ) {
-                        Icon(
-                            painter =
-                                painterResource(
-                                    id = if (state.isSaved) R.drawable.book_solid else R.drawable.book,
-                                ),
-                            contentDescription = "Bookmark",
-                            tint = if (state.isSaved) Color.White else TextH1,
-                            modifier = Modifier.size(20.dp),
-                        )
-                        Spacer(modifier = Modifier.width(8.dp))
-                        Text(
-                            text =
-                                stringResource(
-                                    id = if (state.isSaved) R.string.bookmarked else R.string.bookmark,
-                                ),
-                            color = if (state.isSaved) Color.White else TextH1,
-                            fontFamily = InterFontFamily,
-                            fontWeight = FontWeight.SemiBold,
-                            fontSize = 16.sp,
-                        )
-                    }
-                }
-            }
-        },
-    ) { innerPadding ->
-        Box(
-            modifier =
-                Modifier
-                    .fillMaxSize()
-                    .background(BlueBg)
-                    .padding(bottom = innerPadding.calculateBottomPadding()),
+    ) {
+        LazyColumn(
+            state = lazyListState,
+            modifier = Modifier.fillMaxSize(),
+            contentPadding = PaddingValues(start = 16.dp, end = 16.dp, bottom = 132.dp),
         ) {
-            LazyColumn(
-                state = lazyListState,
-                modifier = Modifier.fillMaxSize(),
-                contentPadding = PaddingValues(start = 16.dp, end = 16.dp, bottom = 100.dp),
-            ) {
-                // Header spacing and expanded title
-                item {
-                    Spacer(
-                        modifier = Modifier.statusBarsPadding().height(90.dp),
-                    )
-                    Text(
-                        text = listWordModel.word.replaceFirstChar { it.uppercase() },
-                        color = TextH1,
-                        fontSize = 30.sp,
-                        fontFamily = InterFontFamily,
-                        fontWeight = FontWeight.Bold,
-                        modifier = Modifier.padding(horizontal = 16.dp, vertical = 16.dp),
-                    )
-                }
-
-                // Word details cards
-                itemsIndexed(listWordModel.listWords) { index, wordModel ->
-                    WordEntryCard(
-                        index = index,
-                        wordModel = wordModel,
-                        onCopyClick = {
-                            val clipboardManager =
-                                context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
-                            var copiedText = ""
-                            for ((i, item) in wordModel.meanings.withIndex()) {
-                                val regex = Regex("""\[(.*?)]""")
-                                val cleanWordClass = item.wordClass.replace(regex, " ").trim()
-                                val cleanDescription = item.description.replace(Regex("\\?(.*)"), "")
-                                copiedText += "${i + 1}. $cleanWordClass $cleanDescription\n\n"
-                            }
-                            val clip = ClipData.newPlainText("meaning", copiedText.trim())
-                            clipboardManager.setPrimaryClip(clip)
-                            Toast.makeText(context, R.string.copy_success, Toast.LENGTH_SHORT).show()
-                        },
-                    )
-                }
-            }
-
-            // Top Custom Collapsed Toolbar (displays title on scroll)
-            Box(
-                modifier =
-                    Modifier
-                        .fillMaxWidth()
-                        .background(BlueBg)
-                        .statusBarsPadding()
-                        .height(56.dp),
-                contentAlignment = Alignment.Center,
-            ) {
+            // Header spacing and expanded title
+            item {
+                Spacer(
+                    modifier = Modifier.statusBarsPadding().height(96.dp),
+                )
                 Text(
                     text = listWordModel.word.replaceFirstChar { it.uppercase() },
                     color = TextH1,
-                    fontSize = 24.sp,
+                    fontSize = 34.sp,
                     fontFamily = InterFontFamily,
                     fontWeight = FontWeight.Bold,
-                    modifier = Modifier.graphicsLayer(alpha = collapsedTitleAlpha),
+                    modifier = Modifier.padding(horizontal = 16.dp, vertical = 20.dp),
+                )
+            }
+
+            // Word details cards
+            itemsIndexed(listWordModel.listWords) { index, wordModel ->
+                WordEntryCard(
+                    index = index,
+                    wordModel = wordModel,
+                    onCopyClick = {
+                        val clipboardManager =
+                            context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
+                        var copiedText = ""
+                        for ((i, item) in wordModel.meanings.withIndex()) {
+                            val regex = Regex("""\[(.*?)]""")
+                            val cleanWordClass = item.wordClass.replace(regex, " ").trim()
+                            val cleanDescription = item.description.replace(Regex("\\?(.*)"), "")
+                            copiedText += "${i + 1}. $cleanWordClass $cleanDescription\n\n"
+                        }
+                        val clip = ClipData.newPlainText("meaning", copiedText.trim())
+                        clipboardManager.setPrimaryClip(clip)
+                        onShowAlert(context.getString(R.string.copy_success), AppAlertType.Success)
+                    },
                 )
             }
         }
+
+        // Top Custom Collapsed Toolbar (displays title on scroll)
+        Box(
+            modifier =
+                Modifier
+                    .fillMaxWidth()
+                    .shadow(elevation = if (collapsedTitleAlpha > 0f) 8.dp else 0.dp)
+                    .background(BlueBg)
+                    .statusBarsPadding()
+                    .height(72.dp),
+            contentAlignment = Alignment.Center,
+        ) {
+            Text(
+                text = listWordModel.word.replaceFirstChar { it.uppercase() },
+                color = TextH1,
+                fontSize = 26.sp,
+                fontFamily = InterFontFamily,
+                fontWeight = FontWeight.Bold,
+                modifier = Modifier.graphicsLayer(alpha = collapsedTitleAlpha),
+            )
+        }
+
+        Card(
+            modifier =
+                Modifier
+                    .align(Alignment.BottomCenter)
+                    .padding(bottom = 24.dp)
+                    .clickable {
+                        onAction(
+                            DetailAction.OnBookmarkClick(
+                                listWordModel.word.lowercase(),
+                                listWordModel.listWords,
+                            ),
+                        )
+                    },
+            shape = RoundedCornerShape(100.dp),
+            colors =
+                CardDefaults.cardColors(
+                    containerColor = if (state.isSaved) TextH1 else Color.White,
+                ),
+            elevation = CardDefaults.cardElevation(defaultElevation = 14.dp),
+        ) {
+            Row(
+                modifier = Modifier.padding(horizontal = 24.dp, vertical = 16.dp),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                Icon(
+                    painter =
+                        painterResource(
+                            id = if (state.isSaved) R.drawable.book_solid else R.drawable.book,
+                        ),
+                    contentDescription = stringResource(id = R.string.bookmark),
+                    tint = if (state.isSaved) Color.White else TextH1,
+                    modifier = Modifier.size(20.dp),
+                )
+                Spacer(modifier = Modifier.width(8.dp))
+                Text(
+                    text =
+                        stringResource(
+                            id = if (state.isSaved) R.string.bookmarked else R.string.bookmark,
+                        ),
+                    color = if (state.isSaved) Color.White else TextH1,
+                    fontFamily = InterFontFamily,
+                    fontWeight = FontWeight.SemiBold,
+                    fontSize = 16.sp,
+                )
+            }
+        }
+
+        AppTopAlert(state = alertState)
     }
 }
 
@@ -400,6 +419,8 @@ fun DetailContentPreview() {
             listWordModel = sampleListWordModel,
             state = DetailState(isSaved = false),
             onAction = {},
+            onShowAlert = { _, _ -> },
+            alertState = null,
         )
     }
 }
@@ -427,6 +448,11 @@ fun DetailContentSavedPreview() {
             listWordModel = sampleListWordModel,
             state = DetailState(isSaved = true),
             onAction = {},
+            onShowAlert = { _, _ -> },
+            alertState = AppAlertState(
+                message = "Bookmarked",
+                type = AppAlertType.Success,
+            ),
         )
     }
 }

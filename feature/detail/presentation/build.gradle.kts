@@ -33,6 +33,7 @@ kotlin {
 
 dependencies {
     implementation(project(":core:presentation:designsystem"))
+    implementation(project(":core:presentation:ui"))
     implementation(project(":feature:home:domain"))
 
     implementation(libs.androidx.lifecycle.viewmodel.ktx)
