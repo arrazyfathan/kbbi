@@ -3,8 +3,14 @@ package com.arrazyfathan.kbbi.feature.detail.presentation.detail
 import android.content.ClipData
 import android.content.ClipboardManager
 import android.content.Context
+import androidx.compose.animation.core.Spring
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.spring
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.interaction.collectIsPressedAsState
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -27,6 +33,7 @@ import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
+import androidx.compose.material3.ripple
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.derivedStateOf
@@ -37,6 +44,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
@@ -61,11 +69,13 @@ import com.arrazyfathan.kbbi.core.presentation.designsystem.TextP
 import com.arrazyfathan.kbbi.core.presentation.ui.AppAlertState
 import com.arrazyfathan.kbbi.core.presentation.ui.AppAlertType
 import com.arrazyfathan.kbbi.core.presentation.ui.AppTopAlert
+import com.arrazyfathan.kbbi.core.presentation.ui.UiText
 import com.arrazyfathan.kbbi.feature.home.domain.model.ListWordModel
 import com.arrazyfathan.kbbi.feature.home.domain.model.MeaningModel
 import com.arrazyfathan.kbbi.feature.home.domain.model.WordModel
 import kotlinx.coroutines.delay
 import org.koin.androidx.compose.koinViewModel
+import kotlin.time.Duration.Companion.milliseconds
 
 private const val DETAIL_ALERT_DURATION_MILLIS = 2_200L
 
@@ -74,13 +84,12 @@ fun DetailScreen(
     listWordModel: ListWordModel,
     viewModel: DetailViewModel = koinViewModel(),
 ) {
-    val context = LocalContext.current
     val state by viewModel.state.collectAsStateWithLifecycle()
     var alertState by remember { mutableStateOf<AppAlertState?>(null) }
     var alertKey by remember { mutableIntStateOf(0) }
 
     fun showAlert(
-        message: String,
+        message: UiText,
         type: AppAlertType = AppAlertType.Success,
     ) {
         alertState = AppAlertState(message = message, type = type)
@@ -95,7 +104,7 @@ fun DetailScreen(
         viewModel.events.collect { event ->
             when (event) {
                 is DetailEvent.ShowMessage -> {
-                    showAlert(context.getString(event.messageResId))
+                    showAlert(UiText.StringResource(event.messageResId))
                 }
             }
         }
@@ -103,7 +112,7 @@ fun DetailScreen(
 
     LaunchedEffect(alertKey) {
         if (alertState != null) {
-            delay(DETAIL_ALERT_DURATION_MILLIS)
+            delay(DETAIL_ALERT_DURATION_MILLIS.milliseconds)
             alertState = null
         }
     }
@@ -122,11 +131,22 @@ fun DetailContent(
     listWordModel: ListWordModel,
     state: DetailState,
     onAction: (DetailAction) -> Unit,
-    onShowAlert: (String, AppAlertType) -> Unit,
+    onShowAlert: (UiText, AppAlertType) -> Unit,
     alertState: AppAlertState?,
 ) {
     val context = LocalContext.current
     val lazyListState = rememberLazyListState()
+    val bookmarkInteractionSource = remember { MutableInteractionSource() }
+    val isBookmarkPressed by bookmarkInteractionSource.collectIsPressedAsState()
+    val bookmarkButtonScale by animateFloatAsState(
+        targetValue = if (isBookmarkPressed) 0.92f else 1f,
+        animationSpec =
+            spring(
+                dampingRatio = Spring.DampingRatioMediumBouncy,
+                stiffness = Spring.StiffnessMedium,
+            ),
+        label = "bookmark-button-scale",
+    )
     val collapsedTitleAlpha by remember {
         derivedStateOf {
             val progress =
@@ -183,7 +203,7 @@ fun DetailContent(
                         }
                         val clip = ClipData.newPlainText("meaning", copiedText.trim())
                         clipboardManager.setPrimaryClip(clip)
-                        onShowAlert(context.getString(R.string.copy_success), AppAlertType.Success)
+                        onShowAlert(UiText.StringResource(R.string.copy_success), AppAlertType.Success)
                     },
                 )
             }
@@ -210,51 +230,59 @@ fun DetailContent(
             )
         }
 
-        Card(
+        Row(
             modifier =
                 Modifier
                     .align(Alignment.BottomCenter)
-                    .padding(bottom = 24.dp)
-                    .clickable {
+                    .padding(bottom = 44.dp)
+                    .width(180.dp)
+                    .height(54.dp)
+                    .graphicsLayer {
+                        scaleX = bookmarkButtonScale
+                        scaleY = bookmarkButtonScale
+                    }
+                    .shadow(
+                        elevation = if (isBookmarkPressed) 8.dp else 14.dp,
+                        shape = RoundedCornerShape(100.dp),
+                        clip = false,
+                    )
+                    .clip(RoundedCornerShape(100.dp))
+                    .background(if (state.isSaved) TextH1 else Color.White)
+                    .clickable(
+                        interactionSource = bookmarkInteractionSource,
+                        indication = ripple(),
+                    ) {
                         onAction(
                             DetailAction.OnBookmarkClick(
                                 listWordModel.word.lowercase(),
                                 listWordModel.listWords,
                             ),
                         )
-                    },
-            shape = RoundedCornerShape(100.dp),
-            colors =
-                CardDefaults.cardColors(
-                    containerColor = if (state.isSaved) TextH1 else Color.White,
-                ),
-            elevation = CardDefaults.cardElevation(defaultElevation = 14.dp),
+                    }
+                    .padding(horizontal = 20.dp),
+            horizontalArrangement = Arrangement.Center,
+            verticalAlignment = Alignment.CenterVertically,
         ) {
-            Row(
-                modifier = Modifier.padding(horizontal = 24.dp, vertical = 16.dp),
-                verticalAlignment = Alignment.CenterVertically,
-            ) {
-                Icon(
-                    painter =
-                        painterResource(
-                            id = if (state.isSaved) R.drawable.book_solid else R.drawable.book,
-                        ),
-                    contentDescription = stringResource(id = R.string.bookmark),
-                    tint = if (state.isSaved) Color.White else TextH1,
-                    modifier = Modifier.size(20.dp),
-                )
-                Spacer(modifier = Modifier.width(8.dp))
-                Text(
-                    text =
-                        stringResource(
-                            id = if (state.isSaved) R.string.bookmarked else R.string.bookmark,
-                        ),
-                    color = if (state.isSaved) Color.White else TextH1,
-                    fontFamily = InterFontFamily,
-                    fontWeight = FontWeight.SemiBold,
-                    fontSize = 16.sp,
-                )
-            }
+            Icon(
+                painter =
+                    painterResource(
+                        id = if (state.isSaved) R.drawable.book_solid else R.drawable.book,
+                    ),
+                contentDescription = stringResource(id = R.string.bookmark),
+                tint = if (state.isSaved) Color.White else TextH1,
+                modifier = Modifier.size(20.dp),
+            )
+            Spacer(modifier = Modifier.width(10.dp))
+            Text(
+                text =
+                    stringResource(
+                        id = if (state.isSaved) R.string.bookmarked else R.string.bookmark,
+                    ),
+                color = if (state.isSaved) Color.White else TextH1,
+                fontFamily = InterFontFamily,
+                fontWeight = FontWeight.SemiBold,
+                fontSize = 14.sp,
+            )
         }
 
         AppTopAlert(state = alertState)
@@ -343,14 +371,14 @@ fun WordEntryCard(
                     shape = RoundedCornerShape(100.dp),
                     colors = ButtonDefaults.buttonColors(containerColor = TextH1),
                     contentPadding = PaddingValues(horizontal = 24.dp),
-                    modifier = Modifier.height(50.dp),
+                    modifier = Modifier.height(44.dp),
                 ) {
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         Icon(
                             painter = painterResource(id = R.drawable.copy),
                             contentDescription = stringResource(id = R.string.copy),
                             tint = Color.White,
-                            modifier = Modifier.size(16.dp),
+                            modifier = Modifier.size(14.dp),
                         )
                         Spacer(modifier = Modifier.width(8.dp))
                         Text(
@@ -358,7 +386,7 @@ fun WordEntryCard(
                             color = Color.White,
                             fontFamily = InterFontFamily,
                             fontWeight = FontWeight.SemiBold,
-                            fontSize = 14.sp,
+                            fontSize = 12.sp,
                         )
                     }
                 }
@@ -449,10 +477,11 @@ fun DetailContentSavedPreview() {
             state = DetailState(isSaved = true),
             onAction = {},
             onShowAlert = { _, _ -> },
-            alertState = AppAlertState(
-                message = "Bookmarked",
-                type = AppAlertType.Success,
-            ),
+            alertState =
+                AppAlertState(
+                    message = UiText.DynamicString("Bookmarked"),
+                    type = AppAlertType.Success,
+                ),
         )
     }
 }

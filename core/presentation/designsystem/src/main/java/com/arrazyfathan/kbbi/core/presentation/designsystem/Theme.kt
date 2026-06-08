@@ -11,6 +11,7 @@ private val LightColorScheme =
         secondary = BlueSecondary,
         background = BlueBg,
         surface = Color.White,
+        surfaceTint = Color.Transparent,
         onPrimary = Color.White,
         onSecondary = Color.White,
         onBackground = TextPrimary,

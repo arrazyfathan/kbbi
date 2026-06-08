@@ -27,7 +27,7 @@ enum class AppAlertType {
 }
 
 data class AppAlertState(
-    val message: String,
+    val message: UiText,
     val type: AppAlertType,
 )
 
@@ -71,7 +71,7 @@ fun AppTopAlert(
                 verticalAlignment = Alignment.CenterVertically,
             ) {
                 Text(
-                    text = state.message,
+                    text = state.message.asString(),
                     color = contentColor,
                     fontFamily = InterFontFamily,
                     fontWeight = FontWeight.SemiBold,
