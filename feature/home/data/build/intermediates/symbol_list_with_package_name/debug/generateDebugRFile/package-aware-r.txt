@@ -1,1 +1,0 @@
-com.arrazyfathan.kbbi.feature.home.data

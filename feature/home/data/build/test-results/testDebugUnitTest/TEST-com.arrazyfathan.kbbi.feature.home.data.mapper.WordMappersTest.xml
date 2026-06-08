@@ -1,9 +1,0 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<testsuite name="com.arrazyfathan.kbbi.feature.home.data.mapper.WordMappersTest" tests="3" skipped="0" failures="0" errors="0" timestamp="2026-06-04T03:47:45.066Z" hostname="Macintoshs-MacBook-Pro.local" time="0.148">
-  <properties/>
-  <testcase name="domainModelsMapToWordEntities" classname="com.arrazyfathan.kbbi.feature.home.data.mapper.WordMappersTest" time="0.038"/>
-  <testcase name="wordDtosMapToDomainModels" classname="com.arrazyfathan.kbbi.feature.home.data.mapper.WordMappersTest" time="0.104"/>
-  <testcase name="listWordEntityMapsToDomainModel" classname="com.arrazyfathan.kbbi.feature.home.data.mapper.WordMappersTest" time="0.003"/>
-  <system-out><![CDATA[]]></system-out>
-  <system-err><![CDATA[]]></system-err>
-</testsuite>

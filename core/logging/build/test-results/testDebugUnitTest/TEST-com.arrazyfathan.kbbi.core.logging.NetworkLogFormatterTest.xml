@@ -1,8 +1,0 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<testsuite name="com.arrazyfathan.kbbi.core.logging.NetworkLogFormatterTest" tests="2" skipped="0" failures="0" errors="0" timestamp="2026-06-04T03:47:43.089Z" hostname="Macintoshs-MacBook-Pro.local" time="0.498">
-  <properties/>
-  <testcase name="formatPostRequestIncludesRedactedBodyInCurlCommand" classname="com.arrazyfathan.kbbi.core.logging.NetworkLogFormatterTest" time="0.495"/>
-  <testcase name="formatRequestIncludesCopyableCurlCommand" classname="com.arrazyfathan.kbbi.core.logging.NetworkLogFormatterTest" time="0.001"/>
-  <system-out><![CDATA[]]></system-out>
-  <system-err><![CDATA[]]></system-err>
-</testsuite>

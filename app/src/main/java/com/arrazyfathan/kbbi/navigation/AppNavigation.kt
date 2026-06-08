@@ -3,6 +3,13 @@ package com.arrazyfathan.kbbi.navigation
 import android.app.Activity
 import android.content.Context
 import android.content.ContextWrapper
+import androidx.compose.animation.ContentTransform
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.slideInHorizontally
+import androidx.compose.animation.slideOutHorizontally
+import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
@@ -38,6 +45,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.viewmodel.navigation3.rememberViewModelStoreNavEntryDecorator
@@ -66,6 +74,10 @@ import com.arrazyfathan.kbbi.feature.home.presentation.navigation.HomeRoute
 import com.arrazyfathan.kbbi.feature.words.presentation.navigation.WordsRoute
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
+
+private const val IOS_NAVIGATION_TRANSITION_DURATION_MILLIS = 350
+private const val IOS_NAVIGATION_PARALLAX_DIVISOR = 3
+private const val BOTTOM_NAVIGATION_TRANSITION_DURATION_MILLIS = 220
 
 sealed interface Screen : NavKey {
     val titleResId: Int
@@ -222,6 +234,9 @@ fun MainApp() {
                         }
                     },
                     modifier = Modifier.padding(bottom = innerPadding.calculateBottomPadding()),
+                    transitionSpec = { appNavigationTransition(isDetailVisible) },
+                    popTransitionSpec = { appPopNavigationTransition(isDetailVisible) },
+                    predictivePopTransitionSpec = { appPopNavigationTransition(isDetailVisible) },
                 )
             }
 
@@ -360,3 +375,50 @@ private tailrec fun Context.findActivity(): Activity? =
         is ContextWrapper -> baseContext.findActivity()
         else -> null
     }
+
+private fun appNavigationTransition(isDetailVisible: Boolean): ContentTransform =
+    if (isDetailVisible) {
+        iosNavigationTransition()
+    } else {
+        bottomNavigationTransition()
+    }
+
+private fun appPopNavigationTransition(isDetailVisible: Boolean): ContentTransform =
+    if (isDetailVisible) {
+        iosPopNavigationTransition()
+    } else {
+        bottomNavigationTransition()
+    }
+
+private fun bottomNavigationTransition(): ContentTransform {
+    val animationSpec = tween<Float>(durationMillis = BOTTOM_NAVIGATION_TRANSITION_DURATION_MILLIS)
+
+    return fadeIn(animationSpec = animationSpec) togetherWith
+        fadeOut(animationSpec = animationSpec)
+}
+
+private fun iosNavigationTransition(): ContentTransform {
+    val animationSpec = tween<IntOffset>(durationMillis = IOS_NAVIGATION_TRANSITION_DURATION_MILLIS)
+
+    return slideInHorizontally(
+        animationSpec = animationSpec,
+        initialOffsetX = { fullWidth -> fullWidth },
+    ) togetherWith
+        slideOutHorizontally(
+            animationSpec = animationSpec,
+            targetOffsetX = { fullWidth -> -fullWidth / IOS_NAVIGATION_PARALLAX_DIVISOR },
+        )
+}
+
+private fun iosPopNavigationTransition(): ContentTransform {
+    val animationSpec = tween<IntOffset>(durationMillis = IOS_NAVIGATION_TRANSITION_DURATION_MILLIS)
+
+    return slideInHorizontally(
+        animationSpec = animationSpec,
+        initialOffsetX = { fullWidth -> -fullWidth / IOS_NAVIGATION_PARALLAX_DIVISOR },
+    ) togetherWith
+        slideOutHorizontally(
+            animationSpec = animationSpec,
+            targetOffsetX = { fullWidth -> fullWidth },
+        )
+}

@@ -1,9 +1,0 @@
-com.arrazyfathan.kbbi.feature.home.data-pngs-0 /Users/macintosh/Personal/Android/Samples/kbbi/feature/home/data/build/generated/res/pngs/debug
-com.arrazyfathan.kbbi.feature.home.data-updated_navigation_xml-1 /Users/macintosh/Personal/Android/Samples/kbbi/feature/home/data/build/generated/updated_navigation_xml/debug
-com.arrazyfathan.kbbi.feature.home.data-mergeDebugResources-2 /Users/macintosh/Personal/Android/Samples/kbbi/feature/home/data/build/intermediates/incremental/debug/mergeDebugResources/merged.dir
-com.arrazyfathan.kbbi.feature.home.data-mergeDebugResources-3 /Users/macintosh/Personal/Android/Samples/kbbi/feature/home/data/build/intermediates/incremental/debug/mergeDebugResources/stripped.dir
-com.arrazyfathan.kbbi.feature.home.data-debug-4 /Users/macintosh/Personal/Android/Samples/kbbi/feature/home/data/build/intermediates/merged_res/debug/mergeDebugResources
-com.arrazyfathan.kbbi.feature.home.data-debug-5 /Users/macintosh/Personal/Android/Samples/kbbi/feature/home/data/build/intermediates/packaged_res/debug/packageDebugResources
-com.arrazyfathan.kbbi.feature.home.data-debug-6 /Users/macintosh/Personal/Android/Samples/kbbi/feature/home/data/src/debug/res
-com.arrazyfathan.kbbi.feature.home.data-main-7 /Users/macintosh/Personal/Android/Samples/kbbi/feature/home/data/src/main/res
-gradleHome-0 /Users/macintosh/.gradle
