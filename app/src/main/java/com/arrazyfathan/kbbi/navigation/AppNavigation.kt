@@ -19,13 +19,11 @@ import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
-import androidx.compose.material3.Scaffold
 import androidx.compose.material3.ripple
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
@@ -41,6 +39,7 @@ import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.compose.runtime.toMutableStateList
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalContext
@@ -189,55 +188,56 @@ fun MainApp() {
 
     CompositionLocalProvider(LocalAppLoadingController provides loadingController) {
         Box(modifier = Modifier.fillMaxSize()) {
-            Scaffold(
-                modifier = Modifier.fillMaxSize(),
-                bottomBar = {
-                    if (!isDetailVisible) {
-                        Row(
-                            modifier = Modifier.fillMaxWidth().height(70.dp).background(Color.White),
-                            verticalAlignment = Alignment.CenterVertically,
-                        ) {
-                            screens.forEach { screen ->
-                                val isSelected = navigationState.topLevelRoute == screen
-                                Box(
-                                    modifier =
-                                        Modifier.weight(1f).fillMaxHeight().clickable(
-                                            interactionSource = remember { MutableInteractionSource() },
-                                            indication = ripple(bounded = false, radius = 24.dp),
-                                        ) {
-                                            if (!isUiBlocked && !isSelected) {
-                                                navigator.navigate(screen)
-                                            }
-                                        },
-                                    contentAlignment = Alignment.Center,
-                                ) {
-                                    Icon(
-                                        modifier = Modifier.size(24.dp),
-                                        painter =
-                                            painterResource(
-                                                id = if (isSelected) screen.iconSelectedResId else screen.iconResId,
-                                            ),
-                                        contentDescription = null,
-                                        tint = Color.Unspecified,
-                                    )
-                                }
-                            }
-                        }
+            NavDisplay(
+                entries = entries,
+                onBack = {
+                    if (!isUiBlocked) {
+                        navigator.goBack()
                     }
                 },
-            ) { innerPadding ->
-                NavDisplay(
-                    entries = entries,
-                    onBack = {
-                        if (!isUiBlocked) {
-                            navigator.goBack()
+                modifier = Modifier.fillMaxSize(),
+                transitionSpec = { appNavigationTransition(isDetailVisible) },
+                popTransitionSpec = { appPopNavigationTransition(isDetailVisible) },
+                predictivePopTransitionSpec = { appPopNavigationTransition(isDetailVisible) },
+            )
+
+            if (!isDetailVisible) {
+                Row(
+                    modifier =
+                        Modifier
+                            .align(Alignment.BottomCenter)
+                            .fillMaxWidth()
+                            .height(70.dp)
+                            .shadow(elevation = 16.dp)
+                            .background(Color.White),
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    screens.forEach { screen ->
+                        val isSelected = navigationState.topLevelRoute == screen
+                        Box(
+                            modifier =
+                                Modifier.weight(1f).fillMaxHeight().clickable(
+                                    interactionSource = remember { MutableInteractionSource() },
+                                    indication = ripple(bounded = false, radius = 24.dp),
+                                ) {
+                                    if (!isUiBlocked && !isSelected) {
+                                        navigator.navigate(screen)
+                                    }
+                                },
+                            contentAlignment = Alignment.Center,
+                        ) {
+                            Icon(
+                                modifier = Modifier.size(24.dp),
+                                painter =
+                                    painterResource(
+                                        id = if (isSelected) screen.iconSelectedResId else screen.iconResId,
+                                    ),
+                                contentDescription = null,
+                                tint = Color.Unspecified,
+                            )
                         }
-                    },
-                    modifier = Modifier.padding(bottom = innerPadding.calculateBottomPadding()),
-                    transitionSpec = { appNavigationTransition(isDetailVisible) },
-                    popTransitionSpec = { appPopNavigationTransition(isDetailVisible) },
-                    predictivePopTransitionSpec = { appPopNavigationTransition(isDetailVisible) },
-                )
+                    }
+                }
             }
 
             if (isUiBlocked) {
@@ -393,8 +393,7 @@ private fun appPopNavigationTransition(isDetailVisible: Boolean): ContentTransfo
 private fun bottomNavigationTransition(): ContentTransform {
     val animationSpec = tween<Float>(durationMillis = BOTTOM_NAVIGATION_TRANSITION_DURATION_MILLIS)
 
-    return fadeIn(animationSpec = animationSpec) togetherWith
-        fadeOut(animationSpec = animationSpec)
+    return fadeIn(animationSpec = animationSpec) togetherWith fadeOut(animationSpec = animationSpec)
 }
 
 private fun iosNavigationTransition(): ContentTransform {

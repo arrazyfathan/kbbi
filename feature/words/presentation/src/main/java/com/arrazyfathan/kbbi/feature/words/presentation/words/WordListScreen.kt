@@ -5,10 +5,12 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.statusBars
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -51,13 +53,13 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.arrazyfathan.kbbi.core.R
-import com.arrazyfathan.kbbi.feature.home.domain.model.ListWordModel
-import com.arrazyfathan.kbbi.core.presentation.ui.LocalAppLoadingController
 import com.arrazyfathan.kbbi.core.presentation.designsystem.BlueBg
 import com.arrazyfathan.kbbi.core.presentation.designsystem.BluePrimary
 import com.arrazyfathan.kbbi.core.presentation.designsystem.InterFontFamily
 import com.arrazyfathan.kbbi.core.presentation.designsystem.KBBITheme
 import com.arrazyfathan.kbbi.core.presentation.designsystem.MetropolisFontFamily
+import com.arrazyfathan.kbbi.core.presentation.ui.LocalAppLoadingController
+import com.arrazyfathan.kbbi.feature.home.domain.model.ListWordModel
 import org.koin.androidx.compose.koinViewModel
 
 private const val WORD_LIST_SEARCH_LOADING_SOURCE = "word_list_search"
@@ -118,8 +120,9 @@ private fun WordListScreenContent(
     val density = LocalDensity.current
     val lazyListState = rememberLazyListState()
 
-    val minHeaderHeightPx = with(density) { 56.dp.toPx() }
-    val maxHeaderHeightPx = with(density) { 120.dp.toPx() }
+    val statusBarHeightPx = WindowInsets.statusBars.getTop(density).toFloat()
+    val minHeaderHeightPx = statusBarHeightPx + with(density) { 0.dp.toPx() }
+    val maxHeaderHeightPx = statusBarHeightPx + with(density) { 120.dp.toPx() }
     var headerHeightPx by remember { mutableFloatStateOf(maxHeaderHeightPx) }
 
     val nestedScrollConnection =
@@ -301,23 +304,24 @@ private fun WordListScreenPreview() {
                             "Dadu",
                             "Ember",
                         ),
-                    filteredWords = listOf(
-                        "Abjad",
-                        "Baca",
-                        "Cacing",
-                        "Dadu",
-                        "Ember",
-                        "Abjad",
-                        "Baca",
-                        "Cacing",
-                        "Dadu",
-                        "Ember",
-                        "Abjad",
-                        "Baca",
-                        "Cacing",
-                        "Dadu",
-                        "Ember",
-                    ),
+                    filteredWords =
+                        listOf(
+                            "Abjad",
+                            "Baca",
+                            "Cacing",
+                            "Dadu",
+                            "Ember",
+                            "Abjad",
+                            "Baca",
+                            "Cacing",
+                            "Dadu",
+                            "Ember",
+                            "Abjad",
+                            "Baca",
+                            "Cacing",
+                            "Dadu",
+                            "Ember",
+                        ),
                 ),
             onAction = {},
         )
