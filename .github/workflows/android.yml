@@ -42,7 +42,7 @@ jobs:
 
       - name: Upload development APK
         if: success()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: development-debug-apk
           path: app/build/outputs/apk/development/debug/*.apk
@@ -101,7 +101,7 @@ jobs:
           ./gradlew assembleProductionRelease --stacktrace
 
       - name: Upload release APK artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: production-release-apk
           path: app/build/outputs/apk/production/release/*.apk
