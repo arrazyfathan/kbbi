@@ -1,6 +1,69 @@
 {
   "$schema": "https://docs.renovatebot.com/renovate-schema.json",
   "extends": [
-    "config:recommended"
+    "config:recommended",
+    ":dependencyDashboard",
+    ":semanticCommits"
+  ],
+  "timezone": "Asia/Jakarta",
+  "schedule": [
+    "before 9am on monday"
+  ],
+  "prConcurrentLimit": 5,
+  "prHourlyLimit": 2,
+  "minimumReleaseAge": "3 days",
+  "labels": [
+    "dependencies"
+  ],
+  "rangeStrategy": "bump",
+  "packageRules": [
+    {
+      "description": "Group AndroidX patch and minor updates",
+      "matchPackageNames": [
+        "androidx.*"
+      ],
+      "matchUpdateTypes": [
+        "minor",
+        "patch"
+      ],
+      "groupName": "androidx dependencies"
+    },
+    {
+      "description": "Group Kotlin ecosystem patch and minor updates",
+      "matchPackageNames": [
+        "org.jetbrains.kotlin*",
+        "org.jetbrains.kotlinx*"
+      ],
+      "matchUpdateTypes": [
+        "minor",
+        "patch"
+      ],
+      "groupName": "kotlin dependencies"
+    },
+    {
+      "description": "Group Ktor patch and minor updates",
+      "matchPackageNames": [
+        "io.ktor:*"
+      ],
+      "matchUpdateTypes": [
+        "minor",
+        "patch"
+      ],
+      "groupName": "ktor dependencies"
+    },
+    {
+      "description": "Keep Compose BOM updates separate",
+      "matchPackageNames": [
+        "androidx.compose:compose-bom"
+      ],
+      "groupName": "compose bom"
+    },
+    {
+      "description": "Review major updates manually",
+      "matchUpdateTypes": [
+        "major"
+      ],
+      "automerge": false
+    }
   ]
 }
