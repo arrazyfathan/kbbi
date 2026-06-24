@@ -12,6 +12,10 @@
     <string name="search_word_list_hint">Search word list …</string>
     <string name="button_search">button_search</string>
     <string name="history_label">Recent Searches</string>
+    <string name="home_menu_title">Menu</string>
+    <string name="home_menu_subtitle">Temukan fitur lainnya (Coming Soon)</string>
+    <string name="proverb_menu_title">Peribahasa</string>
+    <string name="proverb_menu_subtitle">daftar peribahasa</string>
     <string name="version_label">Version %1$s</string>
     <string name="word_saved_success">Word saved successfully.</string>
     <string name="word_deleted_success">Word deleted successfully.</string>
