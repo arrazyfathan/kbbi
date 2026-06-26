@@ -12,6 +12,9 @@ import com.arrazyfathan.kbbi.feature.home.domain.usecase.SaveBookmarkUseCase
 import com.arrazyfathan.kbbi.feature.home.domain.usecase.SearchWordUseCase
 import com.arrazyfathan.kbbi.feature.home.domain.usecase.SearchWordWithHistoryUseCase
 import com.arrazyfathan.kbbi.feature.home.presentation.home.HomeViewModel
+import com.arrazyfathan.kbbi.feature.proverb.domain.usecase.GetProverbMeaningUseCase
+import com.arrazyfathan.kbbi.feature.proverb.domain.usecase.ObserveProverbsUseCase
+import com.arrazyfathan.kbbi.feature.proverb.presentation.proverb.ProverbViewModel
 import com.arrazyfathan.kbbi.feature.words.presentation.words.WordViewModel
 import org.koin.core.module.dsl.factoryOf
 import org.koin.core.module.dsl.viewModelOf
@@ -32,6 +35,8 @@ val useCaseModule =
         factoryOf(::CheckWordSavedUseCase)
         factoryOf(::ObserveBookmarksUseCase)
         factoryOf(::GetWordEntriesUseCase)
+        factoryOf(::ObserveProverbsUseCase)
+        factoryOf(::GetProverbMeaningUseCase)
     }
 
 val viewModelModule =
@@ -40,4 +45,5 @@ val viewModelModule =
         viewModelOf(::HomeViewModel)
         viewModelOf(::BookmarksViewModel)
         viewModelOf(::WordViewModel)
+        viewModelOf(::ProverbViewModel)
     }

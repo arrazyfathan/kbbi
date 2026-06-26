@@ -8,10 +8,12 @@ import com.arrazyfathan.kbbi.feature.home.presentation.home.HomeScreen
 @Composable
 fun HomeRoute(
     onNavigateToDetail: (ListWordModel) -> Unit,
+    onNavigateToProverb: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     HomeScreen(
         onNavigateToDetail = onNavigateToDetail,
+        onNavigateToProverb = onNavigateToProverb,
         modifier = modifier,
     )
 }

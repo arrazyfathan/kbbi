@@ -4,6 +4,7 @@
     <string name="logo_desc">logo_kbbi</string>
     <string name="home_title">Home</string>
     <string name="word_list_tab_title">Word List</string>
+    <string name="proverb_title">Proverb</string>
     <string name="bookmarks_title">Bookmarks</string>
     <string name="welcome_text">Welcome\nto KBBI</string>
     <string name="subtitle_text">Find word definitions from the\nGreat Dictionary of the Indonesian Language.</string>
@@ -16,6 +17,14 @@
     <string name="home_menu_subtitle">Temukan fitur lainnya (Coming Soon)</string>
     <string name="proverb_menu_title">Peribahasa</string>
     <string name="proverb_menu_subtitle">daftar peribahasa</string>
+    <string name="proverb_screen_title">Peribahasa</string>
+    <string name="proverb_screen_subtitle">Kumpulan peribahasa Indonesia dan artinya.</string>
+    <string name="search_proverb_hint">Cari peribahasa …</string>
+    <string name="proverb_meaning_title">Arti</string>
+    <string name="proverb_meaning_loading">Memuat arti …</string>
+    <string name="proverb_meaning_empty">Arti belum tersedia.</string>
+    <string name="proverb_empty_message">Tidak ada peribahasa ditemukan.</string>
+    <string name="retry">Coba lagi</string>
     <string name="version_label">Version %1$s</string>
     <string name="word_saved_success">Word saved successfully.</string>
     <string name="word_deleted_success">Word deleted successfully.</string>

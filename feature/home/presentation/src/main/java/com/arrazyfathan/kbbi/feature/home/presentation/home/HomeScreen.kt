@@ -90,6 +90,7 @@ private const val HOME_SEARCH_LOADING_SOURCE = "home_search"
 fun HomeScreen(
     modifier: Modifier = Modifier,
     onNavigateToDetail: (ListWordModel) -> Unit,
+    onNavigateToProverb: () -> Unit,
     viewModel: HomeViewModel = koinViewModel(),
 ) {
     val context = LocalContext.current
@@ -131,6 +132,7 @@ fun HomeScreen(
         state = state,
         searchQuery = searchQuery,
         onSearchQueryChange = { searchQuery = it },
+        onNavigateToProverb = onNavigateToProverb,
         onAction = viewModel::onAction,
         modifier = modifier,
     )
@@ -142,6 +144,7 @@ fun HomeContent(
     state: HomeState,
     searchQuery: String,
     onSearchQueryChange: (String) -> Unit,
+    onNavigateToProverb: () -> Unit,
     onAction: (HomeAction) -> Unit,
     modifier: Modifier = Modifier,
 ) {
@@ -431,6 +434,10 @@ fun HomeContent(
                             icon = R.drawable.ic_proverb,
                             title = stringResource(id = R.string.proverb_menu_title),
                             subtitle = stringResource(id = R.string.proverb_menu_subtitle),
+                            onClick = {
+                                showBottomSheet = false
+                                onNavigateToProverb()
+                            },
                             modifier = Modifier.weight(1f),
                         )
 
@@ -449,10 +456,11 @@ private fun HomeMenuCard(
     icon: Int,
     title: String,
     subtitle: String,
+    onClick: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     Card(
-        modifier = modifier.height(120.dp),
+        modifier = modifier.height(120.dp).clickable(onClick = onClick),
         shape = RoundedCornerShape(10.dp),
         colors = CardDefaults.cardColors(containerColor = BlueBg),
         elevation = CardDefaults.cardElevation(0.dp),
@@ -532,6 +540,7 @@ fun HomeContentPreview() {
                 ),
             searchQuery = "",
             onSearchQueryChange = {},
+            onNavigateToProverb = {},
             onAction = {},
         )
     }
@@ -545,6 +554,7 @@ fun HomeContentLoadingPreview() {
             state = HomeState(isLoading = true),
             searchQuery = "Belajar",
             onSearchQueryChange = {},
+            onNavigateToProverb = {},
             onAction = {},
         )
     }
