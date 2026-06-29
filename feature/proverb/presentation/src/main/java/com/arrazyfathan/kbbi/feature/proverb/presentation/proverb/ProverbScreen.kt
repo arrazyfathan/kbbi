@@ -2,6 +2,11 @@ package com.arrazyfathan.kbbi.feature.proverb.presentation.proverb
 
 import android.widget.Toast
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.LinearEasing
+import androidx.compose.animation.core.RepeatMode
+import androidx.compose.animation.core.animateFloat
+import androidx.compose.animation.core.infiniteRepeatable
+import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
@@ -49,6 +54,7 @@ import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.TopAppBarScrollBehavior
+import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -59,7 +65,9 @@ import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.nestedscroll.NestedScrollConnection
 import androidx.compose.ui.input.nestedscroll.NestedScrollSource
@@ -101,6 +109,8 @@ import org.koin.androidx.compose.koinViewModel
 import kotlin.time.Duration.Companion.milliseconds
 
 private const val SEARCH_BAR_SCROLL_VISIBILITY_THRESHOLD = 4f
+private const val PROVERB_SHIMMER_ITEM_COUNT = 8
+private const val PROVERB_APPEND_SHIMMER_ITEM_COUNT = 3
 private val SEARCH_BAR_IDLE_SHOW_DELAY_MILLIS = 3_000L.milliseconds
 
 @Composable
@@ -369,7 +379,7 @@ private fun ProverbSearchField(
     )
 }
 
-@OptIn(ExperimentalFoundationApi::class)
+@OptIn(ExperimentalFoundationApi::class, ExperimentalMaterial3Api::class)
 @Composable
 private fun ProverbList(
     proverbs: LazyPagingItems<ProverbModel>,
@@ -378,76 +388,176 @@ private fun ProverbList(
     modifier: Modifier = Modifier,
 ) {
     val proverbKey = proverbs.itemKey { it.slug }
+    val refresh = proverbs.loadState.refresh
+    val isPullRefreshing = refresh is LoadState.Loading && proverbs.itemCount > 0
 
-    LazyColumn(
-        state = listState,
+    PullToRefreshBox(
+        isRefreshing = isPullRefreshing,
+        onRefresh = proverbs::refresh,
         modifier = modifier.fillMaxWidth(),
-        contentPadding = PaddingValues(start = 8.dp, top = 8.dp, end = 8.dp, bottom = 112.dp),
-        verticalArrangement = Arrangement.spacedBy(6.dp),
     ) {
-        for (index in 0 until proverbs.itemCount) {
-            val item = proverbs.peek(index)
-            val letter = item?.letter.orEmpty()
-            val previousLetter = if (index > 0) proverbs.peek(index - 1)?.letter.orEmpty() else ""
+        LazyColumn(
+            state = listState,
+            modifier = Modifier.fillMaxSize(),
+            contentPadding = PaddingValues(start = 8.dp, top = 8.dp, end = 8.dp, bottom = 112.dp),
+            verticalArrangement = Arrangement.spacedBy(6.dp),
+        ) {
+            for (index in 0 until proverbs.itemCount) {
+                val item = proverbs.peek(index)
+                val letter = item?.letter.orEmpty()
+                val previousLetter = if (index > 0) proverbs.peek(index - 1)?.letter.orEmpty() else ""
 
-            if (letter.isNotEmpty() && letter != previousLetter) {
-                stickyHeader(key = "letter-$letter-$index") {
-                    LetterHeader(letter = letter)
+                if (letter.isNotEmpty() && letter != previousLetter) {
+                    stickyHeader(key = "letter-$letter-$index") {
+                        LetterHeader(letter = letter)
+                    }
                 }
-            }
 
-            item(key = proverbKey(index)) {
-                val proverb = proverbs[index]
-                if (proverb != null) {
-                    ProverbCard(
-                        proverb = proverb,
-                        onClick = { onProverbClick(proverb) },
-                    )
-                }
-            }
-        }
-
-        when (val refresh = proverbs.loadState.refresh) {
-            is LoadState.Loading -> {
-                item(key = "refresh-loading") {
-                    FullWidthLoading(modifier = Modifier.padding(top = 48.dp))
-                }
-            }
-
-            is LoadState.Error -> {
-                item(key = "refresh-error") {
-                    ErrorState(
-                        loadState = refresh,
-                        onRetry = proverbs::retry,
-                        modifier = Modifier.padding(top = 48.dp),
-                    )
-                }
-            }
-
-            is LoadState.NotLoading -> {
-                if (proverbs.itemCount == 0) {
-                    item(key = "empty-state") {
-                        EmptyState(modifier = Modifier.padding(top = 56.dp))
+                item(key = proverbKey(index)) {
+                    val proverb = proverbs[index]
+                    if (proverb != null) {
+                        ProverbCard(
+                            proverb = proverb,
+                            onClick = { onProverbClick(proverb) },
+                        )
                     }
                 }
             }
-        }
 
-        val append = proverbs.loadState.append
-        if (append is LoadState.Loading) {
-            item(key = "append-loading") {
-                FullWidthLoading(modifier = Modifier.padding(vertical = 18.dp))
+            when (refresh) {
+                is LoadState.Loading -> {
+                    if (proverbs.itemCount == 0) {
+                        item(key = "refresh-loading") {
+                            ProverbListShimmer()
+                        }
+                    }
+                }
+
+                is LoadState.Error -> {
+                    item(key = "refresh-error") {
+                        ErrorState(
+                            loadState = refresh,
+                            onRetry = proverbs::retry,
+                            modifier = Modifier.padding(top = 48.dp),
+                        )
+                    }
+                }
+
+                is LoadState.NotLoading -> {
+                    if (proverbs.itemCount == 0) {
+                        item(key = "empty-state") {
+                            EmptyState(modifier = Modifier.padding(top = 56.dp))
+                        }
+                    }
+                }
             }
-        } else if (append is LoadState.Error) {
-            item(key = "append-error") {
-                ErrorState(
-                    loadState = append,
-                    onRetry = proverbs::retry,
-                    modifier = Modifier.padding(vertical = 14.dp),
-                )
+
+            val append = proverbs.loadState.append
+            if (append is LoadState.Loading) {
+                item(key = "append-loading") {
+                    ProverbListShimmer(
+                        itemCount = PROVERB_APPEND_SHIMMER_ITEM_COUNT,
+                        showHeader = false,
+                        modifier = Modifier.padding(vertical = 6.dp),
+                    )
+                }
+            } else if (append is LoadState.Error) {
+                item(key = "append-error") {
+                    ErrorState(
+                        loadState = append,
+                        onRetry = proverbs::retry,
+                        modifier = Modifier.padding(vertical = 14.dp),
+                    )
+                }
             }
         }
     }
+}
+
+@Composable
+private fun ProverbListShimmer(
+    modifier: Modifier = Modifier,
+    itemCount: Int = PROVERB_SHIMMER_ITEM_COUNT,
+    showHeader: Boolean = true,
+) {
+    val shimmerBrush = rememberProverbShimmerBrush()
+
+    Column(
+        modifier = modifier.fillMaxWidth(),
+        verticalArrangement = Arrangement.spacedBy(6.dp),
+    ) {
+        repeat(itemCount) { index ->
+            if (showHeader && index == 0) {
+                Box(
+                    modifier =
+                        Modifier
+                            .padding(top = 2.dp, bottom = 2.dp)
+                            .size(width = 38.dp, height = 24.dp)
+                            .clip(CircleShape)
+                            .background(shimmerBrush),
+                )
+            }
+            ProverbShimmerCard(shimmerBrush = shimmerBrush)
+        }
+    }
+}
+
+@Composable
+private fun ProverbShimmerCard(shimmerBrush: Brush) {
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(10.dp),
+        colors = CardDefaults.cardColors(containerColor = Color.White),
+        elevation = CardDefaults.cardElevation(defaultElevation = 0.dp),
+    ) {
+        Column(
+            modifier = Modifier.fillMaxWidth().padding(horizontal = 14.dp, vertical = 14.dp),
+            verticalArrangement = Arrangement.spacedBy(8.dp),
+        ) {
+            Box(
+                modifier =
+                    Modifier
+                        .fillMaxWidth(0.9f)
+                        .height(16.dp)
+                        .clip(RoundedCornerShape(8.dp))
+                        .background(shimmerBrush),
+            )
+            Box(
+                modifier =
+                    Modifier
+                        .fillMaxWidth(0.64f)
+                        .height(16.dp)
+                        .clip(RoundedCornerShape(8.dp))
+                        .background(shimmerBrush),
+            )
+        }
+    }
+}
+
+@Composable
+private fun rememberProverbShimmerBrush(): Brush {
+    val transition = rememberInfiniteTransition(label = "proverb-shimmer")
+    val translateAnimation by transition.animateFloat(
+        initialValue = 0f,
+        targetValue = 1_000f,
+        animationSpec =
+            infiniteRepeatable(
+                animation = tween(durationMillis = 1_100, easing = LinearEasing),
+                repeatMode = RepeatMode.Restart,
+            ),
+        label = "proverb-shimmer-translation",
+    )
+
+    return Brush.linearGradient(
+        colors =
+            listOf(
+                BlueBg.copy(alpha = 0.72f),
+                Color.White,
+                BlueBg.copy(alpha = 0.72f),
+            ),
+        start = Offset(x = translateAnimation - 1_000f, y = 0f),
+        end = Offset(x = translateAnimation, y = 0f),
+    )
 }
 
 @Composable
@@ -560,20 +670,6 @@ private fun ProverbMeaningSheet(
                 lineHeight = 24.sp,
             )
         }
-    }
-}
-
-@Composable
-private fun FullWidthLoading(modifier: Modifier = Modifier) {
-    Box(
-        modifier = modifier.fillMaxWidth(),
-        contentAlignment = Alignment.Center,
-    ) {
-        CircularProgressIndicator(
-            modifier = Modifier.size(28.dp),
-            color = BluePrimary,
-            strokeWidth = 3.dp,
-        )
     }
 }
 
