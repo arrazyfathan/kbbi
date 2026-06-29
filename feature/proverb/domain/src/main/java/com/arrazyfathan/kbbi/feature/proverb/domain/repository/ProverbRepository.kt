@@ -8,7 +8,7 @@ import com.arrazyfathan.kbbi.feature.proverb.domain.model.ProverbModel
 import kotlinx.coroutines.flow.Flow
 
 interface ProverbRepository {
-    fun observeProverbs(query: String): Flow<PagingData<ProverbModel>>
+    fun getListProverbs(query: String): Flow<PagingData<ProverbModel>>
 
     suspend fun getProverbMeaning(slug: String): AppResult<ProverbDetailModel, DataError>
 }

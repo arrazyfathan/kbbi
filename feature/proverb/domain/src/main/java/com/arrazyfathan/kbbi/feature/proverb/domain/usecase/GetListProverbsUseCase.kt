@@ -2,8 +2,8 @@ package com.arrazyfathan.kbbi.feature.proverb.domain.usecase
 
 import com.arrazyfathan.kbbi.feature.proverb.domain.repository.ProverbRepository
 
-class ObserveProverbsUseCase(
+class GetListProverbsUseCase(
     private val repository: ProverbRepository,
 ) {
-    operator fun invoke(query: String) = repository.observeProverbs(query)
+    operator fun invoke(query: String) = repository.getListProverbs(query)
 }

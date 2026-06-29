@@ -9,8 +9,8 @@ import com.arrazyfathan.kbbi.core.presentation.ui.UiText
 import com.arrazyfathan.kbbi.core.presentation.ui.asUiText
 import com.arrazyfathan.kbbi.feature.proverb.domain.model.ProverbDetailModel
 import com.arrazyfathan.kbbi.feature.proverb.domain.model.ProverbModel
+import com.arrazyfathan.kbbi.feature.proverb.domain.usecase.GetListProverbsUseCase
 import com.arrazyfathan.kbbi.feature.proverb.domain.usecase.GetProverbMeaningUseCase
-import com.arrazyfathan.kbbi.feature.proverb.domain.usecase.ObserveProverbsUseCase
 import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.channels.Channel
@@ -24,6 +24,7 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import kotlin.time.Duration.Companion.milliseconds
 
 data class ProverbState(
     val searchQuery: String = "",
@@ -51,7 +52,7 @@ sealed interface ProverbEvent {
 
 @OptIn(FlowPreview::class, kotlinx.coroutines.ExperimentalCoroutinesApi::class)
 class ProverbViewModel(
-    observeProverbs: ObserveProverbsUseCase,
+    observeProverbs: GetListProverbsUseCase,
     private val getProverbMeaning: GetProverbMeaningUseCase,
 ) : ViewModel() {
     private val _state = MutableStateFlow(ProverbState())
@@ -60,7 +61,7 @@ class ProverbViewModel(
     val proverbs: Flow<PagingData<ProverbModel>> =
         state
             .map { it.searchQuery.trim() }
-            .debounce(300)
+            .debounce(300.milliseconds)
             .distinctUntilChanged()
             .flatMapLatest { query -> observeProverbs(query) }
             .cachedIn(viewModelScope)
@@ -76,7 +77,9 @@ class ProverbViewModel(
                 _state.update { it.copy(searchQuery = action.query) }
             }
 
-            is ProverbAction.OnProverbClicked -> loadMeaning(action.proverb)
+            is ProverbAction.OnProverbClicked -> {
+                loadMeaning(action.proverb)
+            }
 
             ProverbAction.OnMeaningDismissed -> {
                 meaningJob?.cancel()

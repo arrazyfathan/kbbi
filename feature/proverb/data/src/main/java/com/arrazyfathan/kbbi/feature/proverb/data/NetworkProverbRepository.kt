@@ -17,7 +17,7 @@ private const val PROVERB_PREFETCH_DISTANCE = 5
 class NetworkProverbRepository(
     private val remoteDataSource: ProverbRemoteDataSource,
 ) : ProverbRepository {
-    override fun observeProverbs(query: String): Flow<PagingData<ProverbModel>> =
+    override fun getListProverbs(query: String): Flow<PagingData<ProverbModel>> =
         Pager(
             config =
                 PagingConfig(
