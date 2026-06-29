@@ -1,11 +1,19 @@
 package com.arrazyfathan.kbbi.feature.proverb.presentation.proverb
 
 import android.widget.Toast
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.slideInVertically
+import androidx.compose.animation.slideOutVertically
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
@@ -13,10 +21,13 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.imePadding
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyListState
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardActions
@@ -28,19 +39,31 @@ import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.MediumTopAppBar
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
+import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.material3.TopAppBarScrollBehavior
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.input.nestedscroll.NestedScrollConnection
+import androidx.compose.ui.input.nestedscroll.NestedScrollSource
+import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.res.painterResource
@@ -71,10 +94,18 @@ import com.arrazyfathan.kbbi.core.presentation.ui.asUiText
 import com.arrazyfathan.kbbi.feature.proverb.domain.model.ProverbDetailModel
 import com.arrazyfathan.kbbi.feature.proverb.domain.model.ProverbModel
 import com.arrazyfathan.kbbi.feature.proverb.domain.model.ProverbPagingException
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.flow.distinctUntilChanged
 import org.koin.androidx.compose.koinViewModel
+import kotlin.time.Duration.Companion.milliseconds
+
+private const val SEARCH_BAR_SCROLL_VISIBILITY_THRESHOLD = 4f
+private val SEARCH_BAR_IDLE_SHOW_DELAY_MILLIS = 3_000L.milliseconds
 
 @Composable
 fun ProverbRoot(
+    onNavigateBack: () -> Unit,
     modifier: Modifier = Modifier,
     viewModel: ProverbViewModel = koinViewModel(),
 ) {
@@ -96,6 +127,7 @@ fun ProverbRoot(
         state = state,
         proverbs = proverbs,
         onAction = viewModel::onAction,
+        onNavigateBack = onNavigateBack,
         modifier = modifier,
     )
 }
@@ -106,31 +138,65 @@ fun ProverbScreen(
     state: ProverbState,
     proverbs: LazyPagingItems<ProverbModel>,
     onAction: (ProverbAction) -> Unit,
+    onNavigateBack: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     val focusManager = LocalFocusManager.current
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+    val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
+    val listState = rememberLazyListState()
+    var isSearchVisible by remember { mutableStateOf(true) }
+    val searchBarScrollConnection =
+        remember {
+            object : NestedScrollConnection {
+                override fun onPreScroll(
+                    available: Offset,
+                    source: NestedScrollSource,
+                ): Offset {
+                    when {
+                        available.y < -SEARCH_BAR_SCROLL_VISIBILITY_THRESHOLD -> isSearchVisible = false
+                        available.y > SEARCH_BAR_SCROLL_VISIBILITY_THRESHOLD -> isSearchVisible = true
+                    }
+                    return Offset.Zero
+                }
+            }
+        }
+
+    LaunchedEffect(listState) {
+        snapshotFlow { listState.isScrollInProgress }
+            .distinctUntilChanged()
+            .collectLatest { isScrolling ->
+                if (!isScrolling) {
+                    delay(SEARCH_BAR_IDLE_SHOW_DELAY_MILLIS)
+                    isSearchVisible = true
+                }
+            }
+    }
 
     Scaffold(
-        modifier = modifier.fillMaxSize(),
+        modifier = modifier.fillMaxSize().nestedScroll(scrollBehavior.nestedScrollConnection),
         containerColor = BlueBg,
-    ) { innerPadding ->
-        Column(
-            modifier =
-                Modifier
-                    .fillMaxSize()
-                    .padding(bottom = innerPadding.calculateBottomPadding()),
-        ) {
-            ProverbHeader()
-            ProverbSearchField(
-                value = state.searchQuery,
-                onValueChange = { onAction(ProverbAction.OnSearchQueryChanged(it)) },
-                onSearch = { focusManager.clearFocus() },
+        topBar = {
+            ProverbTopAppBar(
+                scrollBehavior = scrollBehavior,
+                onNavigateBack = onNavigateBack,
             )
+        },
+    ) { innerPadding ->
+        Box(
+            modifier = Modifier.padding(innerPadding).fillMaxSize(),
+        ) {
             ProverbList(
                 proverbs = proverbs,
                 onProverbClick = { onAction(ProverbAction.OnProverbClicked(it)) },
-                modifier = Modifier.weight(1f),
+                listState = listState,
+                modifier = Modifier.fillMaxSize().nestedScroll(searchBarScrollConnection),
+            )
+            FloatingProverbSearchField(
+                visible = isSearchVisible,
+                value = state.searchQuery,
+                onValueChange = { onAction(ProverbAction.OnSearchQueryChanged(it)) },
+                onSearch = { focusManager.clearFocus() },
             )
         }
     }
@@ -151,32 +217,99 @@ fun ProverbScreen(
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
-private fun ProverbHeader() {
-    Column(
+private fun ProverbTopAppBar(
+    scrollBehavior: TopAppBarScrollBehavior,
+    onNavigateBack: () -> Unit,
+) {
+    val isCollapsed = scrollBehavior.state.collapsedFraction > 0.5f
+
+    MediumTopAppBar(
+        navigationIcon = {
+            IconButton(onClick = onNavigateBack) {
+                Icon(
+                    painter = painterResource(id = R.drawable.ic_arrow_back),
+                    contentDescription = stringResource(id = R.string.navigate_back),
+                    tint = Color.White,
+                )
+            }
+        },
+        title = {
+            Column {
+                Text(
+                    text = stringResource(id = R.string.proverb_screen_title),
+                    fontFamily = MetropolisFontFamily,
+                    fontWeight = FontWeight.ExtraBold,
+                    color = Color.White,
+                    fontSize = if (isCollapsed) 20.sp else 24.sp,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                )
+                if (!isCollapsed) {
+                    Text(
+                        text = stringResource(id = R.string.proverb_screen_subtitle),
+                        fontFamily = InterFontFamily,
+                        fontWeight = FontWeight.Normal,
+                        color = Color.White.copy(alpha = 0.82f),
+                        fontSize = 13.sp,
+                        lineHeight = 18.sp,
+                        maxLines = 2,
+                        overflow = TextOverflow.Ellipsis,
+                    )
+                    Spacer(modifier = Modifier.height(16.dp))
+                }
+            }
+        },
+        colors =
+            TopAppBarDefaults.topAppBarColors(
+                containerColor = BluePrimary,
+                scrolledContainerColor = BluePrimary,
+                titleContentColor = Color.White,
+            ),
+        scrollBehavior = scrollBehavior,
+    )
+}
+
+@Composable
+private fun BoxScope.FloatingProverbSearchField(
+    visible: Boolean,
+    value: String,
+    onValueChange: (String) -> Unit,
+    onSearch: () -> Unit,
+) {
+    AnimatedVisibility(
+        visible = visible,
         modifier =
             Modifier
                 .fillMaxWidth()
-                .background(BluePrimary)
-                .statusBarsPadding()
-                .padding(horizontal = 16.dp, vertical = 18.dp),
+                .align(Alignment.BottomCenter)
+                .navigationBarsPadding()
+                .imePadding()
+                .padding(horizontal = 18.dp, vertical = 14.dp),
+        enter =
+            slideInVertically(
+                animationSpec = tween(durationMillis = 180),
+                initialOffsetY = { height -> height / 2 },
+            ) + fadeIn(animationSpec = tween(durationMillis = 180)),
+        exit =
+            slideOutVertically(
+                animationSpec = tween(durationMillis = 140),
+                targetOffsetY = { height -> height + 32 },
+            ) + fadeOut(animationSpec = tween(durationMillis = 120)),
     ) {
-        Text(
-            text = stringResource(id = R.string.proverb_screen_title),
-            fontFamily = MetropolisFontFamily,
-            fontWeight = FontWeight.ExtraBold,
-            color = Color.White,
-            fontSize = 28.sp,
-        )
-        Spacer(modifier = Modifier.height(6.dp))
-        Text(
-            text = stringResource(id = R.string.proverb_screen_subtitle),
-            fontFamily = InterFontFamily,
-            fontWeight = FontWeight.Normal,
-            color = Color.White.copy(alpha = 0.82f),
-            fontSize = 14.sp,
-            lineHeight = 20.sp,
-        )
+        Surface(
+            shape = CircleShape,
+            color = BlueSecondary,
+            border = BorderStroke(width = 1.dp, color = Color.White.copy(alpha = 0.18f)),
+        ) {
+            ProverbSearchField(
+                value = value,
+                onValueChange = onValueChange,
+                onSearch = onSearch,
+                modifier = Modifier.fillMaxWidth().height(58.dp),
+            )
+        }
     }
 }
 
@@ -185,11 +318,12 @@ private fun ProverbSearchField(
     value: String,
     onValueChange: (String) -> Unit,
     onSearch: () -> Unit,
+    modifier: Modifier = Modifier,
 ) {
     TextField(
         value = value,
         onValueChange = onValueChange,
-        modifier = Modifier.fillMaxWidth().height(58.dp),
+        modifier = modifier,
         placeholder = {
             Text(
                 text = stringResource(id = R.string.search_proverb_hint),
@@ -221,7 +355,7 @@ private fun ProverbSearchField(
             ),
         keyboardActions = KeyboardActions(onSearch = { onSearch() }),
         singleLine = true,
-        shape = RoundedCornerShape(0.dp),
+        shape = CircleShape,
         colors =
             TextFieldDefaults.colors(
                 focusedContainerColor = BlueSecondary,
@@ -240,13 +374,15 @@ private fun ProverbSearchField(
 private fun ProverbList(
     proverbs: LazyPagingItems<ProverbModel>,
     onProverbClick: (ProverbModel) -> Unit,
+    listState: LazyListState,
     modifier: Modifier = Modifier,
 ) {
     val proverbKey = proverbs.itemKey { it.slug }
 
     LazyColumn(
+        state = listState,
         modifier = modifier.fillMaxWidth(),
-        contentPadding = PaddingValues(start = 8.dp, top = 8.dp, end = 8.dp, bottom = 86.dp),
+        contentPadding = PaddingValues(start = 8.dp, top = 8.dp, end = 8.dp, bottom = 112.dp),
         verticalArrangement = Arrangement.spacedBy(6.dp),
     ) {
         for (index in 0 until proverbs.itemCount) {
@@ -297,24 +433,19 @@ private fun ProverbList(
             }
         }
 
-        when (val append = proverbs.loadState.append) {
-            is LoadState.Loading -> {
-                item(key = "append-loading") {
-                    FullWidthLoading(modifier = Modifier.padding(vertical = 18.dp))
-                }
+        val append = proverbs.loadState.append
+        if (append is LoadState.Loading) {
+            item(key = "append-loading") {
+                FullWidthLoading(modifier = Modifier.padding(vertical = 18.dp))
             }
-
-            is LoadState.Error -> {
-                item(key = "append-error") {
-                    ErrorState(
-                        loadState = append,
-                        onRetry = proverbs::retry,
-                        modifier = Modifier.padding(vertical = 14.dp),
-                    )
-                }
+        } else if (append is LoadState.Error) {
+            item(key = "append-error") {
+                ErrorState(
+                    loadState = append,
+                    onRetry = proverbs::retry,
+                    modifier = Modifier.padding(vertical = 14.dp),
+                )
             }
-
-            is LoadState.NotLoading -> Unit
         }
     }
 }
@@ -345,10 +476,7 @@ private fun ProverbCard(
     modifier: Modifier = Modifier,
 ) {
     Card(
-        modifier =
-            modifier
-                .fillMaxWidth()
-                .clickable(onClick = onClick),
+        modifier = modifier.fillMaxWidth().clickable(onClick = onClick),
         shape = RoundedCornerShape(10.dp),
         colors = CardDefaults.cardColors(containerColor = Color.White),
         elevation = CardDefaults.cardElevation(defaultElevation = 0.dp),
@@ -366,14 +494,14 @@ private fun ProverbCard(
                 lineHeight = 21.sp,
                 modifier = Modifier.weight(1f),
             )
-            Text(
-                text = proverb.letter,
-                fontFamily = MetropolisFontFamily,
-                fontWeight = FontWeight.ExtraBold,
-                fontSize = 18.sp,
-                color = BluePrimary.copy(alpha = 0.32f),
-                modifier = Modifier.padding(start = 12.dp),
-            )
+//            Text(
+//                text = proverb.letter,
+//                fontFamily = MetropolisFontFamily,
+//                fontWeight = FontWeight.ExtraBold,
+//                fontSize = 18.sp,
+//                color = BluePrimary.copy(alpha = 0.32f),
+//                modifier = Modifier.padding(start = 12.dp),
+//            )
         }
     }
 }
@@ -422,8 +550,9 @@ private fun ProverbMeaningSheet(
             }
         } else {
             Text(
-                text = proverb.meaning?.takeIf { it.isNotBlank() }
-                    ?: stringResource(id = R.string.proverb_meaning_empty),
+                text =
+                    proverb.meaning?.takeIf { it.isNotBlank() }
+                        ?: stringResource(id = R.string.proverb_meaning_empty),
                 fontFamily = InterFontFamily,
                 fontWeight = FontWeight.Normal,
                 fontSize = 16.sp,

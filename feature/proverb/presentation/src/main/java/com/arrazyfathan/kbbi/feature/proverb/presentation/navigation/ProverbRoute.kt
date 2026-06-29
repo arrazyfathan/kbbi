@@ -6,7 +6,11 @@ import com.arrazyfathan.kbbi.feature.proverb.presentation.proverb.ProverbRoot
 
 @Composable
 fun ProverbRoute(
+    onNavigateBack: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    ProverbRoot(modifier = modifier)
+    ProverbRoot(
+        onNavigateBack = onNavigateBack,
+        modifier = modifier,
+    )
 }

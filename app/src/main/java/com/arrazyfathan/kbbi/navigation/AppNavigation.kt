@@ -135,6 +135,7 @@ fun MainApp() {
     val navigator = remember(navigationState) { Navigator(navigationState) }
     val currentRoute = navigationState.currentRoute
     val isDetailVisible = currentRoute is DetailNavRoute
+    val showBottomNavigation = screens.any { screen -> currentRoute == screen }
     val loadingController = rememberAppLoadingController()
     val routeJson =
         remember {
@@ -181,7 +182,13 @@ fun MainApp() {
                     )
                 }
                 entry<Screen.Proverb> {
-                    ProverbRoute()
+                    ProverbRoute(
+                        onNavigateBack = {
+                            if (!isUiBlocked) {
+                                navigator.goBack()
+                            }
+                        },
+                    )
                 }
                 entry<Screen.Bookmarks> {
                     BookmarkRoute(
@@ -210,12 +217,12 @@ fun MainApp() {
                     }
                 },
                 modifier = Modifier.fillMaxSize(),
-                transitionSpec = { appNavigationTransition(isDetailVisible) },
-                popTransitionSpec = { appPopNavigationTransition(isDetailVisible) },
-                predictivePopTransitionSpec = { appPopNavigationTransition(isDetailVisible) },
+                transitionSpec = { appNavigationTransition(showBottomNavigation) },
+                popTransitionSpec = { appPopNavigationTransition(showBottomNavigation) },
+                predictivePopTransitionSpec = { appPopNavigationTransition(showBottomNavigation) },
             )
 
-            if (!isDetailVisible) {
+            if (showBottomNavigation) {
                 Row(
                     modifier =
                         Modifier
@@ -390,18 +397,18 @@ private tailrec fun Context.findActivity(): Activity? =
         else -> null
     }
 
-private fun appNavigationTransition(isDetailVisible: Boolean): ContentTransform =
-    if (isDetailVisible) {
-        iosNavigationTransition()
-    } else {
+private fun appNavigationTransition(showBottomNavigation: Boolean): ContentTransform =
+    if (showBottomNavigation) {
         bottomNavigationTransition()
+    } else {
+        iosNavigationTransition()
     }
 
-private fun appPopNavigationTransition(isDetailVisible: Boolean): ContentTransform =
-    if (isDetailVisible) {
-        iosPopNavigationTransition()
-    } else {
+private fun appPopNavigationTransition(showBottomNavigation: Boolean): ContentTransform =
+    if (showBottomNavigation) {
         bottomNavigationTransition()
+    } else {
+        iosPopNavigationTransition()
     }
 
 private fun bottomNavigationTransition(): ContentTransform {
