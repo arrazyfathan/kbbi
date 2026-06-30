@@ -11,7 +11,7 @@ nav3Core = "1.1.3"
 lifecycleViewmodelNav3 = "2.11.0"
 kotlinxSerializationCore = "1.11.0"
 room = "2.8.4"
-ktor = "3.5.0"
+ktor = "3.5.1"
 coroutines = "1.11.0"
 lifecycle = "2.11.0"
 koin = "4.2.2"
@@ -21,7 +21,7 @@ detekt = "1.23.8"
 ktlint = "14.2.0"
 kover = "0.9.8"
 composeBom = "2026.06.00"
-paging = "3.4.0"
+paging = "3.5.0"
 
 
 [libraries]
