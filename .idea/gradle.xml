@@ -29,6 +29,10 @@
             <option value="$PROJECT_DIR$/feature/home/data" />
             <option value="$PROJECT_DIR$/feature/home/domain" />
             <option value="$PROJECT_DIR$/feature/home/presentation" />
+            <option value="$PROJECT_DIR$/feature/proverb" />
+            <option value="$PROJECT_DIR$/feature/proverb/data" />
+            <option value="$PROJECT_DIR$/feature/proverb/domain" />
+            <option value="$PROJECT_DIR$/feature/proverb/presentation" />
             <option value="$PROJECT_DIR$/feature/splash" />
             <option value="$PROJECT_DIR$/feature/splash/presentation" />
             <option value="$PROJECT_DIR$/feature/words" />
