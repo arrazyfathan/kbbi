@@ -636,10 +636,10 @@ private fun ProverbMeaningSheet(
             text = stringResource(id = R.string.proverb_meaning_title),
             fontFamily = InterFontFamily,
             fontWeight = FontWeight.ExtraBold,
-            fontSize = 13.sp,
+            fontSize = 14.sp,
             color = BluePrimary,
         )
-        Spacer(modifier = Modifier.height(8.dp))
+        Spacer(modifier = Modifier.height(12.dp))
         if (isLoading) {
             Row(
                 modifier = Modifier.fillMaxWidth().padding(vertical = 10.dp),
@@ -659,18 +659,101 @@ private fun ProverbMeaningSheet(
                 )
             }
         } else {
-            Text(
-                text =
-                    proverb.meaning?.takeIf { it.isNotBlank() }
-                        ?: stringResource(id = R.string.proverb_meaning_empty),
-                fontFamily = InterFontFamily,
-                fontWeight = FontWeight.Normal,
-                fontSize = 16.sp,
-                color = TextH1,
-                lineHeight = 24.sp,
+            ProverbMeaningContent(
+                meaning = proverb.meaning,
+                emptyText = stringResource(id = R.string.proverb_meaning_empty),
             )
         }
+        Spacer(modifier = Modifier.height(34.dp))
     }
+}
+
+@Composable
+private fun ProverbMeaningContent(
+    meaning: String?,
+    emptyText: String,
+    modifier: Modifier = Modifier,
+) {
+    val meanings =
+        meaning
+            ?.split(";")
+            ?.map { it.trim() }
+            ?.filter { it.isNotBlank() }
+            .orEmpty()
+
+    if (meanings.isNotEmpty()) {
+        Column(
+            modifier = modifier.fillMaxWidth(),
+            verticalArrangement = Arrangement.spacedBy(12.dp),
+        ) {
+            meanings.forEachIndexed { index, item ->
+                NumberedMeaningItem(
+                    number = index + 1,
+                    meaning = item.uppercaseFirstLetter(),
+                )
+            }
+        }
+    } else {
+        Text(
+            text = emptyText,
+            fontFamily = InterFontFamily,
+            fontWeight = FontWeight.Normal,
+            fontSize = 16.sp,
+            color = TextH1,
+            lineHeight = 24.sp,
+            modifier = modifier,
+        )
+    }
+}
+
+@Composable
+private fun NumberedMeaningItem(
+    number: Int,
+    meaning: String,
+    modifier: Modifier = Modifier,
+) {
+    Row(
+        modifier = modifier.fillMaxWidth(),
+        verticalAlignment = Alignment.Top,
+    ) {
+        Box(
+            modifier =
+                Modifier
+                    .size(26.dp)
+                    .clip(CircleShape)
+                    .background(BluePrimary),
+            contentAlignment = Alignment.Center,
+        ) {
+            Text(
+                text = number.toString(),
+                fontFamily = InterFontFamily,
+                fontWeight = FontWeight.ExtraBold,
+                fontSize = 12.sp,
+                color = Color.White,
+                lineHeight = 13.sp,
+            )
+        }
+        Text(
+            text = meaning,
+            fontFamily = InterFontFamily,
+            fontWeight = FontWeight.Normal,
+            fontSize = 14.sp,
+            color = TextH1,
+            lineHeight = 24.sp,
+            modifier = Modifier.padding(start = 12.dp).weight(1f),
+        )
+    }
+}
+
+private fun String.uppercaseFirstLetter(): String {
+    val firstLetterIndex = indexOfFirst { it.isLetter() }
+    if (firstLetterIndex == -1) return this
+
+    return replaceRange(
+        startIndex = firstLetterIndex,
+        endIndex = firstLetterIndex + 1,
+        replacement = this[firstLetterIndex].uppercase(),
+    )
 }
 
 @Composable
