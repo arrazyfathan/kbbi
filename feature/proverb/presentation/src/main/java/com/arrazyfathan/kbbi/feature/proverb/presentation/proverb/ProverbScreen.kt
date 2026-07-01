@@ -86,6 +86,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.paging.LoadState
+import androidx.paging.PagingData
 import androidx.paging.compose.LazyPagingItems
 import androidx.paging.compose.collectAsLazyPagingItems
 import androidx.paging.compose.itemKey
@@ -103,6 +104,7 @@ import com.arrazyfathan.kbbi.feature.proverb.domain.model.ProverbDetailModel
 import com.arrazyfathan.kbbi.feature.proverb.domain.model.ProverbModel
 import com.arrazyfathan.kbbi.feature.proverb.domain.model.ProverbPagingException
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.distinctUntilChanged
 import org.koin.androidx.compose.koinViewModel
@@ -173,14 +175,12 @@ fun ProverbScreen(
         }
 
     LaunchedEffect(listState) {
-        snapshotFlow { listState.isScrollInProgress }
-            .distinctUntilChanged()
-            .collectLatest { isScrolling ->
-                if (!isScrolling) {
-                    delay(SEARCH_BAR_IDLE_SHOW_DELAY_MILLIS)
-                    isSearchVisible = true
-                }
+        snapshotFlow { listState.isScrollInProgress }.distinctUntilChanged().collectLatest { isScrolling ->
+            if (!isScrolling) {
+                delay(SEARCH_BAR_IDLE_SHOW_DELAY_MILLIS)
+                isSearchVisible = true
             }
+        }
     }
 
     Scaffold(
@@ -717,11 +717,7 @@ private fun NumberedMeaningItem(
         verticalAlignment = Alignment.Top,
     ) {
         Box(
-            modifier =
-                Modifier
-                    .size(26.dp)
-                    .clip(CircleShape)
-                    .background(BluePrimary),
+            modifier = Modifier.size(26.dp).clip(CircleShape).background(BluePrimary),
             contentAlignment = Alignment.Center,
         ) {
             Text(
@@ -826,6 +822,81 @@ private fun ProverbCardPreview() {
                         sourceUrl = null,
                     ),
                 onClick = {},
+            )
+        }
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
+private fun ProverbScreenPreview() {
+    val sampleProverbs =
+        listOf(
+            ProverbModel("Air beriak tanda tak dalam", "A", "Air_beriak_tanda_tak_dalam", null),
+            ProverbModel("Bagai air di daun talas", "B", "Bagai_air_di_daun_talas", null),
+            ProverbModel("Cepat kaki ringan tangan", "C", "Cepat_kaki_ringan_tangan", null),
+            ProverbModel("Darah daging sendiri", "D", "Darah_daging_sendiri", null),
+            ProverbModel("Emas bersepuh perak", "E", "Emas_bersepuh_perak", null),
+        )
+    val pagingData = PagingData.from(sampleProverbs)
+    val proverbs = MutableStateFlow(pagingData).collectAsLazyPagingItems()
+
+    KBBITheme {
+        ProverbScreen(
+            state = ProverbState(),
+            proverbs = proverbs,
+            onAction = {},
+            onNavigateBack = {},
+        )
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
+private fun ProverbScreenWithMeaningPreview() {
+    val sampleProverbs =
+        listOf(
+            ProverbModel("Air beriak tanda tak dalam", "A", "Air_beriak_tanda_tak_dalam", null),
+        )
+    val pagingData = PagingData.from(sampleProverbs)
+    val proverbs = MutableStateFlow(pagingData).collectAsLazyPagingItems()
+
+    KBBITheme {
+        ProverbScreen(
+            state =
+                ProverbState(
+                    selectedProverb =
+                        ProverbDetailModel(
+                            text = "Air beriak tanda tak dalam",
+                            letter = "A",
+                            slug = "Air_beriak_tanda_tak_dalam",
+                            sourceUrl = null,
+                            meaning = "Orang yang sombong biasanya bodoh.",
+                        ),
+                ),
+            proverbs = proverbs,
+            onAction = {},
+            onNavigateBack = {},
+        )
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
+private fun ProverbMeaningSheetPreview() {
+    KBBITheme {
+        Surface(color = Color.White) {
+            ProverbMeaningSheet(
+                proverb =
+                    ProverbDetailModel(
+                        text = "Air beriak tanda tak dalam",
+                        letter = "A",
+                        slug = "Air_beriak_tanda_tak_dalam",
+                        sourceUrl = null,
+                        meaning = "Orang yang sombong biasanya bodoh.; Siapa yang banyak bicara ilmunya.",
+                    ),
+                isLoading = false,
+                modifier = Modifier.padding(20.dp),
             )
         }
     }
