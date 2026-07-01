@@ -1,4 +1,0 @@
-report.file=/Users/macintosh/Personal/Android/Samples/kbbi/core/build/kover/bin-reports/testDebugUnitTest.ic
-exclude=android.*
-exclude=com.android.*
-exclude=jdk.internal.*

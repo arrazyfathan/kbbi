@@ -70,6 +70,7 @@ import com.arrazyfathan.kbbi.feature.bookmark.presentation.navigation.BookmarkRo
 import com.arrazyfathan.kbbi.feature.detail.presentation.navigation.DetailRoute
 import com.arrazyfathan.kbbi.feature.home.domain.model.ListWordModel
 import com.arrazyfathan.kbbi.feature.home.presentation.navigation.HomeRoute
+import com.arrazyfathan.kbbi.feature.proverb.presentation.navigation.ProverbRoute
 import com.arrazyfathan.kbbi.feature.words.presentation.navigation.WordsRoute
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
@@ -95,6 +96,13 @@ sealed interface Screen : NavKey {
         override val titleResId = R.string.word_list_tab_title
         override val iconResId = R.drawable.word
         override val iconSelectedResId = R.drawable.word_selected
+    }
+
+    @Serializable
+    data object Proverb : Screen {
+        override val titleResId = R.string.proverb_title
+        override val iconResId = R.drawable.ic_proverb
+        override val iconSelectedResId = R.drawable.ic_proverb
     }
 
     @Serializable
@@ -127,6 +135,7 @@ fun MainApp() {
     val navigator = remember(navigationState) { Navigator(navigationState) }
     val currentRoute = navigationState.currentRoute
     val isDetailVisible = currentRoute is DetailNavRoute
+    val showBottomNavigation = screens.any { screen -> currentRoute == screen }
     val loadingController = rememberAppLoadingController()
     val routeJson =
         remember {
@@ -160,12 +169,24 @@ fun MainApp() {
                         onNavigateToDetail = { word ->
                             navigator.navigate(DetailNavRoute(routeJson.encodeToString(word)))
                         },
+                        onNavigateToProverb = {
+                            navigator.navigate(Screen.Proverb)
+                        },
                     )
                 }
                 entry<Screen.WordList> {
                     WordsRoute(
                         onNavigateToDetail = { word ->
                             navigator.navigate(DetailNavRoute(routeJson.encodeToString(word)))
+                        },
+                    )
+                }
+                entry<Screen.Proverb> {
+                    ProverbRoute(
+                        onNavigateBack = {
+                            if (!isUiBlocked) {
+                                navigator.goBack()
+                            }
                         },
                     )
                 }
@@ -196,12 +217,12 @@ fun MainApp() {
                     }
                 },
                 modifier = Modifier.fillMaxSize(),
-                transitionSpec = { appNavigationTransition(isDetailVisible) },
-                popTransitionSpec = { appPopNavigationTransition(isDetailVisible) },
-                predictivePopTransitionSpec = { appPopNavigationTransition(isDetailVisible) },
+                transitionSpec = { appNavigationTransition(showBottomNavigation) },
+                popTransitionSpec = { appPopNavigationTransition(showBottomNavigation) },
+                predictivePopTransitionSpec = { appPopNavigationTransition(showBottomNavigation) },
             )
 
-            if (!isDetailVisible) {
+            if (showBottomNavigation) {
                 Row(
                     modifier =
                         Modifier
@@ -376,18 +397,18 @@ private tailrec fun Context.findActivity(): Activity? =
         else -> null
     }
 
-private fun appNavigationTransition(isDetailVisible: Boolean): ContentTransform =
-    if (isDetailVisible) {
-        iosNavigationTransition()
-    } else {
+private fun appNavigationTransition(showBottomNavigation: Boolean): ContentTransform =
+    if (showBottomNavigation) {
         bottomNavigationTransition()
+    } else {
+        iosNavigationTransition()
     }
 
-private fun appPopNavigationTransition(isDetailVisible: Boolean): ContentTransform =
-    if (isDetailVisible) {
-        iosPopNavigationTransition()
-    } else {
+private fun appPopNavigationTransition(showBottomNavigation: Boolean): ContentTransform =
+    if (showBottomNavigation) {
         bottomNavigationTransition()
+    } else {
+        iosPopNavigationTransition()
     }
 
 private fun bottomNavigationTransition(): ContentTransform {

@@ -7,6 +7,7 @@ import com.arrazyfathan.kbbi.di.useCaseModule
 import com.arrazyfathan.kbbi.di.viewModelModule
 import com.arrazyfathan.kbbi.feature.home.data.di.databaseModule
 import com.arrazyfathan.kbbi.feature.home.data.di.repositoryModule
+import com.arrazyfathan.kbbi.feature.proverb.data.di.proverbDataModule
 import org.koin.android.ext.koin.androidContext
 import org.koin.android.ext.koin.androidLogger
 import org.koin.core.context.startKoin
@@ -25,6 +26,7 @@ class BaseApplication : Application() {
                 listOf(
                     databaseModule,
                     repositoryModule,
+                    proverbDataModule,
                     viewModelModule,
                     networkModule,
                     useCaseModule,

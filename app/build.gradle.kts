@@ -213,6 +213,9 @@ dependencies {
     implementation(project(":feature:home:data"))
     implementation(project(":feature:home:domain"))
     implementation(project(":feature:home:presentation"))
+    implementation(project(":feature:proverb:data"))
+    implementation(project(":feature:proverb:domain"))
+    implementation(project(":feature:proverb:presentation"))
     implementation(project(":feature:splash:presentation"))
     implementation(project(":feature:words:presentation"))
 
