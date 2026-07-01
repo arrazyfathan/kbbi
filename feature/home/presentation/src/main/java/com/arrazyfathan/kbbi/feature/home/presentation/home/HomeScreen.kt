@@ -70,9 +70,6 @@ import com.airbnb.lottie.compose.LottieCompositionSpec
 import com.airbnb.lottie.compose.LottieConstants
 import com.airbnb.lottie.compose.rememberLottieComposition
 import com.arrazyfathan.kbbi.core.R
-import com.arrazyfathan.kbbi.feature.home.domain.model.HistoryModel
-import com.arrazyfathan.kbbi.feature.home.domain.model.ListWordModel
-import com.arrazyfathan.kbbi.core.presentation.ui.LocalAppLoadingController
 import com.arrazyfathan.kbbi.core.presentation.designsystem.BlueBg
 import com.arrazyfathan.kbbi.core.presentation.designsystem.BluePrimary
 import com.arrazyfathan.kbbi.core.presentation.designsystem.BlueSecondary
@@ -82,6 +79,9 @@ import com.arrazyfathan.kbbi.core.presentation.designsystem.MetropolisFontFamily
 import com.arrazyfathan.kbbi.core.presentation.designsystem.SpaceGroteskFontFamily
 import com.arrazyfathan.kbbi.core.presentation.designsystem.TextH1
 import com.arrazyfathan.kbbi.core.presentation.designsystem.TextP
+import com.arrazyfathan.kbbi.core.presentation.ui.LocalAppLoadingController
+import com.arrazyfathan.kbbi.feature.home.domain.model.HistoryModel
+import com.arrazyfathan.kbbi.feature.home.domain.model.ListWordModel
 import org.koin.androidx.compose.koinViewModel
 
 private const val HOME_SEARCH_LOADING_SOURCE = "home_search"
@@ -90,6 +90,7 @@ private const val HOME_SEARCH_LOADING_SOURCE = "home_search"
 fun HomeScreen(
     modifier: Modifier = Modifier,
     onNavigateToDetail: (ListWordModel) -> Unit,
+    onNavigateToProverb: () -> Unit,
     viewModel: HomeViewModel = koinViewModel(),
 ) {
     val context = LocalContext.current
@@ -131,6 +132,7 @@ fun HomeScreen(
         state = state,
         searchQuery = searchQuery,
         onSearchQueryChange = { searchQuery = it },
+        onNavigateToProverb = onNavigateToProverb,
         onAction = viewModel::onAction,
         modifier = modifier,
     )
@@ -142,6 +144,7 @@ fun HomeContent(
     state: HomeState,
     searchQuery: String,
     onSearchQueryChange: (String) -> Unit,
+    onNavigateToProverb: () -> Unit,
     onAction: (HomeAction) -> Unit,
     modifier: Modifier = Modifier,
 ) {
@@ -152,53 +155,43 @@ fun HomeContent(
 
     Box(
         modifier =
-            modifier
-                .fillMaxSize()
-                .background(BluePrimary)
-                .statusBarsPadding()
-                .pointerInput(Unit) {
-                    awaitPointerEventScope {
-                        while (true) {
-                            awaitFirstDown(requireUnconsumed = false)
-                            var totalDragY = 0f
-                            var isSwipeDetected = false
-                            do {
-                                val event = awaitPointerEvent()
-                                val dragChange = event.changes.firstOrNull()
-                                if (dragChange != null && dragChange.pressed) {
-                                    val deltaY = dragChange.position.y - dragChange.previousPosition.y
-                                    totalDragY += deltaY
-                                    if (totalDragY < -150f) { // Swipe up threshold
-                                        isSwipeDetected = true
-                                        dragChange.consume()
-                                    }
+            modifier.fillMaxSize().background(BluePrimary).statusBarsPadding().pointerInput(Unit) {
+                awaitPointerEventScope {
+                    while (true) {
+                        awaitFirstDown(requireUnconsumed = false)
+                        var totalDragY = 0f
+                        var isSwipeDetected = false
+                        do {
+                            val event = awaitPointerEvent()
+                            val dragChange = event.changes.firstOrNull()
+                            if (dragChange != null && dragChange.pressed) {
+                                val deltaY = dragChange.position.y - dragChange.previousPosition.y
+                                totalDragY += deltaY
+                                if (totalDragY < -150f) { // Swipe up threshold
+                                    isSwipeDetected = true
+                                    dragChange.consume()
                                 }
-                            } while (event.changes.any { it.pressed } && !isSwipeDetected)
-
-                            if (isSwipeDetected) {
-                                showBottomSheet = true
                             }
+                        } while (event.changes.any { it.pressed } && !isSwipeDetected)
+
+                        if (isSwipeDetected) {
+                            showBottomSheet = true
                         }
                     }
-                },
+                }
+            },
     ) {
         // Hero Image at Bottom-Right
         Image(
             painter = painterResource(id = R.drawable.hero_home),
             contentDescription = stringResource(id = R.string.hero_image_text),
-            modifier =
-                Modifier
-                    .align(Alignment.BottomEnd)
-                    .fillMaxHeight(0.35f),
+            modifier = Modifier.align(Alignment.BottomEnd).fillMaxHeight(0.35f),
             contentScale = ContentScale.FillHeight,
         )
 
         // Main Content Container
         Column(
-            modifier =
-                Modifier
-                    .fillMaxSize()
-                    .padding(horizontal = 16.dp),
+            modifier = Modifier.fillMaxSize().padding(horizontal = 16.dp),
         ) {
             Spacer(modifier = Modifier.height(50.dp))
 
@@ -228,10 +221,7 @@ fun HomeContent(
 
             // Search Bar Row
             Box(
-                modifier =
-                    Modifier
-                        .fillMaxWidth()
-                        .height(55.dp),
+                modifier = Modifier.fillMaxWidth().height(55.dp),
                 contentAlignment = Alignment.CenterEnd,
             ) {
                 TextField(
@@ -240,10 +230,7 @@ fun HomeContent(
                         val filteredText = text.replace(" ", "")
                         onSearchQueryChange(filteredText)
                     },
-                    modifier =
-                        Modifier
-                            .fillMaxWidth()
-                            .height(55.dp),
+                    modifier = Modifier.fillMaxWidth().height(55.dp),
                     placeholder = {
                         Text(
                             text = stringResource(id = R.string.search_word_list_hint),
@@ -337,10 +324,7 @@ fun HomeContent(
 
                 LazyHorizontalStaggeredGrid(
                     rows = StaggeredGridCells.Fixed(2),
-                    modifier =
-                        Modifier
-                            .fillMaxWidth()
-                            .height(84.dp),
+                    modifier = Modifier.fillMaxWidth().height(84.dp),
                     horizontalItemSpacing = 10.dp,
                     verticalArrangement = Arrangement.spacedBy(10.dp),
                 ) {
@@ -356,10 +340,7 @@ fun HomeContent(
                             elevation = CardDefaults.cardElevation(0.dp),
                         ) {
                             Row(
-                                modifier =
-                                    Modifier
-                                        .defaultMinSize(minHeight = 34.dp)
-                                        .padding(horizontal = 16.dp),
+                                modifier = Modifier.defaultMinSize(minHeight = 34.dp).padding(horizontal = 16.dp),
                                 horizontalArrangement = Arrangement.Center,
                                 verticalAlignment = Alignment.CenterVertically,
                             ) {
@@ -391,7 +372,7 @@ fun HomeContent(
                     .align(Alignment.BottomCenter)
                     .clickable {
                         showBottomSheet = true
-                    }.padding(bottom = 16.dp),
+                    }.padding(bottom = 86.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
         ) {
             val swipeComposition by rememberLottieComposition(LottieCompositionSpec.RawRes(R.raw.swipeblue))
@@ -426,7 +407,7 @@ fun HomeContent(
                             .padding(bottom = 32.dp),
                 ) {
                     Text(
-                        text = "Menu",
+                        text = stringResource(id = R.string.home_menu_title),
                         color = TextH1,
                         fontSize = 20.sp,
                         fontFamily = InterFontFamily,
@@ -436,7 +417,7 @@ fun HomeContent(
                     Spacer(modifier = Modifier.height(4.dp))
 
                     Text(
-                        text = "Temukan fitur lainnya (Comming Soon)",
+                        text = stringResource(id = R.string.home_menu_subtitle),
                         color = TextP,
                         fontSize = 14.sp,
                         fontFamily = InterFontFamily,
@@ -445,27 +426,100 @@ fun HomeContent(
 
                     Spacer(modifier = Modifier.height(24.dp))
 
-                    // Three placeholder cards side-by-side
                     Row(
                         modifier = Modifier.fillMaxWidth(),
                         horizontalArrangement = Arrangement.spacedBy(8.dp),
                     ) {
-                        repeat(3) {
-                            Card(
-                                modifier =
-                                    Modifier
-                                        .weight(1f)
-                                        .height(120.dp),
-                                shape = RoundedCornerShape(10.dp),
-                                colors = CardDefaults.cardColors(containerColor = BlueBg),
-                                elevation = CardDefaults.cardElevation(0.dp),
-                            ) {}
+                        HomeMenuCard(
+                            icon = R.drawable.ic_proverb,
+                            title = stringResource(id = R.string.proverb_menu_title),
+                            subtitle = stringResource(id = R.string.proverb_menu_subtitle),
+                            onClick = {
+                                showBottomSheet = false
+                                onNavigateToProverb()
+                            },
+                            modifier = Modifier.weight(1f),
+                        )
+
+                        repeat(2) {
+                            HomeMenuPlaceholderCard(modifier = Modifier.weight(1f))
                         }
                     }
                 }
             }
         }
     }
+}
+
+@Composable
+private fun HomeMenuCard(
+    icon: Int,
+    title: String,
+    subtitle: String,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    Card(
+        modifier = modifier.height(120.dp).clickable(onClick = onClick),
+        shape = RoundedCornerShape(10.dp),
+        colors = CardDefaults.cardColors(containerColor = BlueBg),
+        elevation = CardDefaults.cardElevation(0.dp),
+    ) {
+        Column(
+            modifier = Modifier.fillMaxSize().padding(12.dp),
+            verticalArrangement = Arrangement.Center,
+        ) {
+            Surface(
+                modifier = Modifier.size(36.dp),
+                shape = RoundedCornerShape(10.dp),
+                color = Color.White,
+            ) {
+                Box(
+                    modifier = Modifier.fillMaxSize(),
+                    contentAlignment = Alignment.Center,
+                ) {
+                    Icon(
+                        painter = painterResource(id = icon),
+                        contentDescription = null,
+                        tint = BluePrimary,
+                        modifier = Modifier.size(20.dp),
+                    )
+                }
+            }
+
+            Spacer(modifier = Modifier.height(10.dp))
+
+            Text(
+                text = title,
+                color = TextH1,
+                fontSize = 13.sp,
+                fontFamily = InterFontFamily,
+                fontWeight = FontWeight.Bold,
+                lineHeight = 16.sp,
+            )
+
+            Spacer(modifier = Modifier.height(2.dp))
+
+            Text(
+                text = subtitle,
+                color = TextP,
+                fontSize = 11.sp,
+                fontFamily = InterFontFamily,
+                fontWeight = FontWeight.Normal,
+                lineHeight = 14.sp,
+            )
+        }
+    }
+}
+
+@Composable
+private fun HomeMenuPlaceholderCard(modifier: Modifier = Modifier) {
+    Card(
+        modifier = modifier.height(120.dp),
+        shape = RoundedCornerShape(10.dp),
+        colors = CardDefaults.cardColors(containerColor = BlueBg),
+        elevation = CardDefaults.cardElevation(0.dp),
+    ) {}
 }
 
 @Preview(showBackground = true)
@@ -486,6 +540,7 @@ fun HomeContentPreview() {
                 ),
             searchQuery = "",
             onSearchQueryChange = {},
+            onNavigateToProverb = {},
             onAction = {},
         )
     }
@@ -499,6 +554,7 @@ fun HomeContentLoadingPreview() {
             state = HomeState(isLoading = true),
             searchQuery = "Belajar",
             onSearchQueryChange = {},
+            onNavigateToProverb = {},
             onAction = {},
         )
     }

@@ -22,4 +22,3 @@ Gemfile.lock
 *.keystore
 *.jks
 kbbi_keystore
-/core/presentation/designsystem/build/
