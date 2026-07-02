@@ -14,16 +14,19 @@ import kotlinx.coroutines.flow.Flow
 
 @Dao
 interface WordDao {
-    @Query("SELECT * FROM word_table")
-    fun getAllWords(): Flow<List<ListWordEntity>>
+    @Query("SELECT * FROM word_table WHERE isSaved = 1")
+    fun getSavedWords(): Flow<List<ListWordEntity>>
+
+    @Query("SELECT * FROM word_table WHERE word = :word LIMIT 1")
+    suspend fun getWord(word: String): ListWordEntity?
 
     @Upsert
     suspend fun insertWord(listWordEntity: ListWordEntity): Long
 
-    @Query("DELETE FROM word_table WHERE word = :word")
-    suspend fun deleteWord(word: String)
+    @Query("UPDATE word_table SET isSaved = 0 WHERE word = :word")
+    suspend fun unbookmarkWord(word: String)
 
-    @Query("SELECT EXISTS (SELECT * FROM word_table WHERE word = :word)")
+    @Query("SELECT EXISTS (SELECT * FROM word_table WHERE word = :word AND isSaved = 1)")
     fun checkWordIsExist(word: String): Flow<Boolean>
 
     @Upsert

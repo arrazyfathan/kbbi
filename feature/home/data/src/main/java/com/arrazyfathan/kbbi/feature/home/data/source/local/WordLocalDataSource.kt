@@ -7,11 +7,13 @@ import com.arrazyfathan.kbbi.feature.home.data.source.local.room.WordDao
 class WordLocalDataSource(
     private val wordDao: WordDao,
 ) {
-    fun getAllWords() = wordDao.getAllWords()
+    fun getSavedWords() = wordDao.getSavedWords()
+
+    suspend fun getWord(word: String) = wordDao.getWord(word)
 
     suspend fun insertWord(listWordEntity: ListWordEntity) = wordDao.insertWord(listWordEntity)
 
-    suspend fun deleteWord(word: String) = wordDao.deleteWord(word)
+    suspend fun unbookmarkWord(word: String) = wordDao.unbookmarkWord(word)
 
     fun checkWordIsExist(word: String) = wordDao.checkWordIsExist(word)
 
