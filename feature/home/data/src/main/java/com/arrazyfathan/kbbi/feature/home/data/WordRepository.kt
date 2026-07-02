@@ -31,8 +31,34 @@ class WordRepository(
 ) : WordSearchRepository,
     BookmarkRepository,
     SearchHistoryRepository {
-    override suspend fun getMeaningOfWord(word: String): AppResult<List<WordModel>, DataError> =
-        remoteDataSource.getMeaningOfWord(word).map { it.toWordModels() }
+    override suspend fun getMeaningOfWord(word: String): AppResult<List<WordModel>, DataError> {
+        val cachedWord =
+            withContext(Dispatchers.IO) {
+                localDataSource.getWord(word)
+            }
+
+        if (cachedWord != null) {
+            return AppResult.Success(cachedWord.toDomain().listWords)
+        }
+
+        val remoteResult = remoteDataSource.getMeaningOfWord(word).map { it.toWordModels() }
+        return when (remoteResult) {
+            is AppResult.Success -> {
+                withContext(Dispatchers.IO) {
+                    localDataSource.insertWord(
+                        ListWordEntity(
+                            word = word,
+                            listWords = remoteResult.data.toWordEntities(),
+                            isSaved = false,
+                        ),
+                    )
+                }
+                remoteResult
+            }
+
+            is AppResult.Error -> remoteResult
+        }
+    }
 
     override suspend fun bookmarkWord(
         word: String,
@@ -45,7 +71,8 @@ class WordRepository(
                     listWords = result.toWordEntities(),
                     isSaved = true,
                 ),
-            ) != -1L
+            )
+            true
         }
 
     override suspend fun addToHistory(history: HistoryModel) =
@@ -60,13 +87,13 @@ class WordRepository(
 
     override suspend fun deleteWord(word: String) =
         withContext(Dispatchers.IO) {
-            return@withContext localDataSource.deleteWord(word)
+            return@withContext localDataSource.unbookmarkWord(word)
         }
 
     override fun checkIfWordIsSaved(word: String): Flow<Boolean> = localDataSource.checkWordIsExist(word)
 
     override fun getBookmarks(): Flow<List<ListWordModel>> =
-        localDataSource.getAllWords().map {
+        localDataSource.getSavedWords().map {
             it.map { entity -> entity.toDomain() }
         }
 }

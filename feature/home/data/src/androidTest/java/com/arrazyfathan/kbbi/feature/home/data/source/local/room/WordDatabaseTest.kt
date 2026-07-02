@@ -55,7 +55,7 @@ class WordDatabaseTest {
 
             wordDao.insertWord(listWordEntity)
 
-            val allWords = wordDao.getAllWords().first()
+            val allWords = wordDao.getSavedWords().first()
             assertEquals(1, allWords.size)
             assertEquals("cantik", allWords[0].word)
             assertTrue(allWords[0].isSaved)
@@ -65,7 +65,7 @@ class WordDatabaseTest {
 
     @Test
     @Throws(Exception::class)
-    fun deleteWord() =
+    fun unbookmarkWordKeepsCachedMeaning() =
         runBlocking {
             val meaning = MeaningEntity(wordClass = "n", description = "benda cair")
             val word = WordEntity(entry = "air", meanings = listOf(meaning))
@@ -74,11 +74,34 @@ class WordDatabaseTest {
             wordDao.insertWord(listWordEntity)
             assertTrue(wordDao.checkWordIsExist("air").first())
 
-            wordDao.deleteWord("air")
+            wordDao.unbookmarkWord("air")
             assertFalse(wordDao.checkWordIsExist("air").first())
 
-            val allWords = wordDao.getAllWords().first()
+            val allWords = wordDao.getSavedWords().first()
             assertTrue(allWords.isEmpty())
+
+            val cachedWord = wordDao.getWord("air")
+            assertEquals("air", cachedWord?.word)
+            assertFalse(cachedWord?.isSaved ?: true)
+            assertEquals(
+                "benda cair",
+                cachedWord?.listWords?.firstOrNull()?.meanings?.firstOrNull()?.description,
+            )
+        }
+
+    @Test
+    @Throws(Exception::class)
+    fun cachedWordIsHiddenFromBookmarks() =
+        runBlocking {
+            val meaning = MeaningEntity(wordClass = "n", description = "cahaya dan panas")
+            val word = WordEntity(entry = "api", meanings = listOf(meaning))
+            val listWordEntity = ListWordEntity(word = "api", listWords = listOf(word), isSaved = false)
+
+            wordDao.insertWord(listWordEntity)
+
+            assertFalse(wordDao.checkWordIsExist("api").first())
+            assertTrue(wordDao.getSavedWords().first().isEmpty())
+            assertEquals("api", wordDao.getWord("api")?.word)
         }
 
     @Test
