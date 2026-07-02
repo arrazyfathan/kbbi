@@ -1,6 +1,6 @@
 # KBBI
 
-KBBI is an unofficial Android dictionary app for **Kamus Besar Bahasa Indonesia**. The app combines a remote dictionary API with a bundled local word index so users can search words quickly, inspect meanings in detail, and keep bookmarks and recent search history on-device.
+KBBI is an unofficial Android dictionary app for **Kamus Besar Bahasa Indonesia**. The app combines a remote dictionary API with a bundled local word index and an offline-first Room cache so users can search words quickly, revisit previously opened meanings without a network connection, and keep bookmarks and recent search history on-device.
 
 <p align="center">
   <a href="https://opensource.org/licenses/Apache-2.0"><img alt="License" src="https://img.shields.io/badge/License-Apache%202.0-blue.svg"/></a>
@@ -29,6 +29,9 @@ This repository contains the Android client for KBBI. The project is organized a
 - Search Indonesian words from the home screen
 - Browse a bundled local word list from `feature/home/data/src/main/assets/entries.json`
 - View detailed word entries and meanings
+- Cache successful meaning lookups locally, including words opened from the word list
+- Browse and search Indonesian proverbs with paged results
+- Cache proverb pages and proverb meanings for fallback when the remote API is unavailable
 - Save bookmarked words locally
 - Keep recent search history locally
 - Animated splash screen and Lottie-based loading/empty states
@@ -41,7 +44,7 @@ This repository contains the Android client for KBBI. The project is organized a
 ## Tech Stack
 
 - **Language:** Kotlin
-- **Build tooling:** Gradle, Android Gradle Plugin `9.2.1`, Kotlin `2.3.21`
+- **Build tooling:** Gradle, Android Gradle Plugin `9.2.1`, Kotlin `2.4.0`
 - **Java target:** Java 17
 - **Minimum SDK:** 23
 - **Target/Compile SDK:** 37
@@ -49,9 +52,9 @@ This repository contains the Android client for KBBI. The project is organized a
 - **Navigation:** AndroidX Navigation3
 - **Architecture:** Clean Architecture, MVVM-style presentation, Repository pattern, UseCase layer
 - **Async/data:** Coroutines, StateFlow, Channel-based events
-- **Local storage:** Room
+- **Local storage:** Room `2.8.4`
 - **Networking:** Ktor Client, kotlinx.serialization, OkHttp engine/logging
-- **Dependency injection:** Koin `4.2.1`
+- **Dependency injection:** Koin `4.2.2`
 - **Code quality:** Detekt, Ktlint
 - **Distribution/automation:** Fastlane, GitHub Actions
 
@@ -83,6 +86,10 @@ This repository contains the Android client for KBBI. The project is organized a
 │   │   ├── data/                    # Room, remote/local data sources, repository impl
 │   │   ├── domain/                  # Word models, repositories, use cases
 │   │   └── presentation/            # Home screen, ViewModel, route
+│   ├── proverb/
+│   │   ├── data/                    # Paging, Room cache, remote data source
+│   │   ├── domain/                  # Proverb models, repository, use cases
+│   │   └── presentation/            # Proverb screen, ViewModel, route
 │   ├── splash/
 │   │   └── presentation/            # Splash screen and route
 │   └── words/
@@ -114,19 +121,29 @@ feature:home:data
  ├── core:domain
  └── core:logging
 
+feature:proverb:data
+ ├── feature:proverb:domain
+ ├── core:data
+ └── core:domain
+
 core modules
  └── shared primitives with no feature ownership
 ```
 
 `HttpClientFactory` and `SafeApiCall` live in `:core:data` so every feature data module can reuse the same network setup. `UiText` and `DataErrorToText` live in `:core:presentation:ui` so presentation modules can map domain/data errors to localized UI messages consistently.
 
+Word meaning lookup is handled by `WordRepository` in `:feature:home:data`. It checks Room first, returns cached meanings when present, calls the remote API only on cache miss, and stores successful remote responses back into Room. Cached meanings and bookmarks share `word_table`; `isSaved = false` means the word is cached only, while `isSaved = true` means it also appears in the bookmark list.
+
+Proverb lookup is handled by `NetworkProverbRepository` in `:feature:proverb:data`. Proverb lists are loaded with Paging, successful pages are cached in `proverb_db`, and cached pages are used when a remote page load fails. Proverb detail requests are remote-first; successful detail responses are cached, and cached detail is returned when the remote request fails.
+
 ## Application Flow
 
 The app starts at the splash destination, then enters the main flow owned by the root navigation graph in `:app`.
 
-- **Home:** Search words, display loading/error states, and store recent searches.
-- **Words:** Filter the bundled local word index, then fetch word details.
-- **Bookmarks:** View and remove locally saved entries.
+- **Home:** Search words, display loading/error states, cache successful meanings, and store recent searches.
+- **Words:** Filter the bundled local word index, then open word details through the same cache-aware lookup flow.
+- **Proverbs:** Search and page through proverb results, then open proverb meanings with cached fallback.
+- **Bookmarks:** View saved entries and remove them from bookmarks without deleting cached meanings.
 - **Detail:** Show meanings for a selected word and toggle bookmark state.
 
 Each feature exposes its route from a `navigation` package, while `AppNavigation` in `:app` composes those destinations into the app graph.
@@ -141,8 +158,29 @@ Each feature exposes its route from a `navigation` package, while `AppNavigation
 
 ### Local Data
 
-- **Room database:** stores history and bookmark data in `kbbi_db`
-- **Asset file:** `feature/home/data/src/main/assets/entries.json` provides the local searchable word list
+- **Room database:** stores cached meanings, bookmark flags, and search history in `kbbi_db`
+- **Proverb Room database:** stores cached proverb pages and cached proverb details in `proverb_db`
+- **Asset file:** `feature/home/data/src/main/assets/entries.json` provides the local searchable word list. It contains entries only, not definitions.
+
+Current word lookup behavior:
+
+1. The app normalizes and validates the query in `SearchWordUseCase`.
+2. `WordRepository` checks Room for an existing `word_table` row.
+3. If cached, the app opens the detail screen from local data.
+4. If missing, the repository requests `/search/{word}` from the remote API.
+5. Successful remote responses are stored in Room with `isSaved = false`.
+6. Bookmarking the word upserts the same cached payload with `isSaved = true`.
+7. Removing a bookmark sets `isSaved = false`, preserving the cached meaning for offline lookup.
+
+Current proverb lookup behavior:
+
+1. `ProverbViewModel` debounces the search query and requests paged results through `GetListProverbsUseCase`.
+2. `ProverbPagingSource` loads pages from the remote API.
+3. Successful page responses replace the cached page data for the query in `proverb_db`.
+4. If a remote page load fails, the paging source returns the cached page when available.
+5. Tapping a proverb requests detail through `GetProverbMeaningUseCase`.
+6. Successful detail responses are cached by slug.
+7. If a detail request fails, cached detail is returned when available.
 
 ## Requirements
 
@@ -223,6 +261,13 @@ Compile Android tests:
 
 ```sh
 ./gradlew :feature:home:data:compileDebugAndroidTestKotlin
+```
+
+Focused compile checks for the current cache and word-list flow:
+
+```sh
+./gradlew --no-daemon :feature:home:data:compileDebugKotlin :feature:home:data:compileDebugAndroidTestKotlin
+./gradlew --no-daemon :feature:words:presentation:compileDebugKotlin :app:compileDevelopmentDebugKotlin
 ```
 
 Run Android tests on a connected device or emulator:
