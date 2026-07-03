@@ -27,8 +27,11 @@ This repository contains the Android client for KBBI. The project is organized a
 ## Features
 
 - Search Indonesian words from the home screen
+- Show home search suggestions from the bundled local word index
 - Browse a bundled local word list from `feature/home/data/src/main/assets/entries.json`
 - View detailed word entries and meanings
+- Share word definitions to other apps
+- Receive shared text from other apps and search it in KBBI
 - Cache successful meaning lookups locally, including words opened from the word list
 - Browse and search Indonesian proverbs with paged results
 - Cache proverb pages and proverb meanings for fallback when the remote API is unavailable
@@ -140,11 +143,11 @@ Proverb lookup is handled by `NetworkProverbRepository` in `:feature:proverb:dat
 
 The app starts at the splash destination, then enters the main flow owned by the root navigation graph in `:app`.
 
-- **Home:** Search words, display loading/error states, cache successful meanings, and store recent searches.
+- **Home:** Search words, show local suggestions, display loading/error states, cache successful meanings, and store recent searches.
 - **Words:** Filter the bundled local word index, then open word details through the same cache-aware lookup flow.
 - **Proverbs:** Search and page through proverb results, then open proverb meanings with cached fallback.
 - **Bookmarks:** View saved entries and remove them from bookmarks without deleting cached meanings.
-- **Detail:** Show meanings for a selected word and toggle bookmark state.
+- **Detail:** Show meanings for a selected word, share definitions, and toggle bookmark state.
 
 Each feature exposes its route from a `navigation` package, while `AppNavigation` in `:app` composes those destinations into the app graph.
 
@@ -160,17 +163,25 @@ Each feature exposes its route from a `navigation` package, while `AppNavigation
 
 - **Room database:** stores cached meanings, bookmark flags, and search history in `kbbi_db`
 - **Proverb Room database:** stores cached proverb pages and cached proverb details in `proverb_db`
-- **Asset file:** `feature/home/data/src/main/assets/entries.json` provides the local searchable word list. It contains entries only, not definitions.
+- **Asset file:** `feature/home/data/src/main/assets/entries.json` provides the local searchable word index used by home search suggestions and the word list. It contains entries only, not definitions.
 
 Current word lookup behavior:
 
 1. The app normalizes and validates the query in `SearchWordUseCase`.
-2. `WordRepository` checks Room for an existing `word_table` row.
-3. If cached, the app opens the detail screen from local data.
-4. If missing, the repository requests `/search/{word}` from the remote API.
-5. Successful remote responses are stored in Room with `isSaved = false`.
-6. Bookmarking the word upserts the same cached payload with `isSaved = true`.
-7. Removing a bookmark sets `isSaved = false`, preserving the cached meaning for offline lookup.
+2. `HomeViewModel` can suggest matching entries from the bundled local word index before submission.
+3. `WordRepository` checks Room for an existing `word_table` row.
+4. If cached, the app opens the detail screen from local data.
+5. If missing, the repository requests `/search/{word}` from the remote API.
+6. Successful remote responses are stored in Room with `isSaved = false`.
+7. Bookmarking the word upserts the same cached payload with `isSaved = true`.
+8. Removing a bookmark sets `isSaved = false`, preserving the cached meaning for offline lookup.
+
+Android text integration:
+
+1. `SearchInKbbiActivity` is an activity alias for `ACTION_PROCESS_TEXT`, allowing selected text in other apps to be searched in KBBI.
+2. `ShareToKbbiActivity` is an activity alias for `ACTION_SEND` with `text/plain`, allowing shared text from other apps to be searched in KBBI.
+3. `MainActivity` extracts the first likely search token from incoming text and forwards it into the home search flow.
+4. The detail screen sends formatted plain-text definitions through Android's share chooser.
 
 Current proverb lookup behavior:
 

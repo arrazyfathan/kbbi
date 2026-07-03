@@ -51,7 +51,7 @@ This document lists Android platform features that match this KBBI dictionary ap
 
 10. **Search Enhancements**
     - Voice search using Android speech recognition.
-    - Search suggestions from the local `entries.json` word index.
+    - Search suggestions from the local `entries.json` word index. ✅
     - Recent search chips.
     - Similar-word or typo suggestions.
 
