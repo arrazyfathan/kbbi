@@ -39,6 +39,20 @@
                 <data android:mimeType="text/plain" />
             </intent-filter>
         </activity-alias>
+
+        <activity-alias
+            android:name=".ShareToKbbiActivity"
+            android:exported="true"
+            android:label="@string/search_in_kbbi"
+            android:targetActivity="com.arrazyfathan.kbbi.MainActivity">
+            <intent-filter>
+                <action android:name="android.intent.action.SEND" />
+
+                <category android:name="android.intent.category.DEFAULT" />
+
+                <data android:mimeType="text/plain" />
+            </intent-filter>
+        </activity-alias>
     </application>
 
 </manifest>

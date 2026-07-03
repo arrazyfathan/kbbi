@@ -19,12 +19,12 @@ This document lists Android platform features that match this KBBI dictionary ap
    - Long-press launcher shortcuts for search, bookmarks, proverbs, and random word.
    - Useful because dictionary users often want fast entry points.
 
-4. **Share Intent**
-   - Share a word definition from the detail screen.
-   - Receive shared text from other apps and search it in KBBI.
+4. **Share Intent** ✅
+   - Share a word definition from the detail screen. ✅
+   - Receive shared text from other apps and search it in KBBI. ✅
 
 5. **Home Screen Widgets**
-   - Word of the day widget.
+   - Word of the day widget.\
    - Quick search widget.
    - Saved word or proverb widget.
 
@@ -95,7 +95,7 @@ This document lists Android platform features that match this KBBI dictionary ap
 ## Recommended Roadmap
 
 1. ✅ Text selection "Search in KBBI" (Done)
-2. Share definition and receive shared text
+2. ✅ Share definition and receive shared text (Done)
 3. DataStore settings
 4. Daily word notification
 5. WorkManager cache refresh

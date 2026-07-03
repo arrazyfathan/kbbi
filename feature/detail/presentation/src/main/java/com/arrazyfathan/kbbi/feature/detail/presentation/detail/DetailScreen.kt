@@ -3,6 +3,7 @@ package com.arrazyfathan.kbbi.feature.detail.presentation.detail
 import android.content.ClipData
 import android.content.ClipboardManager
 import android.content.Context
+import android.content.Intent
 import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.spring
@@ -135,6 +136,7 @@ fun DetailContent(
     alertState: AppAlertState?,
 ) {
     val context = LocalContext.current
+    val sharedFromKbbi = stringResource(R.string.shared_from_kbbi)
     val lazyListState = rememberLazyListState()
     val bookmarkInteractionSource = remember { MutableInteractionSource() }
     val isBookmarkPressed by bookmarkInteractionSource.collectIsPressedAsState()
@@ -192,18 +194,19 @@ fun DetailContent(
                     index = index,
                     wordModel = wordModel,
                     onCopyClick = {
-                        val clipboardManager =
-                            context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
-                        var copiedText = ""
-                        for ((i, item) in wordModel.meanings.withIndex()) {
-                            val regex = Regex("""\[(.*?)]""")
-                            val cleanWordClass = item.wordClass.replace(regex, " ").trim()
-                            val cleanDescription = item.description.replace(Regex("\\?(.*)"), "")
-                            copiedText += "${i + 1}. $cleanWordClass $cleanDescription\n\n"
-                        }
-                        val clip = ClipData.newPlainText("meaning", copiedText.trim())
+                        val clipboardManager = context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
+                        val clip = ClipData.newPlainText("meaning", wordModel.toDefinitionCopyText())
                         clipboardManager.setPrimaryClip(clip)
                         onShowAlert(UiText.StringResource(R.string.copy_success), AppAlertType.Success)
+                    },
+                    onShareClick = {
+                        context.sharePlainText(
+                            text =
+                                wordModel.toDefinitionShareText(
+                                    rootWord = listWordModel.word,
+                                    sourceLabel = sharedFromKbbi,
+                                ),
+                        )
                     },
                 )
             }
@@ -240,13 +243,11 @@ fun DetailContent(
                     .graphicsLayer {
                         scaleX = bookmarkButtonScale
                         scaleY = bookmarkButtonScale
-                    }
-                    .shadow(
+                    }.shadow(
                         elevation = if (isBookmarkPressed) 8.dp else 14.dp,
                         shape = RoundedCornerShape(100.dp),
                         clip = false,
-                    )
-                    .clip(RoundedCornerShape(100.dp))
+                    ).clip(RoundedCornerShape(100.dp))
                     .background(if (state.isSaved) TextH1 else Color.White)
                     .clickable(
                         interactionSource = bookmarkInteractionSource,
@@ -258,8 +259,7 @@ fun DetailContent(
                                 listWordModel.listWords,
                             ),
                         )
-                    }
-                    .padding(horizontal = 20.dp),
+                    }.padding(horizontal = 20.dp),
             horizontalArrangement = Arrangement.Center,
             verticalAlignment = Alignment.CenterVertically,
         ) {
@@ -294,6 +294,7 @@ fun WordEntryCard(
     index: Int,
     wordModel: WordModel,
     onCopyClick: () -> Unit,
+    onShareClick: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     Card(
@@ -361,10 +362,10 @@ fun WordEntryCard(
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            // Copy Button (aligned end with meanings, height 50dp)
-            Box(
+            Row(
                 modifier = Modifier.fillMaxWidth(),
-                contentAlignment = Alignment.BottomEnd,
+                horizontalArrangement = Arrangement.End,
+                verticalAlignment = Alignment.CenterVertically,
             ) {
                 Button(
                     onClick = onCopyClick,
@@ -383,6 +384,33 @@ fun WordEntryCard(
                         Spacer(modifier = Modifier.width(8.dp))
                         Text(
                             text = stringResource(id = R.string.copy),
+                            color = Color.White,
+                            fontFamily = InterFontFamily,
+                            fontWeight = FontWeight.SemiBold,
+                            fontSize = 12.sp,
+                        )
+                    }
+                }
+
+                Spacer(modifier = Modifier.width(10.dp))
+
+                Button(
+                    onClick = onShareClick,
+                    shape = RoundedCornerShape(100.dp),
+                    colors = ButtonDefaults.buttonColors(containerColor = TextH1),
+                    contentPadding = PaddingValues(horizontal = 24.dp),
+                    modifier = Modifier.height(44.dp),
+                ) {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Icon(
+                            painter = painterResource(id = R.drawable.share),
+                            contentDescription = stringResource(id = R.string.share),
+                            tint = Color.White,
+                            modifier = Modifier.size(14.dp),
+                        )
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Text(
+                            text = stringResource(id = R.string.share),
                             color = Color.White,
                             fontFamily = InterFontFamily,
                             fontWeight = FontWeight.SemiBold,
@@ -420,6 +448,52 @@ fun buildMeaningText(
         }
         append(cleanDescription)
     }
+}
+
+private fun WordModel.toDefinitionCopyText(): String =
+    meanings
+        .mapIndexed { index, meaning ->
+            meaning.toDefinitionLine(position = index)
+        }.joinToString(separator = "\n\n")
+
+private fun WordModel.toDefinitionShareText(
+    rootWord: String,
+    sourceLabel: String,
+): String {
+    val meaningsText =
+        meanings
+            .mapIndexed { index, meaning ->
+                meaning.toDefinitionLine(position = index)
+            }.joinToString(separator = "\n")
+
+    return buildString {
+        appendLine(rootWord)
+        appendLine(meaningsText)
+        appendLine()
+        append(sourceLabel)
+    }
+}
+
+private fun MeaningModel.toDefinitionLine(position: Int): String {
+    val cleanWordClass = wordClass.replace(Regex("""\[(.*?)]"""), " ").trim()
+    val cleanDescription = description.replace(Regex("\\?(.*)"), "").trim()
+
+    return "${position + 1}. $cleanWordClass $cleanDescription".trim()
+}
+
+private fun Context.sharePlainText(text: String) {
+    val sendIntent =
+        Intent(Intent.ACTION_SEND).apply {
+            type = "text/plain"
+            putExtra(Intent.EXTRA_TEXT, text)
+        }
+
+    startActivity(
+        Intent.createChooser(
+            sendIntent,
+            getString(R.string.share_definition),
+        ),
+    )
 }
 
 @Preview(showBackground = true)

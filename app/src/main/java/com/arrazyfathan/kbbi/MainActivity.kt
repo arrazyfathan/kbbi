@@ -67,18 +67,27 @@ class MainActivity : ComponentActivity() {
     }
 
     private fun handleExternalSearchIntent(intent: Intent) {
-        val query = intent.extractProcessTextQuery() ?: return
+        val query = intent.extractExternalSearchQuery() ?: return
         externalSearchQuery = query
         externalSearchRequestKey += 1
     }
 }
 
-private fun Intent.extractProcessTextQuery(): String? {
-    if (action != Intent.ACTION_PROCESS_TEXT) return null
+private fun Intent.extractExternalSearchQuery(): String? {
+    val rawText =
+        when (action) {
+            Intent.ACTION_PROCESS_TEXT -> getCharSequenceExtra(Intent.EXTRA_PROCESS_TEXT)?.toString()
+            Intent.ACTION_SEND -> {
+                if (type?.startsWith("text/plain") == true) {
+                    getStringExtra(Intent.EXTRA_TEXT)
+                } else {
+                    null
+                }
+            }
+            else -> null
+        }
 
-    return getCharSequenceExtra(Intent.EXTRA_PROCESS_TEXT)
-        ?.toString()
-        ?.toKbbiSearchQuery()
+    return rawText?.toKbbiSearchQuery()
 }
 
 private fun String.toKbbiSearchQuery(): String? =
