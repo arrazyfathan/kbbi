@@ -8,6 +8,7 @@
     <string name="bookmarks_title">Bookmarks</string>
     <string name="welcome_text">Welcome\nto KBBI</string>
     <string name="subtitle_text">Find word definitions from the\nGreat Dictionary of the Indonesian Language.</string>
+    <string name="search_in_kbbi">Search in KBBI</string>
     <string name="swipe_label">Swipe up</string>
     <string name="hero_image_text">Home hero image</string>
     <string name="search_word_list_hint">Search word list …</string>

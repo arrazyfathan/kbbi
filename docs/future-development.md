@@ -28,8 +28,8 @@ This document lists Android platform features that match this KBBI dictionary ap
    - Quick search widget.
    - Saved word or proverb widget.
 
-6. **Text Selection / Process Text**
-   - Add "Search in KBBI" to Android text selection actions.
+6. **Text Selection / Process Text** ✅
+   - Add "Search in KBBI" to Android text selection actions. ✅
    - This is one of the highest-value integrations for a dictionary app.
 
 7. **Offline Mode Improvements**
@@ -94,7 +94,7 @@ This document lists Android platform features that match this KBBI dictionary ap
 
 ## Recommended Roadmap
 
-1. Text selection "Search in KBBI"
+1. ✅ Text selection "Search in KBBI" (Done)
 2. Share definition and receive shared text
 3. DataStore settings
 4. Daily word notification

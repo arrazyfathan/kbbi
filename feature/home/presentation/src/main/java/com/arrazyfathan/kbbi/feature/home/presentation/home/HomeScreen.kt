@@ -89,6 +89,9 @@ private const val HOME_SEARCH_LOADING_SOURCE = "home_search"
 @Composable
 fun HomeScreen(
     modifier: Modifier = Modifier,
+    externalSearchQuery: String? = null,
+    externalSearchRequestKey: Long = 0L,
+    onExternalSearchConsumed: () -> Unit = {},
     onNavigateToDetail: (ListWordModel) -> Unit,
     onNavigateToProverb: () -> Unit,
     viewModel: HomeViewModel = koinViewModel(),
@@ -101,6 +104,13 @@ fun HomeScreen(
 
     LaunchedEffect(Unit) {
         viewModel.onAction(HomeAction.OnStarted)
+    }
+
+    LaunchedEffect(externalSearchRequestKey) {
+        val query = externalSearchQuery?.takeIf { it.isNotBlank() } ?: return@LaunchedEffect
+        searchQuery = query
+        viewModel.onAction(HomeAction.OnSearchSubmitted(query))
+        onExternalSearchConsumed()
     }
 
     LaunchedEffect(Unit) {
