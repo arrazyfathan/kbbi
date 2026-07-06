@@ -16,6 +16,7 @@
         <activity
             android:name="com.arrazyfathan.kbbi.MainActivity"
             android:exported="true"
+            android:launchMode="singleTop"
             android:theme="@style/SplashTheme"
             android:windowSoftInputMode="adjustResize">
             <intent-filter>
@@ -24,6 +25,34 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+
+        <activity-alias
+            android:name=".SearchInKbbiActivity"
+            android:exported="true"
+            android:label="@string/search_in_kbbi"
+            android:targetActivity="com.arrazyfathan.kbbi.MainActivity">
+            <intent-filter>
+                <action android:name="android.intent.action.PROCESS_TEXT" />
+
+                <category android:name="android.intent.category.DEFAULT" />
+
+                <data android:mimeType="text/plain" />
+            </intent-filter>
+        </activity-alias>
+
+        <activity-alias
+            android:name=".ShareToKbbiActivity"
+            android:exported="true"
+            android:label="@string/search_in_kbbi"
+            android:targetActivity="com.arrazyfathan.kbbi.MainActivity">
+            <intent-filter>
+                <action android:name="android.intent.action.SEND" />
+
+                <category android:name="android.intent.category.DEFAULT" />
+
+                <data android:mimeType="text/plain" />
+            </intent-filter>
+        </activity-alias>
     </application>
 
 </manifest>

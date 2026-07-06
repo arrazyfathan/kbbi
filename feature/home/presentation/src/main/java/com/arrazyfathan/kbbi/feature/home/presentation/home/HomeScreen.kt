@@ -89,6 +89,9 @@ private const val HOME_SEARCH_LOADING_SOURCE = "home_search"
 @Composable
 fun HomeScreen(
     modifier: Modifier = Modifier,
+    externalSearchQuery: String? = null,
+    externalSearchRequestKey: Long = 0L,
+    onExternalSearchConsumed: () -> Unit = {},
     onNavigateToDetail: (ListWordModel) -> Unit,
     onNavigateToProverb: () -> Unit,
     viewModel: HomeViewModel = koinViewModel(),
@@ -97,17 +100,20 @@ fun HomeScreen(
     val loadingController = LocalAppLoadingController.current
     val state by viewModel.state.collectAsStateWithLifecycle()
 
-    var searchQuery by remember { mutableStateOf("") }
-
     LaunchedEffect(Unit) {
         viewModel.onAction(HomeAction.OnStarted)
+    }
+
+    LaunchedEffect(externalSearchRequestKey) {
+        val query = externalSearchQuery?.takeIf { it.isNotBlank() } ?: return@LaunchedEffect
+        viewModel.onAction(HomeAction.OnSearchSubmitted(query))
+        onExternalSearchConsumed()
     }
 
     LaunchedEffect(Unit) {
         viewModel.events.collect { event ->
             when (event) {
                 is HomeEvent.NavigateToDetail -> {
-                    searchQuery = ""
                     onNavigateToDetail(event.word)
                 }
 
@@ -130,8 +136,6 @@ fun HomeScreen(
 
     HomeContent(
         state = state,
-        searchQuery = searchQuery,
-        onSearchQueryChange = { searchQuery = it },
         onNavigateToProverb = onNavigateToProverb,
         onAction = viewModel::onAction,
         modifier = modifier,
@@ -142,8 +146,6 @@ fun HomeScreen(
 @Composable
 fun HomeContent(
     state: HomeState,
-    searchQuery: String,
-    onSearchQueryChange: (String) -> Unit,
     onNavigateToProverb: () -> Unit,
     onAction: (HomeAction) -> Unit,
     modifier: Modifier = Modifier,
@@ -225,10 +227,9 @@ fun HomeContent(
                 contentAlignment = Alignment.CenterEnd,
             ) {
                 TextField(
-                    value = searchQuery,
+                    value = state.searchQuery,
                     onValueChange = { text ->
-                        val filteredText = text.replace(" ", "")
-                        onSearchQueryChange(filteredText)
+                        onAction(HomeAction.OnSearchQueryChanged(text))
                     },
                     modifier = Modifier.fillMaxWidth().height(55.dp),
                     placeholder = {
@@ -255,8 +256,8 @@ fun HomeContent(
                     keyboardActions =
                         KeyboardActions(
                             onSearch = {
-                                if (searchQuery.isNotBlank()) {
-                                    onAction(HomeAction.OnSearchSubmitted(searchQuery))
+                                if (state.searchQuery.isNotBlank()) {
+                                    onAction(HomeAction.OnSearchSubmitted(state.searchQuery))
                                     focusManager.clearFocus()
                                 }
                             },
@@ -277,15 +278,15 @@ fun HomeContent(
 
                 // Search Button (Slides In / Out)
                 this@Column.AnimatedVisibility(
-                    visible = searchQuery.length > 2,
+                    visible = state.searchQuery.length > 2,
                     enter = slideInHorizontally(initialOffsetX = { it }) + fadeIn(),
                     exit = slideOutHorizontally(targetOffsetX = { it }) + fadeOut(),
                     modifier = Modifier.align(Alignment.CenterEnd),
                 ) {
                     Surface(
                         onClick = {
-                            if (searchQuery.isNotBlank()) {
-                                onAction(HomeAction.OnSearchSubmitted(searchQuery))
+                            if (state.searchQuery.isNotBlank()) {
+                                onAction(HomeAction.OnSearchSubmitted(state.searchQuery))
                                 focusManager.clearFocus()
                             }
                         },
@@ -306,6 +307,21 @@ fun HomeContent(
                         }
                     }
                 }
+            }
+
+            AnimatedVisibility(
+                visible = state.suggestions.isNotEmpty(),
+                enter = fadeIn(),
+                exit = fadeOut(),
+            ) {
+                SearchSuggestions(
+                    suggestions = state.suggestions,
+                    onSuggestionClick = { suggestion ->
+                        onAction(HomeAction.OnSuggestionClick(suggestion))
+                        focusManager.clearFocus()
+                    },
+                    modifier = Modifier.padding(top = 8.dp),
+                )
             }
 
             Spacer(modifier = Modifier.height(12.dp))
@@ -522,6 +538,50 @@ private fun HomeMenuPlaceholderCard(modifier: Modifier = Modifier) {
     ) {}
 }
 
+@Composable
+private fun SearchSuggestions(
+    suggestions: List<String>,
+    onSuggestionClick: (String) -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    Surface(
+        modifier = modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(10.dp),
+        color = Color.White,
+        shadowElevation = 4.dp,
+    ) {
+        Column(modifier = Modifier.fillMaxWidth()) {
+            suggestions.forEach { suggestion ->
+                Row(
+                    modifier =
+                        Modifier
+                            .fillMaxWidth()
+                            .clickable { onSuggestionClick(suggestion) }
+                            .padding(horizontal = 16.dp, vertical = 12.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    Icon(
+                        painter = painterResource(id = R.drawable.ic_search),
+                        contentDescription = null,
+                        tint = TextP,
+                        modifier = Modifier.size(18.dp),
+                    )
+
+                    Spacer(modifier = Modifier.width(10.dp))
+
+                    Text(
+                        text = suggestion,
+                        color = TextH1,
+                        fontFamily = InterFontFamily,
+                        fontWeight = FontWeight.Medium,
+                        fontSize = 14.sp,
+                    )
+                }
+            }
+        }
+    }
+}
+
 @Preview(showBackground = true)
 @Composable
 fun HomeContentPreview() {
@@ -538,8 +598,6 @@ fun HomeContentPreview() {
                             HistoryModel("Membaca"),
                         ),
                 ),
-            searchQuery = "",
-            onSearchQueryChange = {},
             onNavigateToProverb = {},
             onAction = {},
         )
@@ -551,9 +609,23 @@ fun HomeContentPreview() {
 fun HomeContentLoadingPreview() {
     KBBITheme {
         HomeContent(
-            state = HomeState(isLoading = true),
-            searchQuery = "Belajar",
-            onSearchQueryChange = {},
+            state = HomeState(searchQuery = "Belajar", isLoading = true),
+            onNavigateToProverb = {},
+            onAction = {},
+        )
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
+fun HomeContentSuggestionsPreview() {
+    KBBITheme {
+        HomeContent(
+            state =
+                HomeState(
+                    searchQuery = "bel",
+                    suggestions = listOf("belajar", "belakang", "belanja", "pembelajaran"),
+                ),
             onNavigateToProverb = {},
             onAction = {},
         )

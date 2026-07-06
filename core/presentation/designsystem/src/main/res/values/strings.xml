@@ -8,6 +8,7 @@
     <string name="bookmarks_title">Bookmarks</string>
     <string name="welcome_text">Welcome\nto KBBI</string>
     <string name="subtitle_text">Find word definitions from the\nGreat Dictionary of the Indonesian Language.</string>
+    <string name="search_in_kbbi">Search in KBBI</string>
     <string name="swipe_label">Swipe up</string>
     <string name="hero_image_text">Home hero image</string>
     <string name="search_word_list_hint">Search word list …</string>
@@ -33,6 +34,9 @@
     <string name="bookmark">Bookmark</string>
     <string name="word_list_title">Word\nList</string>
     <string name="copy_success">Text copied successfully.</string>
+    <string name="share">Share</string>
+    <string name="share_definition">Share definition</string>
+    <string name="shared_from_kbbi">Dibagikan dari KBBI</string>
     <string name="delete_word_title">Delete word?</string>
     <string name="delete_word_message">Are you sure you want to delete this word?</string>
     <string name="delete">Delete</string>

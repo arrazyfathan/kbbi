@@ -119,7 +119,11 @@ private data class DetailNavRoute(
 ) : NavKey
 
 @Composable
-fun MainApp() {
+fun MainApp(
+    externalSearchQuery: String? = null,
+    externalSearchRequestKey: Long = 0L,
+    onExternalSearchConsumed: () -> Unit = {},
+) {
     val context = LocalContext.current
     val screens =
         listOf(
@@ -147,6 +151,12 @@ fun MainApp() {
         derivedStateOf { loadingController.isBlocking }
     }
 
+    LaunchedEffect(externalSearchRequestKey) {
+        if (externalSearchQuery != null) {
+            navigator.navigateToRoot(Screen.Home)
+        }
+    }
+
     LaunchedEffect(currentRoute) {
         val activity = context.findActivity() ?: return@LaunchedEffect
         val colorResId =
@@ -166,6 +176,9 @@ fun MainApp() {
             entryProvider {
                 entry<Screen.Home> {
                     HomeRoute(
+                        externalSearchQuery = externalSearchQuery,
+                        externalSearchRequestKey = externalSearchRequestKey,
+                        onExternalSearchConsumed = onExternalSearchConsumed,
                         onNavigateToDetail = { word ->
                             navigator.navigate(DetailNavRoute(routeJson.encodeToString(word)))
                         },
@@ -356,6 +369,17 @@ private class Navigator(
         } else {
             state.backStacks[state.topLevelRoute]?.add(route)
         }
+    }
+
+    fun navigateToRoot(route: NavKey) {
+        val stack = state.backStacks[route] ?: error("Stack for $route not found")
+        while (stack.lastOrNull() != route) {
+            if (stack.removeLastOrNull() == null) {
+                stack.add(route)
+                break
+            }
+        }
+        state.topLevelRoute = route
     }
 
     fun goBack() {
