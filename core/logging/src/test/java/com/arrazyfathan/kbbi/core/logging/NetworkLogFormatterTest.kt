@@ -10,7 +10,7 @@ class NetworkLogFormatterTest {
         val formattedLog =
             NetworkLogFormatter.format(
                 """
-                REQUEST: https://kbbi-api-green.vercel.app/search/belajar
+                REQUEST: https://api.example.com/search/belajar
                 METHOD: HttpMethod(value=GET)
                 -> Accept: application/json
                 -> Accept-Language: id
@@ -21,7 +21,7 @@ class NetworkLogFormatterTest {
             )
 
         assertTrue(formattedLog.contains(" CURL "))
-        assertTrue(formattedLog.contains("curl --location --request GET 'https://kbbi-api-green.vercel.app/search/belajar'"))
+        assertTrue(formattedLog.contains("curl --location --request GET 'https://api.example.com/search/belajar'"))
         assertTrue(formattedLog.contains("--header 'Accept: application/json'"))
         assertTrue(formattedLog.contains("--header 'Authorization: <redacted>'"))
         assertFalse(formattedLog.contains("secret-token"))
@@ -32,7 +32,7 @@ class NetworkLogFormatterTest {
         val formattedLog =
             NetworkLogFormatter.format(
                 """
-                REQUEST: https://kbbi-api-green.vercel.app/login
+                REQUEST: https://api.example.com/login
                 METHOD: HttpMethod(value=POST)
                 BODY Content-Type: application/json
                 BODY START

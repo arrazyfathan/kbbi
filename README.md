@@ -155,8 +155,7 @@ Each feature exposes its route from a `navigation` package, while `AppNavigation
 
 ### Remote API
 
-- Base URL: `https://kbbi-api-green.vercel.app`
-- API repository: <https://github.com/arrazyfathan/kbbi-api>
+- Base URL: configure `KBBI_BASE_URL` in `local.properties`, a Gradle property, or the `KBBI_BASE_URL` environment variable.
 - Shared network helpers: `core/data/src/main/java/com/arrazyfathan/kbbi/core/data/remote/network`
 
 ### Local Data

@@ -1,0 +1,2 @@
+# Copy this file to local.properties and replace the value with your private API base URL.
+KBBI_BASE_URL=https://api.example.com/

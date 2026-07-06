@@ -15,7 +15,6 @@ plugins {
 
 val packageName = "com.arrazyfathan.kbbi"
 val appAliasName = "KBBI"
-val productionBaseUrl = "https://kbbi-api-green.vercel.app/"
 val versionPropertiesFile = file("version.properties")
 
 if (!versionPropertiesFile.canRead()) {
@@ -57,7 +56,6 @@ fun ApplicationProductFlavor.configureAppMetadata(applicationName: String) {
     resValue("string", "app_name", applicationName)
     manifestPlaceholders["application_name"] = applicationName
     buildConfigField("String", "application_name", "\"$applicationName\"")
-    buildConfigField("String", "BASE_URL", "\"$productionBaseUrl\"")
 }
 
 android {

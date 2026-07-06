@@ -1,8 +1,33 @@
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
+import java.util.Properties
 
 plugins {
     alias(libs.plugins.android.library)
     alias(libs.plugins.kotlinx.kover)
+}
+
+fun requiredBaseUrl(): String {
+    val localProperties =
+        Properties().apply {
+            val localPropertiesFile = rootProject.file("local.properties")
+            if (localPropertiesFile.canRead()) {
+                localPropertiesFile.inputStream().use(::load)
+            }
+        }
+
+    val baseUrl =
+        providers.gradleProperty("KBBI_BASE_URL").orNull?.takeIf { it.isNotBlank() }
+            ?: providers.environmentVariable("KBBI_BASE_URL").orNull?.takeIf { it.isNotBlank() }
+            ?: localProperties.getProperty("KBBI_BASE_URL")?.takeIf { it.isNotBlank() }
+
+    require(!baseUrl.isNullOrBlank()) {
+        "KBBI_BASE_URL is required. Add it to local.properties, pass -PKBBI_BASE_URL=..., or set the KBBI_BASE_URL environment variable."
+    }
+    require(!baseUrl.contains('"') && !baseUrl.contains('\\')) {
+        "KBBI_BASE_URL must not contain quotes or backslashes."
+    }
+
+    return if (baseUrl.endsWith("/")) baseUrl else "$baseUrl/"
 }
 
 android {
@@ -12,7 +37,7 @@ android {
     defaultConfig {
         minSdk = 23
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
-        buildConfigField("String", "BASE_URL", "\"https://kbbi-api-green.vercel.app/\"")
+        buildConfigField("String", "BASE_URL", "\"${requiredBaseUrl()}\"")
     }
 
     compileOptions {

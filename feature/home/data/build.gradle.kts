@@ -14,7 +14,6 @@ android {
     defaultConfig {
         minSdk = 23
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
-        buildConfigField("String", "BASE_URL", "\"https://kbbi-api-green.vercel.app/\"")
     }
 
     compileOptions {
