@@ -316,6 +316,7 @@ fun HomeContent(
             ) {
                 SearchSuggestions(
                     suggestions = state.suggestions,
+                    suggestionMode = state.suggestionMode,
                     onSuggestionClick = { suggestion ->
                         onAction(HomeAction.OnSuggestionClick(suggestion))
                         focusManager.clearFocus()
@@ -541,6 +542,7 @@ private fun HomeMenuPlaceholderCard(modifier: Modifier = Modifier) {
 @Composable
 private fun SearchSuggestions(
     suggestions: List<String>,
+    suggestionMode: HomeSuggestionMode,
     onSuggestionClick: (String) -> Unit,
     modifier: Modifier = Modifier,
 ) {
@@ -551,20 +553,31 @@ private fun SearchSuggestions(
         shadowElevation = 4.dp,
     ) {
         Column(modifier = Modifier.fillMaxWidth()) {
+            if (suggestionMode == HomeSuggestionMode.DidYouMean) {
+                Text(
+                    text = stringResource(id = R.string.did_you_mean_label),
+                    color = TextP,
+                    fontFamily = InterFontFamily,
+                    fontWeight = FontWeight.Medium,
+                    fontSize = 12.sp,
+                    modifier = Modifier.padding(start = 16.dp, top = 16.dp, end = 16.dp, bottom = 8.dp),
+                )
+            }
+
             suggestions.forEach { suggestion ->
                 Row(
                     modifier =
                         Modifier
                             .fillMaxWidth()
                             .clickable { onSuggestionClick(suggestion) }
-                            .padding(horizontal = 16.dp, vertical = 12.dp),
+                            .padding(horizontal = 16.dp, vertical = 16.dp),
                     verticalAlignment = Alignment.CenterVertically,
                 ) {
                     Icon(
                         painter = painterResource(id = R.drawable.ic_search),
                         contentDescription = null,
                         tint = TextP,
-                        modifier = Modifier.size(18.dp),
+                        modifier = Modifier.size(16.dp),
                     )
 
                     Spacer(modifier = Modifier.width(10.dp))

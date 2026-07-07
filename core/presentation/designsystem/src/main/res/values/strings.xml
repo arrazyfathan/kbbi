@@ -12,6 +12,7 @@
     <string name="swipe_label">Swipe up</string>
     <string name="hero_image_text">Home hero image</string>
     <string name="search_word_list_hint">Search word list …</string>
+    <string name="did_you_mean_label">Did you mean?</string>
     <string name="button_search">button_search</string>
     <string name="navigate_back">Kembali</string>
     <string name="history_label">Recent Searches</string>
