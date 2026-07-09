@@ -12,11 +12,11 @@
     <string name="shortcut_search_label">Search</string>
     <string name="shortcut_search_long_label">Search KBBI</string>
     <string name="shortcut_bookmarks_label">Bookmarks</string>
-    <string name="shortcut_bookmarks_long_label">Open bookmarks</string>
+    <string name="shortcut_bookmarks_long_label">Open Bookmarks</string>
     <string name="shortcut_proverbs_label">Proverbs</string>
     <string name="shortcut_proverbs_long_label">Open proverbs</string>
     <string name="shortcut_random_word_label">Random word</string>
-    <string name="shortcut_random_word_long_label">Open random word</string>
+    <string name="shortcut_random_word_long_label">Random word</string>
     <string name="swipe_label">Swipe up</string>
     <string name="hero_image_text">Home hero image</string>
     <string name="search_word_list_hint">Search word list …</string>
