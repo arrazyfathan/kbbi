@@ -13,11 +13,17 @@ fun HomeRoute(
     externalSearchQuery: String? = null,
     externalSearchRequestKey: Long = 0L,
     onExternalSearchConsumed: () -> Unit = {},
+    focusSearchRequestKey: Long = 0L,
+    randomWordRequestKey: Long = 0L,
+    onShortcutConsumed: () -> Unit = {},
 ) {
     HomeScreen(
         externalSearchQuery = externalSearchQuery,
         externalSearchRequestKey = externalSearchRequestKey,
         onExternalSearchConsumed = onExternalSearchConsumed,
+        focusSearchRequestKey = focusSearchRequestKey,
+        randomWordRequestKey = randomWordRequestKey,
+        onShortcutConsumed = onShortcutConsumed,
         onNavigateToDetail = onNavigateToDetail,
         onNavigateToProverb = onNavigateToProverb,
         modifier = modifier,

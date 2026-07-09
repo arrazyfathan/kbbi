@@ -123,6 +123,9 @@ fun MainApp(
     externalSearchQuery: String? = null,
     externalSearchRequestKey: Long = 0L,
     onExternalSearchConsumed: () -> Unit = {},
+    shortcutRequest: AppShortcutRequest? = null,
+    shortcutRequestKey: Long = 0L,
+    onShortcutConsumed: () -> Unit = {},
 ) {
     val context = LocalContext.current
     val screens =
@@ -157,6 +160,29 @@ fun MainApp(
         }
     }
 
+    LaunchedEffect(shortcutRequestKey) {
+        when (shortcutRequest) {
+            AppShortcutRequest.Search,
+            AppShortcutRequest.RandomWord,
+            -> {
+                navigator.navigateToRoot(Screen.Home)
+            }
+
+            AppShortcutRequest.Bookmarks -> {
+                navigator.navigateToRoot(Screen.Bookmarks)
+                onShortcutConsumed()
+            }
+
+            AppShortcutRequest.Proverbs -> {
+                navigator.navigateToRoot(Screen.Home)
+                navigator.navigate(Screen.Proverb)
+                onShortcutConsumed()
+            }
+
+            null -> Unit
+        }
+    }
+
     LaunchedEffect(currentRoute) {
         val activity = context.findActivity() ?: return@LaunchedEffect
         val colorResId =
@@ -179,6 +205,19 @@ fun MainApp(
                         externalSearchQuery = externalSearchQuery,
                         externalSearchRequestKey = externalSearchRequestKey,
                         onExternalSearchConsumed = onExternalSearchConsumed,
+                        focusSearchRequestKey =
+                            if (shortcutRequest == AppShortcutRequest.Search) {
+                                shortcutRequestKey
+                            } else {
+                                0L
+                            },
+                        randomWordRequestKey =
+                            if (shortcutRequest == AppShortcutRequest.RandomWord) {
+                                shortcutRequestKey
+                            } else {
+                                0L
+                            },
+                        onShortcutConsumed = onShortcutConsumed,
                         onNavigateToDetail = { word ->
                             navigator.navigate(DetailNavRoute(routeJson.encodeToString(word)))
                         },

@@ -2,6 +2,7 @@ package com.arrazyfathan.kbbi.feature.home.presentation.home
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.arrazyfathan.kbbi.core.R
 import com.arrazyfathan.kbbi.core.domain.model.AppResult
 import com.arrazyfathan.kbbi.core.domain.model.DataError
 import com.arrazyfathan.kbbi.core.presentation.ui.UiText
@@ -50,6 +51,8 @@ sealed interface HomeAction {
     data class OnSuggestionClick(
         val word: String,
     ) : HomeAction
+
+    data object OnRandomWordRequested : HomeAction
 }
 
 sealed interface HomeEvent {
@@ -88,6 +91,7 @@ class HomeViewModel(
             is HomeAction.OnSearchQueryChanged -> updateSearchQuery(action.query)
             is HomeAction.OnSearchSubmitted -> search(action.word)
             is HomeAction.OnSuggestionClick -> search(action.word)
+            HomeAction.OnRandomWordRequested -> searchRandomWord()
         }
     }
 
@@ -127,34 +131,58 @@ class HomeViewModel(
         searchJob?.cancel()
         searchJob =
             viewModelScope.launch {
-                _state.update {
-                    it.copy(
-                        searchQuery = word,
-                        suggestions = emptyList(),
-                        suggestionMode = HomeSuggestionMode.Search,
-                        isLoading = true,
-                    )
-                }
-                val result = searchWordWithHistory(word)
-                _state.update { it.copy(isLoading = false) }
-                when (result) {
-                    is AppResult.Success -> {
-                        _state.update { it.copy(searchQuery = "") }
-                        _events.send(HomeEvent.NavigateToDetail(result.data))
-                    }
-
-                    is AppResult.Error -> {
-                        if (result.error == DataError.NotFound) {
-                            _state.update {
-                                it.copy(
-                                    suggestions = getWordSuggestions(word, wordEntries),
-                                    suggestionMode = HomeSuggestionMode.DidYouMean,
-                                )
-                            }
-                        }
-                        _events.send(HomeEvent.ShowMessage(result.error.asUiText()))
-                    }
-                }
+                performSearch(word)
             }
+    }
+
+    private fun searchRandomWord() {
+        searchJob?.cancel()
+        searchJob =
+            viewModelScope.launch {
+                _state.update { it.copy(isLoading = true) }
+                if (wordEntries.isEmpty()) {
+                    wordEntries = getWordEntries()
+                }
+
+                val randomWord = wordEntries.randomOrNull()
+                if (randomWord == null) {
+                    _state.update { it.copy(isLoading = false) }
+                    _events.send(HomeEvent.ShowMessage(UiText.StringResource(R.string.error_random_word_unavailable)))
+                    return@launch
+                }
+
+                performSearch(randomWord)
+            }
+    }
+
+    private suspend fun performSearch(word: String) {
+        _state.update {
+            it.copy(
+                searchQuery = word,
+                suggestions = emptyList(),
+                suggestionMode = HomeSuggestionMode.Search,
+                isLoading = true,
+            )
+        }
+        val result = searchWordWithHistory(word)
+        _state.update { it.copy(isLoading = false) }
+        when (result) {
+            is AppResult.Success -> {
+                _state.update { it.copy(searchQuery = "") }
+                _events.send(HomeEvent.NavigateToDetail(result.data))
+            }
+
+            is AppResult.Error -> {
+                if (result.error == DataError.NotFound) {
+                    _state.update {
+                        it.copy(
+                            suggestions = getWordSuggestions(word, wordEntries),
+                            suggestionMode = HomeSuggestionMode.DidYouMean,
+                        )
+                    }
+                }
+                _events.send(HomeEvent.ShowMessage(result.error.asUiText()))
+            }
+        }
     }
 }

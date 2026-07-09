@@ -50,6 +50,8 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
@@ -92,6 +94,9 @@ fun HomeScreen(
     externalSearchQuery: String? = null,
     externalSearchRequestKey: Long = 0L,
     onExternalSearchConsumed: () -> Unit = {},
+    focusSearchRequestKey: Long = 0L,
+    randomWordRequestKey: Long = 0L,
+    onShortcutConsumed: () -> Unit = {},
     onNavigateToDetail: (ListWordModel) -> Unit,
     onNavigateToProverb: () -> Unit,
     viewModel: HomeViewModel = koinViewModel(),
@@ -108,6 +113,12 @@ fun HomeScreen(
         val query = externalSearchQuery?.takeIf { it.isNotBlank() } ?: return@LaunchedEffect
         viewModel.onAction(HomeAction.OnSearchSubmitted(query))
         onExternalSearchConsumed()
+    }
+
+    LaunchedEffect(randomWordRequestKey) {
+        if (randomWordRequestKey <= 0L) return@LaunchedEffect
+        viewModel.onAction(HomeAction.OnRandomWordRequested)
+        onShortcutConsumed()
     }
 
     LaunchedEffect(Unit) {
@@ -136,6 +147,8 @@ fun HomeScreen(
 
     HomeContent(
         state = state,
+        focusSearchRequestKey = focusSearchRequestKey,
+        onSearchFocusConsumed = onShortcutConsumed,
         onNavigateToProverb = onNavigateToProverb,
         onAction = viewModel::onAction,
         modifier = modifier,
@@ -146,14 +159,23 @@ fun HomeScreen(
 @Composable
 fun HomeContent(
     state: HomeState,
+    focusSearchRequestKey: Long = 0L,
+    onSearchFocusConsumed: () -> Unit = {},
     onNavigateToProverb: () -> Unit,
     onAction: (HomeAction) -> Unit,
     modifier: Modifier = Modifier,
 ) {
     val focusManager = LocalFocusManager.current
+    val searchFocusRequester = remember { FocusRequester() }
     var showBottomSheet by remember { mutableStateOf(false) }
 
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+
+    LaunchedEffect(focusSearchRequestKey) {
+        if (focusSearchRequestKey <= 0L) return@LaunchedEffect
+        searchFocusRequester.requestFocus()
+        onSearchFocusConsumed()
+    }
 
     Box(
         modifier =
@@ -231,7 +253,7 @@ fun HomeContent(
                     onValueChange = { text ->
                         onAction(HomeAction.OnSearchQueryChanged(text))
                     },
-                    modifier = Modifier.fillMaxWidth().height(55.dp),
+                    modifier = Modifier.fillMaxWidth().height(55.dp).focusRequester(searchFocusRequester),
                     placeholder = {
                         Text(
                             text = stringResource(id = R.string.search_word_list_hint),

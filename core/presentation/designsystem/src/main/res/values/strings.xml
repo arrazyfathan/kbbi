@@ -9,6 +9,14 @@
     <string name="welcome_text">Welcome\nto KBBI</string>
     <string name="subtitle_text">Find word definitions from the\nGreat Dictionary of the Indonesian Language.</string>
     <string name="search_in_kbbi">Search in KBBI</string>
+    <string name="shortcut_search_label">Search</string>
+    <string name="shortcut_search_long_label">Search KBBI</string>
+    <string name="shortcut_bookmarks_label">Bookmarks</string>
+    <string name="shortcut_bookmarks_long_label">Open Bookmarks</string>
+    <string name="shortcut_proverbs_label">Proverbs</string>
+    <string name="shortcut_proverbs_long_label">Open proverbs</string>
+    <string name="shortcut_random_word_label">Random word</string>
+    <string name="shortcut_random_word_long_label">Random word</string>
     <string name="swipe_label">Swipe up</string>
     <string name="hero_image_text">Home hero image</string>
     <string name="search_word_list_hint">Search word list …</string>
@@ -47,6 +55,7 @@
     <string name="copy">Copy</string>
     <string name="number_item">1</string>
     <string name="error_empty_query">Word cannot be empty</string>
+    <string name="error_random_word_unavailable">Random word is unavailable right now.</string>
     <string name="error_no_internet">Tidak ada koneksi internet</string>
     <string name="error_bad_request">Permintaan tidak valid</string>
     <string name="error_request_timeout">Koneksi terlalu lama</string>
