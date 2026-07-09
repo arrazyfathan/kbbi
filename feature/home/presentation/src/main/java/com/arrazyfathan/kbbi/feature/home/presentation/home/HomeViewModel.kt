@@ -2,12 +2,15 @@ package com.arrazyfathan.kbbi.feature.home.presentation.home
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.arrazyfathan.kbbi.core.R
 import com.arrazyfathan.kbbi.core.domain.model.AppResult
+import com.arrazyfathan.kbbi.core.domain.model.DataError
 import com.arrazyfathan.kbbi.core.presentation.ui.UiText
 import com.arrazyfathan.kbbi.core.presentation.ui.asUiText
 import com.arrazyfathan.kbbi.feature.home.domain.model.HistoryModel
 import com.arrazyfathan.kbbi.feature.home.domain.model.ListWordModel
 import com.arrazyfathan.kbbi.feature.home.domain.usecase.GetWordEntriesUseCase
+import com.arrazyfathan.kbbi.feature.home.domain.usecase.GetWordSuggestionsUseCase
 import com.arrazyfathan.kbbi.feature.home.domain.usecase.ObserveSearchHistoryUseCase
 import com.arrazyfathan.kbbi.feature.home.domain.usecase.SearchWordWithHistoryUseCase
 import kotlinx.coroutines.Job
@@ -25,8 +28,14 @@ data class HomeState(
     val searchQuery: String = "",
     val histories: List<HistoryModel> = emptyList(),
     val suggestions: List<String> = emptyList(),
+    val suggestionMode: HomeSuggestionMode = HomeSuggestionMode.Search,
     val isLoading: Boolean = false,
 )
+
+enum class HomeSuggestionMode {
+    Search,
+    DidYouMean,
+}
 
 sealed interface HomeAction {
     data object OnStarted : HomeAction
@@ -42,6 +51,8 @@ sealed interface HomeAction {
     data class OnSuggestionClick(
         val word: String,
     ) : HomeAction
+
+    data object OnRandomWordRequested : HomeAction
 }
 
 sealed interface HomeEvent {
@@ -58,6 +69,7 @@ class HomeViewModel(
     private val searchWordWithHistory: SearchWordWithHistoryUseCase,
     private val observeSearchHistory: ObserveSearchHistoryUseCase,
     private val getWordEntries: GetWordEntriesUseCase,
+    private val getWordSuggestions: GetWordSuggestionsUseCase,
 ) : ViewModel() {
     private val _state = MutableStateFlow(HomeState())
     val state = _state.asStateFlow()
@@ -79,6 +91,7 @@ class HomeViewModel(
             is HomeAction.OnSearchQueryChanged -> updateSearchQuery(action.query)
             is HomeAction.OnSearchSubmitted -> search(action.word)
             is HomeAction.OnSuggestionClick -> search(action.word)
+            HomeAction.OnRandomWordRequested -> searchRandomWord()
         }
     }
 
@@ -98,17 +111,18 @@ class HomeViewModel(
             viewModelScope.launch {
                 wordEntries = getWordEntries()
                 _state.update {
-                    it.copy(suggestions = getSuggestions(it.searchQuery))
+                    it.copy(suggestions = getWordSuggestions(it.searchQuery, wordEntries))
                 }
             }
     }
 
     private fun updateSearchQuery(query: String) {
-        val normalizedQuery = query.replace(" ", "")
+        val normalizedQuery = query.trim().replace(" ", "")
         _state.update {
             it.copy(
                 searchQuery = normalizedQuery,
-                suggestions = getSuggestions(normalizedQuery),
+                suggestions = getWordSuggestions(normalizedQuery, wordEntries),
+                suggestionMode = HomeSuggestionMode.Search,
             )
         }
     }
@@ -117,52 +131,58 @@ class HomeViewModel(
         searchJob?.cancel()
         searchJob =
             viewModelScope.launch {
-                _state.update {
-                    it.copy(
-                        searchQuery = word,
-                        suggestions = emptyList(),
-                        isLoading = true,
-                    )
-                }
-                val result = searchWordWithHistory(word)
-                _state.update { it.copy(isLoading = false) }
-                when (result) {
-                    is AppResult.Success -> {
-                        _state.update { it.copy(searchQuery = "") }
-                        _events.send(HomeEvent.NavigateToDetail(result.data))
-                    }
-
-                    is AppResult.Error -> {
-                        _events.send(HomeEvent.ShowMessage(result.error.asUiText()))
-                    }
-                }
+                performSearch(word)
             }
     }
 
-    private fun getSuggestions(query: String): List<String> {
-        val normalizedQuery = query.trim().lowercase()
-        if (normalizedQuery.length < MIN_SUGGESTION_QUERY_LENGTH) return emptyList()
-
-        val prefixMatches =
-            wordEntries
-                .asSequence()
-                .filter { word -> word.startsWith(normalizedQuery) }
-
-        val containsMatches =
-            wordEntries
-                .asSequence()
-                .filter { word ->
-                    normalizedQuery in word && !word.startsWith(normalizedQuery)
+    private fun searchRandomWord() {
+        searchJob?.cancel()
+        searchJob =
+            viewModelScope.launch {
+                _state.update { it.copy(isLoading = true) }
+                if (wordEntries.isEmpty()) {
+                    wordEntries = getWordEntries()
                 }
 
-        return (prefixMatches + containsMatches)
-            .distinct()
-            .take(MAX_SUGGESTIONS)
-            .toList()
+                val randomWord = wordEntries.randomOrNull()
+                if (randomWord == null) {
+                    _state.update { it.copy(isLoading = false) }
+                    _events.send(HomeEvent.ShowMessage(UiText.StringResource(R.string.error_random_word_unavailable)))
+                    return@launch
+                }
+
+                performSearch(randomWord)
+            }
     }
 
-    private companion object {
-        const val MIN_SUGGESTION_QUERY_LENGTH = 2
-        const val MAX_SUGGESTIONS = 8
+    private suspend fun performSearch(word: String) {
+        _state.update {
+            it.copy(
+                searchQuery = word,
+                suggestions = emptyList(),
+                suggestionMode = HomeSuggestionMode.Search,
+                isLoading = true,
+            )
+        }
+        val result = searchWordWithHistory(word)
+        _state.update { it.copy(isLoading = false) }
+        when (result) {
+            is AppResult.Success -> {
+                _state.update { it.copy(searchQuery = "") }
+                _events.send(HomeEvent.NavigateToDetail(result.data))
+            }
+
+            is AppResult.Error -> {
+                if (result.error == DataError.NotFound) {
+                    _state.update {
+                        it.copy(
+                            suggestions = getWordSuggestions(word, wordEntries),
+                            suggestionMode = HomeSuggestionMode.DidYouMean,
+                        )
+                    }
+                }
+                _events.send(HomeEvent.ShowMessage(result.error.asUiText()))
+            }
+        }
     }
 }

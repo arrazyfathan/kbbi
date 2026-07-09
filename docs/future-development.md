@@ -15,8 +15,8 @@ This document lists Android platform features that match this KBBI dictionary ap
    - Reminder to review saved bookmarks.
    - Should be opt-in from a settings screen.
 
-3. **App Shortcuts**
-   - Long-press launcher shortcuts for search, bookmarks, proverbs, and random word.
+3. **App Shortcuts** ✅
+   - Long-press launcher shortcuts for search, bookmarks, proverbs, and random word. ✅
    - Useful because dictionary users often want fast entry points.
 
 4. **Share Intent** ✅
@@ -53,7 +53,7 @@ This document lists Android platform features that match this KBBI dictionary ap
     - Voice search using Android speech recognition.
     - Search suggestions from the local `entries.json` word index. ✅
     - Recent search chips.
-    - Similar-word or typo suggestions.
+    - Similar-word or typo suggestions.  ✅
 
 ## Good Match, But Secondary
 
@@ -96,13 +96,14 @@ This document lists Android platform features that match this KBBI dictionary ap
 
 1. ✅ Text selection "Search in KBBI" (Done)
 2. ✅ Share definition and receive shared text (Done)
-3. DataStore settings
-4. Daily word notification
-5. WorkManager cache refresh
-6. Home screen widget
-7. Dynamic theme
-8. Deep links
-9. OCR scan text
-10. Backup/export for bookmarks and history
+3. ✅ App shortcuts for search, bookmarks, proverbs, and random word (Done)
+4. DataStore settings
+5. Daily word notification
+6. WorkManager cache refresh
+7. Home screen widget
+8. Dynamic theme
+9. Deep links
+10. OCR scan text
+11. Backup/export for bookmarks and history
 
 The strongest direction is to make KBBI better at quick lookup, offline cache, and daily learning. The most relevant Android feature set is Process Text, share intents, WorkManager, notifications, widgets, DataStore, and deep links.

@@ -50,6 +50,8 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
@@ -92,6 +94,9 @@ fun HomeScreen(
     externalSearchQuery: String? = null,
     externalSearchRequestKey: Long = 0L,
     onExternalSearchConsumed: () -> Unit = {},
+    focusSearchRequestKey: Long = 0L,
+    randomWordRequestKey: Long = 0L,
+    onShortcutConsumed: () -> Unit = {},
     onNavigateToDetail: (ListWordModel) -> Unit,
     onNavigateToProverb: () -> Unit,
     viewModel: HomeViewModel = koinViewModel(),
@@ -108,6 +113,12 @@ fun HomeScreen(
         val query = externalSearchQuery?.takeIf { it.isNotBlank() } ?: return@LaunchedEffect
         viewModel.onAction(HomeAction.OnSearchSubmitted(query))
         onExternalSearchConsumed()
+    }
+
+    LaunchedEffect(randomWordRequestKey) {
+        if (randomWordRequestKey <= 0L) return@LaunchedEffect
+        viewModel.onAction(HomeAction.OnRandomWordRequested)
+        onShortcutConsumed()
     }
 
     LaunchedEffect(Unit) {
@@ -136,6 +147,8 @@ fun HomeScreen(
 
     HomeContent(
         state = state,
+        focusSearchRequestKey = focusSearchRequestKey,
+        onSearchFocusConsumed = onShortcutConsumed,
         onNavigateToProverb = onNavigateToProverb,
         onAction = viewModel::onAction,
         modifier = modifier,
@@ -146,14 +159,23 @@ fun HomeScreen(
 @Composable
 fun HomeContent(
     state: HomeState,
+    focusSearchRequestKey: Long = 0L,
+    onSearchFocusConsumed: () -> Unit = {},
     onNavigateToProverb: () -> Unit,
     onAction: (HomeAction) -> Unit,
     modifier: Modifier = Modifier,
 ) {
     val focusManager = LocalFocusManager.current
+    val searchFocusRequester = remember { FocusRequester() }
     var showBottomSheet by remember { mutableStateOf(false) }
 
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+
+    LaunchedEffect(focusSearchRequestKey) {
+        if (focusSearchRequestKey <= 0L) return@LaunchedEffect
+        searchFocusRequester.requestFocus()
+        onSearchFocusConsumed()
+    }
 
     Box(
         modifier =
@@ -231,7 +253,7 @@ fun HomeContent(
                     onValueChange = { text ->
                         onAction(HomeAction.OnSearchQueryChanged(text))
                     },
-                    modifier = Modifier.fillMaxWidth().height(55.dp),
+                    modifier = Modifier.fillMaxWidth().height(55.dp).focusRequester(searchFocusRequester),
                     placeholder = {
                         Text(
                             text = stringResource(id = R.string.search_word_list_hint),
@@ -316,6 +338,7 @@ fun HomeContent(
             ) {
                 SearchSuggestions(
                     suggestions = state.suggestions,
+                    suggestionMode = state.suggestionMode,
                     onSuggestionClick = { suggestion ->
                         onAction(HomeAction.OnSuggestionClick(suggestion))
                         focusManager.clearFocus()
@@ -541,6 +564,7 @@ private fun HomeMenuPlaceholderCard(modifier: Modifier = Modifier) {
 @Composable
 private fun SearchSuggestions(
     suggestions: List<String>,
+    suggestionMode: HomeSuggestionMode,
     onSuggestionClick: (String) -> Unit,
     modifier: Modifier = Modifier,
 ) {
@@ -551,20 +575,31 @@ private fun SearchSuggestions(
         shadowElevation = 4.dp,
     ) {
         Column(modifier = Modifier.fillMaxWidth()) {
+            if (suggestionMode == HomeSuggestionMode.DidYouMean) {
+                Text(
+                    text = stringResource(id = R.string.did_you_mean_label),
+                    color = TextP,
+                    fontFamily = InterFontFamily,
+                    fontWeight = FontWeight.Medium,
+                    fontSize = 12.sp,
+                    modifier = Modifier.padding(start = 16.dp, top = 16.dp, end = 16.dp, bottom = 8.dp),
+                )
+            }
+
             suggestions.forEach { suggestion ->
                 Row(
                     modifier =
                         Modifier
                             .fillMaxWidth()
                             .clickable { onSuggestionClick(suggestion) }
-                            .padding(horizontal = 16.dp, vertical = 12.dp),
+                            .padding(horizontal = 16.dp, vertical = 16.dp),
                     verticalAlignment = Alignment.CenterVertically,
                 ) {
                     Icon(
                         painter = painterResource(id = R.drawable.ic_search),
                         contentDescription = null,
                         tint = TextP,
-                        modifier = Modifier.size(18.dp),
+                        modifier = Modifier.size(16.dp),
                     )
 
                     Spacer(modifier = Modifier.width(10.dp))
