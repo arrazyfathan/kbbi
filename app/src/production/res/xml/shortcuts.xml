@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="utf-8"?>
+<shortcuts xmlns:android="http://schemas.android.com/apk/res/android">
+    <shortcut
+        android:enabled="true"
+        android:icon="@drawable/ic_search"
+        android:shortcutDisabledMessage="@string/shortcut_search_label"
+        android:shortcutId="search"
+        android:shortcutLongLabel="@string/shortcut_search_long_label"
+        android:shortcutShortLabel="@string/shortcut_search_label">
+        <intent
+            android:action="com.arrazyfathan.kbbi.action.SHORTCUT_SEARCH"
+            android:targetClass="com.arrazyfathan.kbbi.MainActivity"
+            android:targetPackage="com.arrazyfathan.kbbi" />
+    </shortcut>
+
+    <shortcut
+        android:enabled="true"
+        android:icon="@drawable/saved"
+        android:shortcutDisabledMessage="@string/shortcut_bookmarks_label"
+        android:shortcutId="bookmarks"
+        android:shortcutLongLabel="@string/shortcut_bookmarks_long_label"
+        android:shortcutShortLabel="@string/shortcut_bookmarks_label">
+        <intent
+            android:action="com.arrazyfathan.kbbi.action.SHORTCUT_BOOKMARKS"
+            android:targetClass="com.arrazyfathan.kbbi.MainActivity"
+            android:targetPackage="com.arrazyfathan.kbbi" />
+    </shortcut>
+
+    <shortcut
+        android:enabled="true"
+        android:icon="@drawable/ic_proverb"
+        android:shortcutDisabledMessage="@string/shortcut_proverbs_label"
+        android:shortcutId="proverbs"
+        android:shortcutLongLabel="@string/shortcut_proverbs_long_label"
+        android:shortcutShortLabel="@string/shortcut_proverbs_label">
+        <intent
+            android:action="com.arrazyfathan.kbbi.action.SHORTCUT_PROVERBS"
+            android:targetClass="com.arrazyfathan.kbbi.MainActivity"
+            android:targetPackage="com.arrazyfathan.kbbi" />
+    </shortcut>
+
+    <shortcut
+        android:enabled="true"
+        android:icon="@drawable/word"
+        android:shortcutDisabledMessage="@string/shortcut_random_word_label"
+        android:shortcutId="random_word"
+        android:shortcutLongLabel="@string/shortcut_random_word_long_label"
+        android:shortcutShortLabel="@string/shortcut_random_word_label">
+        <intent
+            android:action="com.arrazyfathan.kbbi.action.SHORTCUT_RANDOM_WORD"
+            android:targetClass="com.arrazyfathan.kbbi.MainActivity"
+            android:targetPackage="com.arrazyfathan.kbbi" />
+    </shortcut>
+</shortcuts>
