@@ -1,7 +1,15 @@
 package com.arrazyfathan.kbbi.feature.home.presentation.home
 
+import android.Manifest
 import android.widget.Toast
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.RepeatMode
+import androidx.compose.animation.core.animateFloat
+import androidx.compose.animation.core.infiniteRepeatable
+import androidx.compose.animation.core.rememberInfiniteTransition
+import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.slideInHorizontally
@@ -47,12 +55,14 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
@@ -82,6 +92,8 @@ import com.arrazyfathan.kbbi.core.presentation.designsystem.SpaceGroteskFontFami
 import com.arrazyfathan.kbbi.core.presentation.designsystem.TextH1
 import com.arrazyfathan.kbbi.core.presentation.designsystem.TextP
 import com.arrazyfathan.kbbi.core.presentation.ui.LocalAppLoadingController
+import com.arrazyfathan.kbbi.core.utils.VoiceRecognitionController
+import com.arrazyfathan.kbbi.core.utils.VoiceRecognitionUtils
 import com.arrazyfathan.kbbi.feature.home.domain.model.HistoryModel
 import com.arrazyfathan.kbbi.feature.home.domain.model.ListWordModel
 import org.koin.androidx.compose.koinViewModel
@@ -104,6 +116,61 @@ fun HomeScreen(
     val context = LocalContext.current
     val loadingController = LocalAppLoadingController.current
     val state by viewModel.state.collectAsStateWithLifecycle()
+    val latestOnAction by rememberUpdatedState(viewModel::onAction)
+    var ignoreNextVoiceError by remember { mutableStateOf(false) }
+    val voiceRecognitionController =
+        remember(context) {
+            if (VoiceRecognitionUtils.isRecognitionAvailable(context)) {
+                VoiceRecognitionController(
+                    context = context,
+                    onPartialResults = { recognizedTexts ->
+                        latestOnAction(HomeAction.OnVoiceSearchPartialResult(recognizedTexts))
+                    },
+                    onResults = { recognizedTexts ->
+                        latestOnAction(HomeAction.OnVoiceSearchFinished)
+                        if (recognizedTexts.isEmpty()) {
+                            latestOnAction(HomeAction.OnVoiceSearchEmptyResult)
+                        } else {
+                            latestOnAction(HomeAction.OnVoiceSearchResult(recognizedTexts))
+                        }
+                    },
+                    onError = { error ->
+                        latestOnAction(HomeAction.OnVoiceSearchFinished)
+                        if (ignoreNextVoiceError) {
+                            ignoreNextVoiceError = false
+                        } else {
+                            latestOnAction(HomeAction.OnVoiceSearchError(error))
+                        }
+                    },
+                )
+            } else {
+                null
+            }
+        }
+
+    val microphonePermissionLauncher =
+        rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) { isGranted ->
+            if (isGranted) {
+                viewModel.onAction(HomeAction.OnVoiceSearchStarted)
+                voiceRecognitionController?.startListening()
+            } else {
+                viewModel.onAction(HomeAction.OnVoiceSearchPermissionDenied)
+            }
+        }
+
+    fun startVoiceSearch() {
+        if (voiceRecognitionController == null) {
+            viewModel.onAction(HomeAction.OnVoiceSearchUnavailable)
+            return
+        }
+
+        if (VoiceRecognitionUtils.hasRecordAudioPermission(context)) {
+            viewModel.onAction(HomeAction.OnVoiceSearchStarted)
+            voiceRecognitionController.startListening()
+        } else {
+            microphonePermissionLauncher.launch(Manifest.permission.RECORD_AUDIO)
+        }
+    }
 
     LaunchedEffect(Unit) {
         viewModel.onAction(HomeAction.OnStarted)
@@ -145,11 +212,24 @@ fun HomeScreen(
         }
     }
 
+    DisposableEffect(voiceRecognitionController) {
+        onDispose {
+            voiceRecognitionController?.destroy()
+        }
+    }
+
     HomeContent(
         state = state,
         focusSearchRequestKey = focusSearchRequestKey,
         onSearchFocusConsumed = onShortcutConsumed,
         onNavigateToProverb = onNavigateToProverb,
+        onVoiceSearchClick = ::startVoiceSearch,
+        onVoiceSearchCancel = {
+            ignoreNextVoiceError = true
+            voiceRecognitionController?.cancel()
+            viewModel.onAction(HomeAction.OnVoiceSearchFinished)
+            viewModel.onAction(HomeAction.OnVoiceSearchCancelled)
+        },
         onAction = viewModel::onAction,
         modifier = modifier,
     )
@@ -162,6 +242,8 @@ fun HomeContent(
     focusSearchRequestKey: Long = 0L,
     onSearchFocusConsumed: () -> Unit = {},
     onNavigateToProverb: () -> Unit,
+    onVoiceSearchClick: () -> Unit = {},
+    onVoiceSearchCancel: () -> Unit = {},
     onAction: (HomeAction) -> Unit,
     modifier: Modifier = Modifier,
 ) {
@@ -170,6 +252,7 @@ fun HomeContent(
     var showBottomSheet by remember { mutableStateOf(false) }
 
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+    val voiceSheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
 
     LaunchedEffect(focusSearchRequestKey) {
         if (focusSearchRequestKey <= 0L) return@LaunchedEffect
@@ -243,90 +326,116 @@ fun HomeContent(
 
             Spacer(modifier = Modifier.height(12.dp))
 
-            // Search Bar Row
-            Box(
-                modifier = Modifier.fillMaxWidth().height(55.dp),
-                contentAlignment = Alignment.CenterEnd,
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                verticalAlignment = Alignment.CenterVertically,
             ) {
-                TextField(
-                    value = state.searchQuery,
-                    onValueChange = { text ->
-                        onAction(HomeAction.OnSearchQueryChanged(text))
-                    },
-                    modifier = Modifier.fillMaxWidth().height(55.dp).focusRequester(searchFocusRequester),
-                    placeholder = {
-                        Text(
-                            text = stringResource(id = R.string.search_word_list_hint),
-                            fontFamily = InterFontFamily,
-                            fontWeight = FontWeight.Medium,
-                            fontSize = 14.sp,
-                            color = TextP,
-                        )
-                    },
-                    textStyle =
-                        TextStyle(
-                            fontFamily = InterFontFamily,
-                            fontWeight = FontWeight.Medium,
-                            fontSize = 14.sp,
-                            color = TextH1,
-                        ),
-                    keyboardOptions =
-                        KeyboardOptions(
-                            keyboardType = KeyboardType.Text,
-                            imeAction = ImeAction.Search,
-                        ),
-                    keyboardActions =
-                        KeyboardActions(
-                            onSearch = {
+                Box(
+                    modifier = Modifier.weight(1f).height(55.dp),
+                    contentAlignment = Alignment.CenterEnd,
+                ) {
+                    TextField(
+                        value = state.searchQuery,
+                        onValueChange = { text ->
+                            onAction(HomeAction.OnSearchQueryChanged(text))
+                        },
+                        modifier = Modifier.fillMaxWidth().height(55.dp).focusRequester(searchFocusRequester),
+                        placeholder = {
+                            Text(
+                                text = stringResource(id = R.string.search_word_list_hint),
+                                fontFamily = InterFontFamily,
+                                fontWeight = FontWeight.Medium,
+                                fontSize = 14.sp,
+                                color = TextP,
+                            )
+                        },
+                        textStyle =
+                            TextStyle(
+                                fontFamily = InterFontFamily,
+                                fontWeight = FontWeight.Medium,
+                                fontSize = 14.sp,
+                                color = TextH1,
+                            ),
+                        keyboardOptions =
+                            KeyboardOptions(
+                                keyboardType = KeyboardType.Text,
+                                imeAction = ImeAction.Search,
+                            ),
+                        keyboardActions =
+                            KeyboardActions(
+                                onSearch = {
+                                    if (state.searchQuery.isNotBlank()) {
+                                        onAction(HomeAction.OnSearchSubmitted(state.searchQuery))
+                                        focusManager.clearFocus()
+                                    }
+                                },
+                            ),
+                        singleLine = true,
+                        shape = RoundedCornerShape(10.dp),
+                        colors =
+                            TextFieldDefaults.colors(
+                                focusedContainerColor = Color.White,
+                                unfocusedContainerColor = Color.White,
+                                focusedIndicatorColor = Color.Transparent,
+                                unfocusedIndicatorColor = Color.Transparent,
+                                focusedTextColor = TextH1,
+                                unfocusedTextColor = TextH1,
+                                cursorColor = BluePrimary,
+                            ),
+                    )
+
+                    this@Column.AnimatedVisibility(
+                        visible = state.searchQuery.length > 2,
+                        enter = slideInHorizontally(initialOffsetX = { it }) + fadeIn(),
+                        exit = slideOutHorizontally(targetOffsetX = { it }) + fadeOut(),
+                        modifier = Modifier.align(Alignment.CenterEnd),
+                    ) {
+                        Surface(
+                            onClick = {
                                 if (state.searchQuery.isNotBlank()) {
                                     onAction(HomeAction.OnSearchSubmitted(state.searchQuery))
                                     focusManager.clearFocus()
                                 }
                             },
-                        ),
-                    singleLine = true,
-                    shape = RoundedCornerShape(10.dp),
-                    colors =
-                        TextFieldDefaults.colors(
-                            focusedContainerColor = Color.White,
-                            unfocusedContainerColor = Color.White,
-                            focusedIndicatorColor = Color.Transparent,
-                            unfocusedIndicatorColor = Color.Transparent,
-                            focusedTextColor = TextH1,
-                            unfocusedTextColor = TextH1,
-                            cursorColor = BluePrimary,
-                        ),
-                )
-
-                // Search Button (Slides In / Out)
-                this@Column.AnimatedVisibility(
-                    visible = state.searchQuery.length > 2,
-                    enter = slideInHorizontally(initialOffsetX = { it }) + fadeIn(),
-                    exit = slideOutHorizontally(targetOffsetX = { it }) + fadeOut(),
-                    modifier = Modifier.align(Alignment.CenterEnd),
-                ) {
-                    Surface(
-                        onClick = {
-                            if (state.searchQuery.isNotBlank()) {
-                                onAction(HomeAction.OnSearchSubmitted(state.searchQuery))
-                                focusManager.clearFocus()
-                            }
-                        },
-                        modifier = Modifier.size(55.dp),
-                        shape = RoundedCornerShape(10.dp),
-                        color = BlueSecondary,
-                    ) {
-                        Box(
-                            modifier = Modifier.fillMaxSize(),
-                            contentAlignment = Alignment.Center,
+                            modifier = Modifier.size(55.dp),
+                            shape = RoundedCornerShape(10.dp),
+                            color = BlueSecondary,
                         ) {
-                            Icon(
-                                painter = painterResource(id = R.drawable.ic_search),
-                                contentDescription = stringResource(id = R.string.button_search),
-                                tint = Color.White,
-                                modifier = Modifier.size(24.dp),
-                            )
+                            Box(
+                                modifier = Modifier.fillMaxSize(),
+                                contentAlignment = Alignment.Center,
+                            ) {
+                                Icon(
+                                    painter = painterResource(id = R.drawable.ic_search),
+                                    contentDescription = stringResource(id = R.string.button_search),
+                                    tint = Color.White,
+                                    modifier = Modifier.size(24.dp),
+                                )
+                            }
                         }
+                    }
+                }
+
+                Surface(
+                    onClick = {
+                        showBottomSheet = false
+                        onVoiceSearchClick()
+                    },
+                    modifier = Modifier.size(55.dp),
+                    shape = RoundedCornerShape(10.dp),
+                    color = if (state.isVoiceListening) BlueSecondary else Color.White,
+                ) {
+                    Box(
+                        modifier = Modifier.fillMaxSize(),
+                        contentAlignment = Alignment.Center,
+                    ) {
+                        Icon(
+                            painter = painterResource(id = R.drawable.ic_microphone),
+                            contentDescription = stringResource(id = R.string.button_voice_search),
+                            tint = if (state.isVoiceListening) Color.White else BluePrimary,
+                            modifier = Modifier.size(24.dp),
+                        )
                     }
                 }
             }
@@ -485,6 +594,184 @@ fun HomeContent(
                         }
                     }
                 }
+            }
+        }
+
+        if (state.isVoiceListening) {
+            ModalBottomSheet(
+                onDismissRequest = onVoiceSearchCancel,
+                sheetState = voiceSheetState,
+                containerColor = Color.White,
+                shape = RoundedCornerShape(topStart = 10.dp, topEnd = 10.dp),
+            ) {
+                VoiceSearchBottomSheetContent(
+                    partialText = state.voicePartialText,
+                    onCancel = onVoiceSearchCancel,
+                    modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp).padding(bottom = 32.dp),
+                )
+            }
+        }
+    }
+}
+
+@Composable
+private fun VoiceSearchBottomSheetContent(
+    partialText: String,
+    onCancel: () -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    Column(
+        modifier = modifier.fillMaxWidth(),
+        horizontalAlignment = Alignment.CenterHorizontally,
+    ) {
+        VoiceListeningAnimation()
+
+        Spacer(modifier = Modifier.height(14.dp))
+
+        Text(
+            text = stringResource(id = R.string.voice_search_sheet_title),
+            color = TextH1,
+            fontSize = 20.sp,
+            fontFamily = InterFontFamily,
+            fontWeight = FontWeight.Bold,
+        )
+
+        Spacer(modifier = Modifier.height(8.dp))
+
+        Text(
+            text = stringResource(id = R.string.voice_search_sheet_subtitle),
+            color = TextP,
+            fontSize = 14.sp,
+            fontFamily = InterFontFamily,
+            fontWeight = FontWeight.Normal,
+        )
+
+        Spacer(modifier = Modifier.height(16.dp))
+
+        Surface(
+            modifier = Modifier.fillMaxWidth(),
+            shape = RoundedCornerShape(12.dp),
+            color = BlueBg,
+        ) {
+            Column(modifier = Modifier.fillMaxWidth().padding(16.dp)) {
+                Text(
+                    text = stringResource(id = R.string.voice_search_detected_label),
+                    color = TextP,
+                    fontSize = 12.sp,
+                    fontFamily = InterFontFamily,
+                    fontWeight = FontWeight.Medium,
+                )
+
+                Spacer(modifier = Modifier.height(6.dp))
+
+                Text(
+                    text = partialText.ifBlank { stringResource(id = R.string.voice_search_listening) },
+                    color = if (partialText.isBlank()) TextP else TextH1,
+                    fontSize = 16.sp,
+                    fontFamily = InterFontFamily,
+                    fontWeight = if (partialText.isBlank()) FontWeight.Normal else FontWeight.Medium,
+                )
+            }
+        }
+
+        Spacer(modifier = Modifier.height(18.dp))
+
+        Surface(
+            onClick = onCancel,
+            modifier = Modifier.fillMaxWidth().height(48.dp),
+            shape = RoundedCornerShape(10.dp),
+            color = BlueSecondary,
+        ) {
+            Box(
+                modifier = Modifier.fillMaxSize(),
+                contentAlignment = Alignment.Center,
+            ) {
+                Text(
+                    text = stringResource(id = R.string.cancel),
+                    color = Color.White,
+                    fontSize = 14.sp,
+                    fontFamily = InterFontFamily,
+                    fontWeight = FontWeight.Bold,
+                )
+            }
+        }
+    }
+}
+
+@Composable
+private fun VoiceListeningAnimation(modifier: Modifier = Modifier) {
+    val transition = rememberInfiniteTransition(label = "voice_listening")
+    val outerPulseScale by transition.animateFloat(
+        initialValue = 0.82f,
+        targetValue = 1.18f,
+        animationSpec =
+            infiniteRepeatable(
+                animation = tween(durationMillis = 1100),
+                repeatMode = RepeatMode.Restart,
+            ),
+        label = "voice_outer_pulse_scale",
+    )
+    val outerPulseAlpha by transition.animateFloat(
+        initialValue = 0.34f,
+        targetValue = 0f,
+        animationSpec =
+            infiniteRepeatable(
+                animation = tween(durationMillis = 1100),
+                repeatMode = RepeatMode.Restart,
+            ),
+        label = "voice_outer_pulse_alpha",
+    )
+    val innerPulseScale by transition.animateFloat(
+        initialValue = 0.86f,
+        targetValue = 1.08f,
+        animationSpec =
+            infiniteRepeatable(
+                animation = tween(durationMillis = 860),
+                repeatMode = RepeatMode.Reverse,
+            ),
+        label = "voice_inner_pulse_scale",
+    )
+
+    Box(
+        modifier = modifier.size(132.dp),
+        contentAlignment = Alignment.Center,
+    ) {
+        Box(
+            modifier =
+                Modifier
+                    .size(108.dp)
+                    .graphicsLayer {
+                        scaleX = outerPulseScale
+                        scaleY = outerPulseScale
+                        alpha = outerPulseAlpha
+                    }.background(BluePrimary, RoundedCornerShape(999.dp)),
+        )
+
+        Box(
+            modifier =
+                Modifier
+                    .size(92.dp)
+                    .graphicsLayer {
+                        scaleX = innerPulseScale
+                        scaleY = innerPulseScale
+                    }.background(BlueBg, RoundedCornerShape(999.dp)),
+        )
+
+        Surface(
+            modifier = Modifier.size(64.dp),
+            shape = RoundedCornerShape(20.dp),
+            color = Color.Transparent,
+        ) {
+            Box(
+                modifier = Modifier.fillMaxSize(),
+                contentAlignment = Alignment.Center,
+            ) {
+                Icon(
+                    painter = painterResource(id = R.drawable.ic_microphone),
+                    contentDescription = null,
+                    tint = BluePrimary,
+                    modifier = Modifier.size(30.dp),
+                )
             }
         }
     }
