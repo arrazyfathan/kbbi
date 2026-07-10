@@ -50,7 +50,7 @@ This document lists Android platform features that match this KBBI dictionary ap
    - Fits the existing Compose and Material 3 stack.
 
 10. **Search Enhancements**
-    - Voice search using Android speech recognition.
+    - Voice search using Android speech recognition. ✅
     - Search suggestions from the local `entries.json` word index. ✅
     - Recent search chips.
     - Similar-word or typo suggestions.  ✅
@@ -97,13 +97,14 @@ This document lists Android platform features that match this KBBI dictionary ap
 1. ✅ Text selection "Search in KBBI" (Done)
 2. ✅ Share definition and receive shared text (Done)
 3. ✅ App shortcuts for search, bookmarks, proverbs, and random word (Done)
-4. DataStore settings
-5. Daily word notification
-6. WorkManager cache refresh
-7. Home screen widget
-8. Dynamic theme
-9. Deep links
-10. OCR scan text
-11. Backup/export for bookmarks and history
+4. ✅ Voice search using Android speech recognition (Done)
+5. DataStore settings
+6. Daily word notification
+7. WorkManager cache refresh
+8. Home screen widget
+9. Dynamic theme
+10. Deep links
+11. OCR scan text
+12. Backup/export for bookmarks and history
 
 The strongest direction is to make KBBI better at quick lookup, offline cache, and daily learning. The most relevant Android feature set is Process Text, share intents, WorkManager, notifications, widgets, DataStore, and deep links.
