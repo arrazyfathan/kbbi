@@ -7,6 +7,7 @@ import com.arrazyfathan.kbbi.core.domain.model.AppResult
 import com.arrazyfathan.kbbi.core.domain.model.DataError
 import com.arrazyfathan.kbbi.core.presentation.ui.UiText
 import com.arrazyfathan.kbbi.core.presentation.ui.asUiText
+import com.arrazyfathan.kbbi.core.utils.VoiceRecognitionError
 import com.arrazyfathan.kbbi.feature.home.domain.model.HistoryModel
 import com.arrazyfathan.kbbi.feature.home.domain.model.ListWordModel
 import com.arrazyfathan.kbbi.feature.home.domain.usecase.GetWordEntriesUseCase
@@ -30,6 +31,8 @@ data class HomeState(
     val suggestions: List<String> = emptyList(),
     val suggestionMode: HomeSuggestionMode = HomeSuggestionMode.Search,
     val isLoading: Boolean = false,
+    val isVoiceListening: Boolean = false,
+    val voicePartialText: String = "",
 )
 
 enum class HomeSuggestionMode {
@@ -53,6 +56,30 @@ sealed interface HomeAction {
     ) : HomeAction
 
     data object OnRandomWordRequested : HomeAction
+
+    data object OnVoiceSearchStarted : HomeAction
+
+    data object OnVoiceSearchFinished : HomeAction
+
+    data class OnVoiceSearchResult(
+        val recognizedTexts: List<String>,
+    ) : HomeAction
+
+    data class OnVoiceSearchPartialResult(
+        val recognizedTexts: List<String>,
+    ) : HomeAction
+
+    data class OnVoiceSearchError(
+        val error: VoiceRecognitionError,
+    ) : HomeAction
+
+    data object OnVoiceSearchUnavailable : HomeAction
+
+    data object OnVoiceSearchPermissionDenied : HomeAction
+
+    data object OnVoiceSearchCancelled : HomeAction
+
+    data object OnVoiceSearchEmptyResult : HomeAction
 }
 
 sealed interface HomeEvent {
@@ -92,6 +119,15 @@ class HomeViewModel(
             is HomeAction.OnSearchSubmitted -> search(action.word)
             is HomeAction.OnSuggestionClick -> search(action.word)
             HomeAction.OnRandomWordRequested -> searchRandomWord()
+            HomeAction.OnVoiceSearchStarted -> _state.update { it.copy(isVoiceListening = true, voicePartialText = "") }
+            HomeAction.OnVoiceSearchFinished -> _state.update { it.copy(isVoiceListening = false, voicePartialText = "") }
+            is HomeAction.OnVoiceSearchResult -> updateVoiceSearchQuery(action.recognizedTexts)
+            is HomeAction.OnVoiceSearchPartialResult -> updateVoicePartialResult(action.recognizedTexts)
+            is HomeAction.OnVoiceSearchError -> showVoiceSearchError(action.error)
+            HomeAction.OnVoiceSearchUnavailable -> showMessage(R.string.voice_search_unavailable)
+            HomeAction.OnVoiceSearchPermissionDenied -> showMessage(R.string.voice_search_permission_denied)
+            HomeAction.OnVoiceSearchCancelled -> showMessage(R.string.voice_search_cancelled)
+            HomeAction.OnVoiceSearchEmptyResult -> showMessage(R.string.voice_search_empty_result)
         }
     }
 
@@ -117,13 +153,59 @@ class HomeViewModel(
     }
 
     private fun updateSearchQuery(query: String) {
-        val normalizedQuery = query.trim().replace(" ", "")
+        val normalizedQuery = normalizeTypedSearchQuery(query)
         _state.update {
             it.copy(
                 searchQuery = normalizedQuery,
                 suggestions = getWordSuggestions(normalizedQuery, wordEntries),
                 suggestionMode = HomeSuggestionMode.Search,
             )
+        }
+    }
+
+    private fun updateVoiceSearchQuery(recognizedTexts: List<String>) {
+        val normalizedQuery = normalizeVoiceSearchCandidates(recognizedTexts, wordEntries)
+        if (normalizedQuery.isBlank()) {
+            showMessage(R.string.voice_search_empty_result)
+            return
+        }
+
+        _state.update {
+            it.copy(
+                searchQuery = normalizedQuery,
+                suggestions = getWordSuggestions(normalizedQuery, wordEntries),
+                suggestionMode = HomeSuggestionMode.Search,
+            )
+        }
+    }
+
+    private fun updateVoicePartialResult(recognizedTexts: List<String>) {
+        val partialText = recognizedTexts.firstOrNull().orEmpty()
+        _state.update { it.copy(voicePartialText = partialText) }
+    }
+
+    private fun showVoiceSearchError(error: VoiceRecognitionError) {
+        val messageResId =
+            when (error) {
+                VoiceRecognitionError.NoMatch,
+                VoiceRecognitionError.NoSpeech,
+                -> R.string.voice_search_empty_result
+                VoiceRecognitionError.PermissionDenied -> R.string.voice_search_permission_denied
+                VoiceRecognitionError.RecognizerBusy -> R.string.voice_search_busy
+                VoiceRecognitionError.Network,
+                VoiceRecognitionError.NetworkTimeout,
+                VoiceRecognitionError.Server,
+                VoiceRecognitionError.TooManyRequests,
+                VoiceRecognitionError.Client,
+                VoiceRecognitionError.Unknown,
+                -> R.string.voice_search_failed
+            }
+        showMessage(messageResId)
+    }
+
+    private fun showMessage(messageResId: Int) {
+        viewModelScope.launch {
+            _events.send(HomeEvent.ShowMessage(UiText.StringResource(messageResId)))
         }
     }
 
