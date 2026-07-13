@@ -11,6 +11,8 @@ plugins {
     alias(libs.plugins.kotlinx.kover)
     alias(libs.plugins.kotlin.compose)
     alias(libs.plugins.kotlin.serialization)
+    alias(libs.plugins.google.devtools.ksp)
+    alias(libs.plugins.navgraph)
 }
 
 val packageName = "com.arrazyfathan.kbbi"
@@ -164,6 +166,15 @@ kotlin {
     }
 }
 
+ksp {
+    arg("navgraph.annotatedOnly", "true")
+}
+
+navgraph {
+    variant.set("developmentDebug")
+    renderBackend.set(com.github.skydoves.navgraph.gradle.RenderBackend.AUTO)
+}
+
 detekt {
     toolVersion = libs.versions.detekt.get()
     buildUponDefaultConfig = true
@@ -231,6 +242,7 @@ dependencies {
     implementation(libs.androidx.lifecycle.runtime.ktx)
     implementation(libs.androidx.lifecycle.runtime.compose)
     implementation(libs.androidx.lifecycle.viewmodel.ktx)
+    implementation(libs.androidx.paging.compose)
 
     implementation(libs.koin.core)
     implementation(libs.koin.android)
