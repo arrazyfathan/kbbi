@@ -19,7 +19,6 @@ import com.arrazyfathan.kbbi.core.utils.updateSystemBarStyle
 import com.arrazyfathan.kbbi.feature.splash.presentation.navigation.SplashRoute
 import com.arrazyfathan.kbbi.navigation.AppShortcutRequest
 import com.arrazyfathan.kbbi.navigation.MainApp
-import java.util.Locale
 
 class MainActivity : ComponentActivity() {
     private var externalSearchQuery by mutableStateOf<String?>(null)
@@ -96,28 +95,3 @@ class MainActivity : ComponentActivity() {
         shortcutRequestKey += 1
     }
 }
-
-private fun Intent.extractExternalSearchQuery(): String? {
-    val rawText =
-        when (action) {
-            Intent.ACTION_PROCESS_TEXT -> getCharSequenceExtra(Intent.EXTRA_PROCESS_TEXT)?.toString()
-            Intent.ACTION_SEND -> {
-                if (type?.startsWith("text/plain") == true) {
-                    getStringExtra(Intent.EXTRA_TEXT)
-                } else {
-                    null
-                }
-            }
-            else -> null
-        }
-
-    return rawText?.toKbbiSearchQuery()
-}
-
-private fun String.toKbbiSearchQuery(): String? =
-    trim()
-        .split(Regex("\\s+"))
-        .firstOrNull()
-        ?.trim { !it.isLetterOrDigit() && it != '-' }
-        ?.lowercase(Locale.ROOT)
-        ?.takeIf { it.isNotBlank() }
