@@ -69,8 +69,8 @@ This document lists Android platform features that match this KBBI dictionary ap
    - Backup bookmarks and search history.
    - Could use Android Auto Backup or manual JSON export/import.
 
-4. **Deep Links**
-   - Support links such as `kbbi://word/makan`.
+4. **Deep Links** ✅
+   - Support links such as `kbbi://word/makan`. ✅
    - Useful for shared definitions, widgets, notifications, and external integrations.
 
 5. **Predictive Back and Edge-to-Edge Polish**
@@ -103,7 +103,7 @@ This document lists Android platform features that match this KBBI dictionary ap
 7. WorkManager cache refresh
 8. Home screen widget
 9. Dynamic theme
-10. Deep links
+10. ✅ Deep links (Done)
 11. OCR scan text
 12. Backup/export for bookmarks and history
 
