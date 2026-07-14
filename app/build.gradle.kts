@@ -83,7 +83,7 @@ android {
                 } else {
                     "$versionMajor.$versionMinor.$versionMaintenance-dev.$versionDev"
                 }
-            resValue("string", "version_name", versionName!!)
+            resValue("string", "version_name", versionName.orEmpty())
             configureAppMetadata("Dev $appAliasName")
         }
 
@@ -96,7 +96,7 @@ android {
                 } else {
                     "$versionMajor.$versionMinor.$versionMaintenance"
                 }
-            resValue("string", "version_name", versionName!!)
+            resValue("string", "version_name", versionName.orEmpty())
             configureAppMetadata(appAliasName)
         }
     }
@@ -104,7 +104,7 @@ android {
     signingConfigs {
         create("release") {
             if (hasReleaseSigning) {
-                storeFile = file(releaseKeystorePath!!)
+                storeFile = file(releaseKeystorePath.orEmpty())
                 storePassword = releaseKeystorePassword
                 keyAlias = releaseKeyAlias
                 keyPassword = releaseKeyPassword
