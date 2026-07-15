@@ -139,6 +139,7 @@ suspend inline fun <reified T : Any> readSuccessBody(response: HttpResponse): Ap
 
 fun constructRoute(route: String): String =
     when {
+        route.startsWith("https://") || route.startsWith("http://") -> route
         route.contains(BuildConfig.BASE_URL) -> route
         route.startsWith("/") -> BuildConfig.BASE_URL.trimEnd('/') + route
         else -> BuildConfig.BASE_URL.trimEnd('/') + "/$route"

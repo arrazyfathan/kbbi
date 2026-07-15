@@ -212,6 +212,7 @@ gradle.taskGraph.whenReady {
 }
 
 dependencies {
+    implementation(project(":core:app-update"))
     implementation(project(":core:di"))
     implementation(project(":core:logging"))
     implementation(project(":core:presentation:designsystem"))
