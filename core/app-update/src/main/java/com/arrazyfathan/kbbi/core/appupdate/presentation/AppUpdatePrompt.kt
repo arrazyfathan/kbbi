@@ -33,6 +33,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.net.toUri
@@ -42,6 +43,7 @@ import com.arrazyfathan.kbbi.core.presentation.designsystem.BlueBg
 import com.arrazyfathan.kbbi.core.presentation.designsystem.BluePrimary
 import com.arrazyfathan.kbbi.core.presentation.designsystem.BlueSecondary
 import com.arrazyfathan.kbbi.core.presentation.designsystem.InterFontFamily
+import com.arrazyfathan.kbbi.core.presentation.designsystem.KBBITheme
 import com.arrazyfathan.kbbi.core.presentation.designsystem.TextH1
 import com.arrazyfathan.kbbi.core.presentation.designsystem.TextP
 import com.arrazyfathan.kbbi.core.presentation.designsystem.TextPrimary
@@ -54,8 +56,6 @@ fun AppUpdatePrompt(
     onDismiss: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    val context = LocalContext.current
-    val downloadUrl = update.downloadUrl ?: update.releaseUrl
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
 
     ModalBottomSheet(
@@ -65,125 +65,142 @@ fun AppUpdatePrompt(
         shape = RoundedCornerShape(topStart = 18.dp, topEnd = 18.dp),
         modifier = modifier,
     ) {
-        Column(
-            modifier =
-                Modifier
-                    .fillMaxWidth()
-                    .padding(start = 20.dp, end = 20.dp, bottom = 28.dp),
+        AppUpdatePromptContent(
+            update = update,
+            currentVersion = currentVersion,
+            onDismiss = onDismiss,
+        )
+    }
+}
+
+@Composable
+fun AppUpdatePromptContent(
+    update: AppUpdate,
+    currentVersion: String,
+    onDismiss: () -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    val context = LocalContext.current
+    val downloadUrl = update.downloadUrl ?: update.releaseUrl
+
+    Column(
+        modifier =
+            modifier
+                .fillMaxWidth()
+                .padding(start = 20.dp, end = 20.dp, bottom = 28.dp),
+    ) {
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(14.dp),
+            verticalAlignment = Alignment.CenterVertically,
         ) {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(14.dp),
-                verticalAlignment = Alignment.CenterVertically,
-            ) {
-                UpdateBadge()
+            UpdateBadge()
 
-                Column(modifier = Modifier.weight(1f)) {
-                    Text(
-                        text = stringResource(id = R.string.update_available_title),
-                        color = TextH1,
-                        fontFamily = InterFontFamily,
-                        fontWeight = FontWeight.Bold,
-                        fontSize = 20.sp,
-                        maxLines = 1,
-                        overflow = TextOverflow.Ellipsis,
-                    )
-                    Spacer(modifier = Modifier.height(4.dp))
-                    Text(
-                        text = stringResource(id = R.string.update_available_subtitle),
-                        color = TextP,
-                        fontFamily = InterFontFamily,
-                        fontWeight = FontWeight.Normal,
-                        fontSize = 14.sp,
-                        lineHeight = 20.sp,
-                    )
-                }
+            Column(modifier = Modifier.weight(1f)) {
+                Text(
+                    text = stringResource(id = R.string.update_available_title),
+                    color = TextH1,
+                    fontFamily = InterFontFamily,
+                    fontWeight = FontWeight.Bold,
+                    fontSize = 20.sp,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                )
+                Spacer(modifier = Modifier.height(4.dp))
+                Text(
+                    text = stringResource(id = R.string.update_available_subtitle),
+                    color = TextP,
+                    fontFamily = InterFontFamily,
+                    fontWeight = FontWeight.Normal,
+                    fontSize = 14.sp,
+                    lineHeight = 20.sp,
+                )
             }
+        }
 
-            Spacer(modifier = Modifier.height(20.dp))
+        Spacer(modifier = Modifier.height(20.dp))
 
-            VersionComparison(
-                currentVersion = currentVersion,
-                latestVersion = update.latestVersion,
-            )
+        VersionComparison(
+            currentVersion = currentVersion,
+            latestVersion = update.latestVersion,
+        )
 
-            update.releaseNotes?.let { notes ->
-                Spacer(modifier = Modifier.height(18.dp))
-                ReleaseNotes(notes = notes)
-            }
+        update.releaseNotes?.let { notes ->
+            Spacer(modifier = Modifier.height(18.dp))
+            ReleaseNotes(notes = notes)
+        }
 
-            Spacer(modifier = Modifier.height(22.dp))
+        Spacer(modifier = Modifier.height(22.dp))
 
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(8.dp),
-            ) {
-                if (update.downloadUrl != null) {
-                    OutlinedButton(
-                        modifier = Modifier.weight(1f).height(44.dp),
-                        onClick = {
-                            context.startActivity(
-                                Intent(Intent.ACTION_VIEW, update.releaseUrl.toUri()),
-                            )
-                            onDismiss()
-                        },
-                        shape = RoundedCornerShape(12.dp),
-                    ) {
-                        Text(
-                            text = stringResource(id = R.string.update_open_release_action),
-                            fontFamily = InterFontFamily,
-                            fontWeight = FontWeight.Medium,
-                            color = BluePrimary,
-                        )
-                    }
-                }
-
-                TextButton(
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+        ) {
+            if (update.downloadUrl != null) {
+                OutlinedButton(
                     modifier = Modifier.weight(1f).height(44.dp),
-                    onClick = onDismiss,
+                    onClick = {
+                        context.startActivity(
+                            Intent(Intent.ACTION_VIEW, update.releaseUrl.toUri()),
+                        )
+                        onDismiss()
+                    },
                     shape = RoundedCornerShape(12.dp),
                 ) {
                     Text(
-                        text = stringResource(id = R.string.update_later_action),
+                        text = stringResource(id = R.string.update_open_release_action),
                         fontFamily = InterFontFamily,
                         fontWeight = FontWeight.Medium,
-                        color = TextP,
+                        color = BluePrimary,
                     )
                 }
             }
 
-            Spacer(modifier = Modifier.height(16.dp))
-
-            Button(
-                modifier = Modifier.fillMaxWidth().height(48.dp),
-                onClick = {
-                    context.startActivity(
-                        Intent(Intent.ACTION_VIEW, downloadUrl.toUri()),
-                    )
-                    onDismiss()
-                },
+            TextButton(
+                modifier = Modifier.weight(1f).height(44.dp),
+                onClick = onDismiss,
                 shape = RoundedCornerShape(12.dp),
-                colors =
-                    ButtonDefaults.buttonColors(
-                        containerColor = BluePrimary,
-                        contentColor = Color.White,
-                    ),
             ) {
                 Text(
-                    text =
-                        stringResource(
-                            id =
-                                if (update.downloadUrl != null) {
-                                    R.string.update_download_action
-                                } else {
-                                    R.string.update_open_release_action
-                                },
-                        ),
+                    text = stringResource(id = R.string.update_later_action),
                     fontFamily = InterFontFamily,
-                    fontWeight = FontWeight.SemiBold,
-                    fontSize = 15.sp,
+                    fontWeight = FontWeight.Medium,
+                    color = TextP,
                 )
             }
+        }
+
+        Spacer(modifier = Modifier.height(16.dp))
+
+        Button(
+            modifier = Modifier.fillMaxWidth().height(48.dp),
+            onClick = {
+                context.startActivity(
+                    Intent(Intent.ACTION_VIEW, downloadUrl.toUri()),
+                )
+                onDismiss()
+            },
+            shape = RoundedCornerShape(12.dp),
+            colors =
+                ButtonDefaults.buttonColors(
+                    containerColor = BluePrimary,
+                    contentColor = Color.White,
+                ),
+        ) {
+            Text(
+                text =
+                    stringResource(
+                        id =
+                            if (update.downloadUrl != null) {
+                                R.string.update_download_action
+                            } else {
+                                R.string.update_open_release_action
+                            },
+                    ),
+                fontFamily = InterFontFamily,
+                fontWeight = FontWeight.SemiBold,
+                fontSize = 15.sp,
+            )
         }
     }
 }
@@ -316,5 +333,64 @@ private fun ReleaseNotes(
                 lineHeight = 19.sp,
             )
         }
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
+fun VersionComparisonPreview() {
+    KBBITheme {
+        VersionComparison(
+            currentVersion = "1.0.0",
+            latestVersion = "1.1.0",
+            modifier = Modifier.padding(16.dp),
+        )
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
+fun ReleaseNotesPreview() {
+    KBBITheme {
+        ReleaseNotes(
+            notes = "• Added new features\n• Fixed bugs\n• Improved performance",
+            modifier = Modifier.padding(16.dp),
+        )
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
+fun AppUpdatePromptContentPreview() {
+    KBBITheme {
+        AppUpdatePromptContent(
+            update =
+                AppUpdate(
+                    latestVersion = "1.1.0",
+                    releaseUrl = "https://github.com/arrazyfathan/kbbi-android/releases/tag/v1.1.0",
+                    downloadUrl = "https://github.com/arrazyfathan/kbbi-android/releases/download/v1.1.0/kbbi.apk",
+                    releaseNotes = "• Added new features\n• Fixed bugs\n• Improved performance",
+                ),
+            currentVersion = "1.0.0",
+            onDismiss = {},
+        )
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
+fun AppUpdatePromptPreview() {
+    KBBITheme {
+        AppUpdatePrompt(
+            update =
+                AppUpdate(
+                    latestVersion = "1.1.0",
+                    releaseUrl = "https://github.com/arrazyfathan/kbbi-android/releases/tag/v1.1.0",
+                    downloadUrl = "https://github.com/arrazyfathan/kbbi-android/releases/download/v1.1.0/kbbi.apk",
+                    releaseNotes = "• Added new features\n• Fixed bugs\n• Improved performance",
+                ),
+            currentVersion = "1.0.0",
+            onDismiss = {},
+        )
     }
 }
