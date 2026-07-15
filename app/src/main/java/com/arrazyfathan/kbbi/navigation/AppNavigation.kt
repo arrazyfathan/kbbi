@@ -47,6 +47,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.navigation3.rememberViewModelStoreNavEntryDecorator
 import androidx.navigation3.runtime.NavBackStack
 import androidx.navigation3.runtime.NavEntry
@@ -63,6 +64,9 @@ import com.airbnb.lottie.compose.LottieCompositionSpec
 import com.airbnb.lottie.compose.LottieConstants
 import com.airbnb.lottie.compose.rememberLottieComposition
 import com.arrazyfathan.kbbi.core.R
+import com.arrazyfathan.kbbi.core.appupdate.presentation.AppUpdateAction
+import com.arrazyfathan.kbbi.core.appupdate.presentation.AppUpdatePrompt
+import com.arrazyfathan.kbbi.core.appupdate.presentation.AppUpdateViewModel
 import com.arrazyfathan.kbbi.core.presentation.ui.LocalAppLoadingController
 import com.arrazyfathan.kbbi.core.presentation.ui.rememberAppLoadingController
 import com.arrazyfathan.kbbi.core.utils.updateSystemBarStyle
@@ -72,49 +76,59 @@ import com.arrazyfathan.kbbi.feature.home.domain.model.ListWordModel
 import com.arrazyfathan.kbbi.feature.home.presentation.navigation.HomeRoute
 import com.arrazyfathan.kbbi.feature.proverb.presentation.navigation.ProverbRoute
 import com.arrazyfathan.kbbi.feature.words.presentation.navigation.WordsRoute
+import com.github.skydoves.navgraph.annotations.NavGraphRoot
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
+import org.koin.androidx.compose.koinViewModel
 
 private const val IOS_NAVIGATION_TRANSITION_DURATION_MILLIS = 350
 private const val IOS_NAVIGATION_PARALLAX_DIVISOR = 3
 private const val BOTTOM_NAVIGATION_TRANSITION_DURATION_MILLIS = 220
 
 sealed interface Screen : NavKey {
-    val titleResId: Int
-    val iconResId: Int
-    val iconSelectedResId: Int
+    @NavGraphRoot
+    @Serializable
+    data object Home : Screen
 
     @Serializable
-    data object Home : Screen {
-        override val titleResId = R.string.home_title
-        override val iconResId = R.drawable.home
-        override val iconSelectedResId = R.drawable.home_selected
-    }
+    data object WordList : Screen
 
     @Serializable
-    data object WordList : Screen {
-        override val titleResId = R.string.word_list_tab_title
-        override val iconResId = R.drawable.word
-        override val iconSelectedResId = R.drawable.word_selected
-    }
+    data object Proverb : Screen
 
     @Serializable
-    data object Proverb : Screen {
-        override val titleResId = R.string.proverb_title
-        override val iconResId = R.drawable.ic_proverb
-        override val iconSelectedResId = R.drawable.ic_proverb
-    }
-
-    @Serializable
-    data object Bookmarks : Screen {
-        override val titleResId = R.string.bookmarks_title
-        override val iconResId = R.drawable.saved
-        override val iconSelectedResId = R.drawable.saved_selected
-    }
+    data object Bookmarks : Screen
 }
 
+private val Screen.titleResId: Int
+    get() =
+        when (this) {
+            Screen.Home -> R.string.home_title
+            Screen.WordList -> R.string.word_list_tab_title
+            Screen.Proverb -> R.string.proverb_title
+            Screen.Bookmarks -> R.string.bookmarks_title
+        }
+
+private val Screen.iconResId: Int
+    get() =
+        when (this) {
+            Screen.Home -> R.drawable.home
+            Screen.WordList -> R.drawable.word
+            Screen.Proverb -> R.drawable.ic_proverb
+            Screen.Bookmarks -> R.drawable.saved
+        }
+
+private val Screen.iconSelectedResId: Int
+    get() =
+        when (this) {
+            Screen.Home -> R.drawable.home_selected
+            Screen.WordList -> R.drawable.word_selected
+            Screen.Proverb -> R.drawable.ic_proverb
+            Screen.Bookmarks -> R.drawable.saved_selected
+        }
+
 @Serializable
-private data class DetailNavRoute(
+data class DetailNavRoute(
     val dataJson: String,
 ) : NavKey
 
@@ -126,6 +140,7 @@ fun MainApp(
     shortcutRequest: AppShortcutRequest? = null,
     shortcutRequestKey: Long = 0L,
     onShortcutConsumed: () -> Unit = {},
+    appUpdateViewModel: AppUpdateViewModel = koinViewModel(),
 ) {
     val context = LocalContext.current
     val screens =
@@ -153,6 +168,7 @@ fun MainApp(
     val isUiBlocked by remember {
         derivedStateOf { loadingController.isBlocking }
     }
+    val appUpdateState by appUpdateViewModel.state.collectAsStateWithLifecycle()
 
     LaunchedEffect(externalSearchRequestKey) {
         if (externalSearchQuery != null) {
@@ -179,7 +195,9 @@ fun MainApp(
                 onShortcutConsumed()
             }
 
-            null -> Unit
+            null -> {
+                Unit
+            }
         }
     }
 
@@ -195,6 +213,10 @@ fun MainApp(
             ContextCompat.getColor(activity, colorResId),
             ContextCompat.getColor(activity, android.R.color.white),
         )
+    }
+
+    LaunchedEffect(Unit) {
+        appUpdateViewModel.onAction(AppUpdateAction.OnAppStarted)
     }
 
     val entries =
@@ -311,6 +333,16 @@ fun MainApp(
                         }
                     }
                 }
+            }
+
+            appUpdateState.availableUpdate?.let { update ->
+                AppUpdatePrompt(
+                    update = update,
+                    currentVersion = appUpdateState.currentVersion,
+                    onDismiss = {
+                        appUpdateViewModel.onAction(AppUpdateAction.OnPromptDismissed)
+                    },
+                )
             }
 
             if (isUiBlocked) {

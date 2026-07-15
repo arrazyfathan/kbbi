@@ -111,7 +111,7 @@ fun WordListScreen(
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-private fun WordListScreenContent(
+fun WordListScreenContent(
     state: WordListState,
     onAction: (WordListAction) -> Unit,
     modifier: Modifier = Modifier,

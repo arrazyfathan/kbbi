@@ -89,7 +89,7 @@ fun BookmarksScreen(
 }
 
 @Composable
-private fun BookmarksScreenContent(
+fun BookmarksScreenContent(
     state: BookmarksState,
     onNavigateToDetail: (ListWordModel) -> Unit,
     onAction: (BookmarksAction) -> Unit,

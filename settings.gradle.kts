@@ -16,6 +16,7 @@ dependencyResolutionManagement {
 
 rootProject.name = "KBBI Kamus Besar Bahasa Indonesia"
 include(":app")
+include(":core:app-update")
 include(":core:data")
 include(":core:domain")
 include(":core:di")
