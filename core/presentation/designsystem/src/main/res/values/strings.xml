@@ -81,4 +81,15 @@
     <string name="error_empty_body">No data available</string>
     <string name="error_serialization">Invalid data format</string>
     <string name="error_unknown">Error occurred</string>
+    <string name="update_available_title">Update available</string>
+    <string name="update_available_subtitle">A newer KBBI build is ready to install.</string>
+    <string name="update_available_versions">Current version: %1$s\nLatest version: %2$s</string>
+    <string name="update_badge_text">↑</string>
+    <string name="update_current_version_label">Current</string>
+    <string name="update_latest_version_label">Latest</string>
+    <string name="update_version_arrow">→</string>
+    <string name="update_release_notes_title">Release notes</string>
+    <string name="update_download_action">Download</string>
+    <string name="update_open_release_action">Open release</string>
+    <string name="update_later_action">Later</string>
 </resources>

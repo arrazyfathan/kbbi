@@ -1,8 +1,10 @@
 package com.arrazyfathan.kbbi
 
 import android.app.Application
+import com.arrazyfathan.kbbi.core.appupdate.di.appUpdateModule
 import com.arrazyfathan.kbbi.core.di.networkModule
 import com.arrazyfathan.kbbi.core.logging.AppLogger
+import com.arrazyfathan.kbbi.di.appUpdateConfigModule
 import com.arrazyfathan.kbbi.di.useCaseModule
 import com.arrazyfathan.kbbi.di.viewModelModule
 import com.arrazyfathan.kbbi.feature.home.data.di.databaseModule
@@ -27,6 +29,8 @@ class BaseApplication : Application() {
                     databaseModule,
                     repositoryModule,
                     proverbDataModule,
+                    appUpdateConfigModule,
+                    appUpdateModule,
                     viewModelModule,
                     networkModule,
                     useCaseModule,

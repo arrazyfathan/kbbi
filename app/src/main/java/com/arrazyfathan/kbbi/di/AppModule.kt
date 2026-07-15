@@ -1,5 +1,7 @@
 package com.arrazyfathan.kbbi.di
 
+import com.arrazyfathan.kbbi.BuildConfig
+import com.arrazyfathan.kbbi.core.appupdate.domain.AppUpdateConfig
 import com.arrazyfathan.kbbi.feature.bookmark.presentation.bookmark.BookmarksViewModel
 import com.arrazyfathan.kbbi.feature.detail.presentation.detail.DetailViewModel
 import com.arrazyfathan.kbbi.feature.home.domain.usecase.AddSearchHistoryUseCase
@@ -48,4 +50,14 @@ val viewModelModule =
         viewModelOf(::BookmarksViewModel)
         viewModelOf(::WordViewModel)
         viewModelOf(::ProverbViewModel)
+    }
+
+val appUpdateConfigModule =
+    module {
+        single {
+            AppUpdateConfig(
+                currentVersion = BuildConfig.VERSION_NAME,
+                isUpdateCheckEnabled = BuildConfig.FLAVOR == "production",
+            )
+        }
     }

@@ -47,6 +47,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.navigation3.rememberViewModelStoreNavEntryDecorator
 import androidx.navigation3.runtime.NavBackStack
 import androidx.navigation3.runtime.NavEntry
@@ -63,6 +64,9 @@ import com.airbnb.lottie.compose.LottieCompositionSpec
 import com.airbnb.lottie.compose.LottieConstants
 import com.airbnb.lottie.compose.rememberLottieComposition
 import com.arrazyfathan.kbbi.core.R
+import com.arrazyfathan.kbbi.core.appupdate.presentation.AppUpdateAction
+import com.arrazyfathan.kbbi.core.appupdate.presentation.AppUpdatePrompt
+import com.arrazyfathan.kbbi.core.appupdate.presentation.AppUpdateViewModel
 import com.arrazyfathan.kbbi.core.presentation.ui.LocalAppLoadingController
 import com.arrazyfathan.kbbi.core.presentation.ui.rememberAppLoadingController
 import com.arrazyfathan.kbbi.core.utils.updateSystemBarStyle
@@ -75,6 +79,7 @@ import com.arrazyfathan.kbbi.feature.words.presentation.navigation.WordsRoute
 import com.github.skydoves.navgraph.annotations.NavGraphRoot
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
+import org.koin.androidx.compose.koinViewModel
 
 private const val IOS_NAVIGATION_TRANSITION_DURATION_MILLIS = 350
 private const val IOS_NAVIGATION_PARALLAX_DIVISOR = 3
@@ -135,6 +140,7 @@ fun MainApp(
     shortcutRequest: AppShortcutRequest? = null,
     shortcutRequestKey: Long = 0L,
     onShortcutConsumed: () -> Unit = {},
+    appUpdateViewModel: AppUpdateViewModel = koinViewModel(),
 ) {
     val context = LocalContext.current
     val screens =
@@ -162,6 +168,7 @@ fun MainApp(
     val isUiBlocked by remember {
         derivedStateOf { loadingController.isBlocking }
     }
+    val appUpdateState by appUpdateViewModel.state.collectAsStateWithLifecycle()
 
     LaunchedEffect(externalSearchRequestKey) {
         if (externalSearchQuery != null) {
@@ -188,7 +195,9 @@ fun MainApp(
                 onShortcutConsumed()
             }
 
-            null -> Unit
+            null -> {
+                Unit
+            }
         }
     }
 
@@ -204,6 +213,10 @@ fun MainApp(
             ContextCompat.getColor(activity, colorResId),
             ContextCompat.getColor(activity, android.R.color.white),
         )
+    }
+
+    LaunchedEffect(Unit) {
+        appUpdateViewModel.onAction(AppUpdateAction.OnAppStarted)
     }
 
     val entries =
@@ -320,6 +333,16 @@ fun MainApp(
                         }
                     }
                 }
+            }
+
+            appUpdateState.availableUpdate?.let { update ->
+                AppUpdatePrompt(
+                    update = update,
+                    currentVersion = appUpdateState.currentVersion,
+                    onDismiss = {
+                        appUpdateViewModel.onAction(AppUpdateAction.OnPromptDismissed)
+                    },
+                )
             }
 
             if (isUiBlocked) {
