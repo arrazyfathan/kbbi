@@ -2,9 +2,11 @@ package com.arrazyfathan.kbbi.feature.proverb.presentation.proverb
 
 import android.widget.Toast
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.LinearEasing
 import androidx.compose.animation.core.RepeatMode
 import androidx.compose.animation.core.animateFloat
+import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.infiniteRepeatable
 import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.animation.core.tween
@@ -12,10 +14,11 @@ import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
-import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.interaction.collectIsFocusedAsState
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxScope
@@ -66,6 +69,7 @@ import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.drawWithCache
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
@@ -113,7 +117,7 @@ import kotlin.time.Duration.Companion.milliseconds
 private const val SEARCH_BAR_SCROLL_VISIBILITY_THRESHOLD = 4f
 private const val PROVERB_SHIMMER_ITEM_COUNT = 8
 private const val PROVERB_APPEND_SHIMMER_ITEM_COUNT = 3
-private val SEARCH_BAR_IDLE_SHOW_DELAY_MILLIS = 3_000L.milliseconds
+private val SEARCH_BAR_IDLE_SHOW_DELAY_MILLIS = 1_000L.milliseconds
 
 @Composable
 fun ProverbRoot(
@@ -236,6 +240,17 @@ private fun ProverbTopAppBar(
     val isCollapsed = scrollBehavior.state.collapsedFraction > 0.5f
 
     MediumTopAppBar(
+        modifier =
+            Modifier.background(
+                brush =
+                    Brush.verticalGradient(
+                        colors =
+                            listOf(
+                                BlueSecondary,
+                                BluePrimary,
+                            ),
+                    ),
+            ),
         navigationIcon = {
             IconButton(onClick = onNavigateBack) {
                 Icon(
@@ -273,8 +288,8 @@ private fun ProverbTopAppBar(
         },
         colors =
             TopAppBarDefaults.topAppBarColors(
-                containerColor = BluePrimary,
-                scrolledContainerColor = BluePrimary,
+                containerColor = Color.Transparent,
+                scrolledContainerColor = Color.Transparent,
                 titleContentColor = Color.White,
             ),
         scrollBehavior = scrollBehavior,
@@ -311,7 +326,6 @@ private fun BoxScope.FloatingProverbSearchField(
         Surface(
             shape = CircleShape,
             color = BlueSecondary,
-            border = BorderStroke(width = 1.dp, color = Color.White.copy(alpha = 0.18f)),
         ) {
             ProverbSearchField(
                 value = value,
@@ -330,10 +344,36 @@ private fun ProverbSearchField(
     onSearch: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
+    val interactionSource = remember { MutableInteractionSource() }
+    val isFocused by interactionSource.collectIsFocusedAsState()
+    val gradientAlpha by animateFloatAsState(
+        targetValue = if (isFocused) 0f else 1f,
+        animationSpec = tween(durationMillis = 420, easing = FastOutSlowInEasing),
+        label = "proverb-search-gradient-alpha",
+    )
+
     TextField(
         value = value,
         onValueChange = onValueChange,
-        modifier = modifier,
+        interactionSource = interactionSource,
+        modifier =
+            modifier
+                .clip(CircleShape)
+                .background(BlueSecondary)
+                .drawWithCache {
+                    val gradient =
+                        Brush.verticalGradient(
+                            colors =
+                                listOf(
+                                    BlueSecondary,
+                                    BluePrimary,
+                                ),
+                        )
+
+                    onDrawBehind {
+                        drawRect(brush = gradient, alpha = gradientAlpha)
+                    }
+                },
         placeholder = {
             Text(
                 text = stringResource(id = R.string.search_proverb_hint),
@@ -348,7 +388,7 @@ private fun ProverbSearchField(
                 painter = painterResource(id = R.drawable.ic_search),
                 contentDescription = stringResource(id = R.string.button_search),
                 tint = Color.White,
-                modifier = Modifier.size(20.dp),
+                modifier = Modifier.padding(start = 10.dp).size(20.dp),
             )
         },
         textStyle =
@@ -368,10 +408,14 @@ private fun ProverbSearchField(
         shape = CircleShape,
         colors =
             TextFieldDefaults.colors(
-                focusedContainerColor = BlueSecondary,
-                unfocusedContainerColor = BlueSecondary,
+                focusedContainerColor = Color.Transparent,
+                unfocusedContainerColor = Color.Transparent,
+                disabledContainerColor = Color.Transparent,
+                errorContainerColor = Color.Transparent,
                 focusedIndicatorColor = Color.Transparent,
                 unfocusedIndicatorColor = Color.Transparent,
+                disabledIndicatorColor = Color.Transparent,
+                errorIndicatorColor = Color.Transparent,
                 focusedTextColor = Color.White,
                 unfocusedTextColor = Color.White,
                 cursorColor = Color.White,
