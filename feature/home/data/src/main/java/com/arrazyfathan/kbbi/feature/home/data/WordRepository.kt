@@ -2,12 +2,10 @@ package com.arrazyfathan.kbbi.feature.home.data
 
 import com.arrazyfathan.kbbi.core.domain.model.AppResult
 import com.arrazyfathan.kbbi.core.domain.model.DataError
-import com.arrazyfathan.kbbi.core.domain.model.map
 import com.arrazyfathan.kbbi.feature.home.data.mapper.toDomain
 import com.arrazyfathan.kbbi.feature.home.data.mapper.toEntity
 import com.arrazyfathan.kbbi.feature.home.data.mapper.toHistoryModels
 import com.arrazyfathan.kbbi.feature.home.data.mapper.toWordEntities
-import com.arrazyfathan.kbbi.feature.home.data.mapper.toWordModels
 import com.arrazyfathan.kbbi.feature.home.data.source.local.WordLocalDataSource
 import com.arrazyfathan.kbbi.feature.home.data.source.local.entity.ListWordEntity
 import com.arrazyfathan.kbbi.feature.home.data.source.remote.WordRemoteDataSource
@@ -31,44 +29,49 @@ class WordRepository(
 ) : WordSearchRepository,
     BookmarkRepository,
     SearchHistoryRepository {
-    override suspend fun getMeaningOfWord(word: String): AppResult<List<WordModel>, DataError> {
+    override suspend fun getMeaningOfWord(word: String): AppResult<ListWordModel, DataError> {
+        val remoteResult = remoteDataSource.getMeaningOfWord(word)
+        if (remoteResult is AppResult.Success) {
+            val remoteWord = remoteResult.data
+            withContext(Dispatchers.IO) {
+                val existingWord =
+                    localDataSource.getWord(remoteWord.word)
+                        ?: word.takeIf { it != remoteWord.word }?.let { localDataSource.getWord(it) }
+                localDataSource.insertWord(
+                    ListWordEntity(
+                        word = remoteWord.word,
+                        listWords = remoteWord.listWords.toWordEntities(),
+                        visitorCount = remoteWord.visitorCount,
+                        isSaved = existingWord?.isSaved ?: false,
+                    ),
+                )
+            }
+            return remoteResult
+        }
+
         val cachedWord =
             withContext(Dispatchers.IO) {
-                localDataSource.getWord(word)
+                localDataSource.getWord(word) ?: localDataSource.getWord(word.lowercase())
             }
 
         if (cachedWord != null) {
-            return AppResult.Success(cachedWord.toDomain().listWords)
+            return AppResult.Success(cachedWord.toDomain())
         }
 
-        val remoteResult = remoteDataSource.getMeaningOfWord(word).map { it.toWordModels() }
-        return when (remoteResult) {
-            is AppResult.Success -> {
-                withContext(Dispatchers.IO) {
-                    localDataSource.insertWord(
-                        ListWordEntity(
-                            word = word,
-                            listWords = remoteResult.data.toWordEntities(),
-                            isSaved = false,
-                        ),
-                    )
-                }
-                remoteResult
-            }
-
-            is AppResult.Error -> remoteResult
-        }
+        return remoteResult
     }
 
     override suspend fun bookmarkWord(
         word: String,
         result: List<WordModel>,
+        visitorCount: Int?,
     ): Boolean =
         withContext(Dispatchers.IO) {
             localDataSource.insertWord(
                 ListWordEntity(
                     word = word,
                     listWords = result.toWordEntities(),
+                    visitorCount = visitorCount,
                     isSaved = true,
                 ),
             )

@@ -8,6 +8,7 @@ import io.ktor.client.call.body
 import io.ktor.client.plugins.HttpRequestTimeoutException
 import io.ktor.client.request.delete
 import io.ktor.client.request.get
+import io.ktor.client.request.header
 import io.ktor.client.request.parameter
 import io.ktor.client.request.patch
 import io.ktor.client.request.post
@@ -37,12 +38,16 @@ private const val HTTP_SERVICE_UNAVAILABLE = 503
 suspend inline fun <reified Response : Any> HttpClient.get(
     route: String,
     queryParameters: Map<String, Any?> = emptyMap(),
+    headers: Map<String, String> = emptyMap(),
 ): AppResult<Response, DataError> =
     safeCall {
         get {
             url(constructRoute(route))
             queryParameters.forEach { (key, value) ->
                 parameter(key, value)
+            }
+            headers.forEach { (key, value) ->
+                header(key, value)
             }
         }
     }

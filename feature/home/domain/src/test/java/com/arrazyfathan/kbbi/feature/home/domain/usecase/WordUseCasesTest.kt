@@ -3,6 +3,7 @@ package com.arrazyfathan.kbbi.feature.home.domain.usecase
 import com.arrazyfathan.kbbi.feature.home.domain.FakeWordRepository
 import com.arrazyfathan.kbbi.core.domain.model.AppResult
 import com.arrazyfathan.kbbi.core.domain.model.DataError
+import com.arrazyfathan.kbbi.feature.home.domain.model.ListWordModel
 import com.arrazyfathan.kbbi.feature.home.domain.model.MeaningModel
 import com.arrazyfathan.kbbi.feature.home.domain.model.WordModel
 import kotlinx.coroutines.flow.first
@@ -27,13 +28,23 @@ class WordUseCasesTest {
             val word = "belajar"
             val meanings = listOf(MeaningModel(wordClass = "v", description = "berusaha memperoleh kepandaian"))
             val wordModel = WordModel(entry = word, meanings = meanings)
-            fakeRepository.setRemoteData(word, AppResult.Success(listOf(wordModel)))
+            fakeRepository.setRemoteData(
+                word,
+                AppResult.Success(
+                    ListWordModel(
+                        word = word,
+                        listWords = listOf(wordModel),
+                        visitorCount = 12,
+                    ),
+                ),
+            )
 
             val result = SearchWordUseCase(fakeRepository)(word)
 
             assertTrue(result is AppResult.Success)
             val data = (result as AppResult.Success).data
             assertEquals(word, data.word)
+            assertEquals(12, data.visitorCount)
             assertEquals(word, data.listWords.first().entry)
             assertEquals(
                 "v",
@@ -59,7 +70,7 @@ class WordUseCasesTest {
         runBlocking {
             val word = "buku"
             val wordModel = WordModel(entry = word, meanings = emptyList())
-            fakeRepository.setRemoteData(word, AppResult.Success(listOf(wordModel)))
+            fakeRepository.setRemoteData(word, AppResult.Success(ListWordModel(word, listOf(wordModel))))
 
             val searchWord = SearchWordUseCase(fakeRepository)
             val addSearchHistory = AddSearchHistoryUseCase(fakeRepository)

@@ -14,5 +14,6 @@ data class ListWordEntity(
     @PrimaryKey(autoGenerate = false)
     val word: String = "",
     val listWords: List<WordEntity>,
+    val visitorCount: Int? = null,
     var isSaved: Boolean = false,
 )

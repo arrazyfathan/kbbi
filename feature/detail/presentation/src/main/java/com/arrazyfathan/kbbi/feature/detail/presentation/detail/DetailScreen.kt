@@ -184,8 +184,19 @@ fun DetailContent(
                     fontSize = 34.sp,
                     fontFamily = InterFontFamily,
                     fontWeight = FontWeight.Bold,
-                    modifier = Modifier.padding(horizontal = 16.dp, vertical = 20.dp),
+                    modifier = Modifier.padding(horizontal = 16.dp).padding(top = 20.dp),
                 )
+                listWordModel.visitorCount?.let { visitorCount ->
+                    Spacer(modifier = Modifier.height(8.dp))
+                    Text(
+                        text = stringResource(R.string.word_visitor_count, visitorCount),
+                        color = TextP,
+                        fontSize = 14.sp,
+                        fontFamily = InterFontFamily,
+                        fontWeight = FontWeight.Medium,
+                        modifier = Modifier.padding(horizontal = 16.dp).padding(bottom = 20.dp),
+                    )
+                } ?: Spacer(modifier = Modifier.height(20.dp))
             }
 
             // Word details cards
@@ -257,6 +268,7 @@ fun DetailContent(
                             DetailAction.OnBookmarkClick(
                                 listWordModel.word.lowercase(),
                                 listWordModel.listWords,
+                                listWordModel.visitorCount,
                             ),
                         )
                     }.padding(horizontal = 20.dp),

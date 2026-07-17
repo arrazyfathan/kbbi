@@ -7,6 +7,8 @@ import com.arrazyfathan.kbbi.feature.home.data.WordRepository
 import com.arrazyfathan.kbbi.feature.home.data.source.local.AssetWordCatalogRepository
 import com.arrazyfathan.kbbi.feature.home.data.source.local.WordLocalDataSource
 import com.arrazyfathan.kbbi.feature.home.data.source.local.room.WordDatabase
+import com.arrazyfathan.kbbi.feature.home.data.source.remote.SharedPreferencesVisitorIdProvider
+import com.arrazyfathan.kbbi.feature.home.data.source.remote.VisitorIdProvider
 import com.arrazyfathan.kbbi.feature.home.data.source.remote.WordRemoteDataSource
 import com.arrazyfathan.kbbi.feature.home.domain.repository.BookmarkRepository
 import com.arrazyfathan.kbbi.feature.home.domain.repository.SearchHistoryRepository
@@ -28,6 +30,13 @@ private val MIGRATION_7_8 =
         }
     }
 
+private val MIGRATION_8_9 =
+    object : Migration(8, 9) {
+        override fun migrate(db: SupportSQLiteDatabase) {
+            db.execSQL("ALTER TABLE word_table ADD COLUMN visitorCount INTEGER")
+        }
+    }
+
 val databaseModule =
     module {
         factory { get<WordDatabase>().wordDao() }
@@ -37,7 +46,7 @@ val databaseModule =
                     androidContext(),
                     WordDatabase::class.java,
                     "kbbi_db",
-                ).addMigrations(MIGRATION_7_8)
+                ).addMigrations(MIGRATION_7_8, MIGRATION_8_9)
                 .fallbackToDestructiveMigration(dropAllTables = true)
                 .build()
         }
@@ -45,6 +54,7 @@ val databaseModule =
 
 val repositoryModule =
     module {
+        single<VisitorIdProvider> { SharedPreferencesVisitorIdProvider(androidContext()) }
         singleOf(::WordRemoteDataSource)
         singleOf(::WordLocalDataSource)
         single<WordCatalogRepository> { AssetWordCatalogRepository(androidContext(), get()) }

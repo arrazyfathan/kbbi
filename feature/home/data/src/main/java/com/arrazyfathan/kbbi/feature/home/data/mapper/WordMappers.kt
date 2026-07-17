@@ -29,6 +29,7 @@ fun ListWordEntity.toDomain(): ListWordModel =
     ListWordModel(
         word = word,
         listWords = listWords.map { it.toDomain() },
+        visitorCount = visitorCount,
     )
 
 fun List<HistoryEntity>.toHistoryModels(): List<HistoryModel> = map { it.toDomain() }

@@ -9,5 +9,11 @@ class SaveBookmarkUseCase(
     suspend operator fun invoke(
         word: String,
         wordList: List<WordModel>,
-    ): Boolean = bookmarkRepository.bookmarkWord(word = word, result = wordList)
+        visitorCount: Int? = null,
+    ): Boolean =
+        bookmarkRepository.bookmarkWord(
+            word = word,
+            result = wordList,
+            visitorCount = visitorCount,
+        )
 }

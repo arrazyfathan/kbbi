@@ -2,7 +2,6 @@ package com.arrazyfathan.kbbi.feature.home.domain.usecase
 
 import com.arrazyfathan.kbbi.core.domain.model.AppResult
 import com.arrazyfathan.kbbi.core.domain.model.DataError
-import com.arrazyfathan.kbbi.core.domain.model.map
 import com.arrazyfathan.kbbi.feature.home.domain.model.ListWordModel
 import com.arrazyfathan.kbbi.feature.home.domain.repository.WordSearchRepository
 
@@ -17,11 +16,5 @@ class SearchWordUseCase(
 
         return wordSearchRepository
             .getMeaningOfWord(wordToSearch)
-            .map { words ->
-                ListWordModel(
-                    word = wordToSearch,
-                    listWords = words,
-                )
-            }
     }
 }

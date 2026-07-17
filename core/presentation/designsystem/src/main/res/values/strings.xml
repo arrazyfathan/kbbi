@@ -52,6 +52,7 @@
     <string name="word_deleted_success">Word deleted successfully.</string>
     <string name="bookmarked">Bookmarked</string>
     <string name="bookmark">Bookmark</string>
+    <string name="word_visitor_count">%1$d visitors</string>
     <string name="word_list_title">Word\nList</string>
     <string name="copy_success">Text copied successfully.</string>
     <string name="share">Share</string>

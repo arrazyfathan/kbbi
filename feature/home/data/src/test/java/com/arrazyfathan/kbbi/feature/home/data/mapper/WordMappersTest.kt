@@ -33,11 +33,18 @@ class WordMappersTest {
     fun listWordEntityMapsToDomainModel() {
         val meaningEntity = MeaningEntity(wordClass = "adj", description = "sifat")
         val wordEntity = WordEntity(entry = "indah", meanings = listOf(meaningEntity))
-        val listWordEntity = ListWordEntity(word = "indah", listWords = listOf(wordEntity), isSaved = true)
+        val listWordEntity =
+            ListWordEntity(
+                word = "indah",
+                listWords = listOf(wordEntity),
+                visitorCount = 9,
+                isSaved = true,
+            )
 
         val domainListWord = listWordEntity.toDomain()
 
         assertEquals("indah", domainListWord.word)
+        assertEquals(9, domainListWord.visitorCount)
         assertEquals(1, domainListWord.listWords.size)
         assertEquals("indah", domainListWord.listWords[0].entry)
         assertEquals("adj", domainListWord.listWords[0].meanings[0].wordClass)

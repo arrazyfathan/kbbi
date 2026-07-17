@@ -20,12 +20,12 @@ class FakeWordRepository :
     WordCatalogRepository {
     private val bookmarks = MutableStateFlow<Map<String, ListWordModel>>(emptyMap())
     private val histories = MutableStateFlow<List<HistoryModel>>(emptyList())
-    private val remoteMeanings = mutableMapOf<String, AppResult<List<WordModel>, DataError>>()
+    private val remoteMeanings = mutableMapOf<String, AppResult<ListWordModel, DataError>>()
     private var catalogWords = emptyList<String>()
 
     fun setRemoteData(
         word: String,
-        result: AppResult<List<WordModel>, DataError>,
+        result: AppResult<ListWordModel, DataError>,
     ) {
         remoteMeanings[word] = result
     }
@@ -34,14 +34,15 @@ class FakeWordRepository :
         catalogWords = words
     }
 
-    override suspend fun getMeaningOfWord(word: String): AppResult<List<WordModel>, DataError> =
+    override suspend fun getMeaningOfWord(word: String): AppResult<ListWordModel, DataError> =
         remoteMeanings[word] ?: AppResult.Error(DataError.NotFound)
 
     override suspend fun bookmarkWord(
         word: String,
         result: List<WordModel>,
+        visitorCount: Int?,
     ): Boolean {
-        bookmarks.value = bookmarks.value + (word to ListWordModel(word, result))
+        bookmarks.value = bookmarks.value + (word to ListWordModel(word, result, visitorCount))
         return true
     }
 
