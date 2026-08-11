@@ -1,3 +1,5 @@
+
+
 # KBBI
 
 KBBI is an unofficial Android dictionary app for **Kamus Besar Bahasa Indonesia**. The app combines a remote dictionary API with a bundled local word index and an offline-first Room cache so users can search words quickly, revisit previously opened meanings without a network connection, and keep bookmarks and recent search history on-device.
@@ -72,6 +74,7 @@ This repository contains the Android client for KBBI. The project is organized a
 │       ├── di/                      # App-level module assembly
 │       └── navigation/              # Root app navigation graph
 ├── core/
+│   ├── app-update/                  # App update checking and prompting logic
 │   ├── data/                        # Shared Ktor client and safe API call helpers
 │   ├── di/                          # Shared core Koin modules
 │   ├── domain/                      # AppResult, DataError, shared domain primitives
