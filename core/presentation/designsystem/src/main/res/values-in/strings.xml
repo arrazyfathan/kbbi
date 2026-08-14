@@ -1,0 +1,25 @@
+<resources>
+    <string name="settings_title">Pengaturan</string>
+    <string name="notification_settings_title">Notifikasi</string>
+    <string name="notification_settings_subtitle">Bangun kebiasaan kosakata bahasa Indonesia dengan pengingat yang Anda pilih.</string>
+    <string name="notification_settings_kicker">JADIKAN KEBIASAAN</string>
+    <string name="notification_reminders_section">Pengingat Anda</string>
+    <string name="notification_daily_word_description">Satu kata kecil untuk menemani hari Anda.</string>
+    <string name="notification_daily_proverb_description">Sedikit hikmah untuk jeda siang Anda.</string>
+    <string name="notification_bookmark_review_description">Dekatkan kembali kata-kata yang Anda simpan.</string>
+    <string name="notification_time_label">Setiap hari pukul %1$s</string>
+    <string name="notification_permission_title">Notifikasi dijeda</string>
+    <string name="notification_open_system_settings">Buka pengaturan sistem</string>
+    <string name="notification_daily_word">Kata Hari Ini</string>
+    <string name="notification_daily_proverb">Peribahasa harian</string>
+    <string name="notification_bookmark_review">Tinjau kata tersimpan</string>
+    <string name="notification_permission_denied">Notifikasi dinonaktifkan. Izinkan notifikasi di pengaturan sistem untuk menggunakan pengingat.</string>
+    <string name="notification_daily_word_title">Kata Hari Ini</string>
+    <string name="notification_daily_word_body">Pelajari “%1$s” hari ini.</string>
+    <string name="notification_daily_proverb_title">Peribahasa harian</string>
+    <string name="notification_bookmark_title">Tinjau kata tersimpan</string>
+    <string name="notification_daily_word_channel">Kata Hari Ini</string>
+    <string name="notification_daily_proverb_channel">Peribahasa harian</string>
+    <string name="notification_bookmark_channel">Tinjauan kata tersimpan</string>
+    <string name="confirm">Konfirmasi</string>
+</resources>
