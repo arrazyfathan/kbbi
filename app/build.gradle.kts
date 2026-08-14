@@ -228,6 +228,9 @@ dependencies {
     implementation(project(":feature:proverb:presentation"))
     implementation(project(":feature:splash:presentation"))
     implementation(project(":feature:words:presentation"))
+    implementation(project(":feature:settings:data"))
+    implementation(project(":feature:settings:domain"))
+    implementation(project(":feature:settings:presentation"))
 
     implementation(libs.androidx.core.ktx)
     implementation(libs.material)
@@ -244,6 +247,7 @@ dependencies {
     implementation(libs.androidx.lifecycle.runtime.compose)
     implementation(libs.androidx.lifecycle.viewmodel.ktx)
     implementation(libs.androidx.paging.compose)
+    implementation(libs.androidx.work.runtime.ktx)
 
     implementation(libs.koin.core)
     implementation(libs.koin.android)

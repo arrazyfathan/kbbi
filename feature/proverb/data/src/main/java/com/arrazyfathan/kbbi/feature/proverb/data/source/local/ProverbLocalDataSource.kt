@@ -7,6 +7,8 @@ import com.arrazyfathan.kbbi.feature.proverb.data.source.local.room.ProverbDao
 class ProverbLocalDataSource(
     private val proverbDao: ProverbDao,
 ) {
+    suspend fun getCachedProverbs(): List<CachedProverbEntity> = proverbDao.getCachedProverbs()
+
     suspend fun getProverbs(
         query: String,
         page: Int,

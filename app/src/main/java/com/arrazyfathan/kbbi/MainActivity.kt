@@ -25,6 +25,8 @@ class MainActivity : ComponentActivity() {
     private var externalSearchRequestKey by mutableStateOf(0L)
     private var shortcutRequest by mutableStateOf<AppShortcutRequest?>(null)
     private var shortcutRequestKey by mutableStateOf(0L)
+    private var notificationRequest by mutableStateOf<NotificationLaunchRequest?>(null)
+    private var notificationRequestKey by mutableStateOf(0L)
 
     override fun onCreate(savedInstanceState: Bundle?) {
         enableEdgeToEdge(
@@ -68,6 +70,9 @@ class MainActivity : ComponentActivity() {
                         onShortcutConsumed = {
                             shortcutRequest = null
                         },
+                        notificationRequest = notificationRequest,
+                        notificationRequestKey = notificationRequestKey,
+                        onNotificationRequestConsumed = { notificationRequest = null },
                     )
                 }
             }
@@ -83,9 +88,18 @@ class MainActivity : ComponentActivity() {
     private fun handleLaunchIntent(intent: Intent) {
         val query = intent.extractExternalSearchQuery()
         if (query != null) {
+            notificationRequest = null
             shortcutRequest = null
             externalSearchQuery = query
             externalSearchRequestKey += 1
+            return
+        }
+
+        intent.extractNotificationLaunchRequest()?.let { request ->
+            externalSearchQuery = null
+            shortcutRequest = null
+            notificationRequest = request
+            notificationRequestKey += 1
             return
         }
 

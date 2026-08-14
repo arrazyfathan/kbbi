@@ -1,0 +1,6 @@
+<resources>
+    <plurals name="notification_bookmark_body">
+        <item quantity="one">Ada 1 kata tersimpan untuk ditinjau.</item>
+        <item quantity="other">Ada %1$d kata tersimpan untuk ditinjau.</item>
+    </plurals>
+</resources>

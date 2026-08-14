@@ -9,6 +9,7 @@ import com.arrazyfathan.kbbi.feature.home.presentation.home.HomeScreen
 fun HomeRoute(
     onNavigateToDetail: (ListWordModel) -> Unit,
     onNavigateToProverb: () -> Unit,
+    onNavigateToSettings: () -> Unit = {},
     modifier: Modifier = Modifier,
     externalSearchQuery: String? = null,
     externalSearchRequestKey: Long = 0L,
@@ -26,6 +27,7 @@ fun HomeRoute(
         onShortcutConsumed = onShortcutConsumed,
         onNavigateToDetail = onNavigateToDetail,
         onNavigateToProverb = onNavigateToProverb,
+        onNavigateToSettings = onNavigateToSettings,
         modifier = modifier,
     )
 }
