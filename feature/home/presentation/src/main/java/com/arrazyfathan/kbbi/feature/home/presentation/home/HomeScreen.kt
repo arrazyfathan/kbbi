@@ -111,6 +111,7 @@ fun HomeScreen(
     onShortcutConsumed: () -> Unit = {},
     onNavigateToDetail: (ListWordModel) -> Unit,
     onNavigateToProverb: () -> Unit,
+    onNavigateToSettings: () -> Unit = {},
     viewModel: HomeViewModel = koinViewModel(),
 ) {
     val context = LocalContext.current
@@ -223,6 +224,7 @@ fun HomeScreen(
         focusSearchRequestKey = focusSearchRequestKey,
         onSearchFocusConsumed = onShortcutConsumed,
         onNavigateToProverb = onNavigateToProverb,
+        onNavigateToSettings = onNavigateToSettings,
         onVoiceSearchClick = ::startVoiceSearch,
         onVoiceSearchCancel = {
             ignoreNextVoiceError = true
@@ -242,6 +244,7 @@ fun HomeContent(
     focusSearchRequestKey: Long = 0L,
     onSearchFocusConsumed: () -> Unit = {},
     onNavigateToProverb: () -> Unit,
+    onNavigateToSettings: () -> Unit = {},
     onVoiceSearchClick: () -> Unit = {},
     onVoiceSearchCancel: () -> Unit = {},
     onAction: (HomeAction) -> Unit,
@@ -589,9 +592,17 @@ fun HomeContent(
                             modifier = Modifier.weight(1f),
                         )
 
-                        repeat(2) {
-                            HomeMenuPlaceholderCard(modifier = Modifier.weight(1f))
-                        }
+                        HomeMenuCard(
+                            icon = R.drawable.settings,
+                            title = stringResource(id = R.string.settings_menu_title),
+                            subtitle = stringResource(id = R.string.settings_menu_subtitle),
+                            onClick = {
+                                showBottomSheet = false
+                                onNavigateToSettings()
+                            },
+                            modifier = Modifier.weight(1f),
+                        )
+                        HomeMenuPlaceholderCard(modifier = Modifier.weight(1f))
                     }
                 }
             }

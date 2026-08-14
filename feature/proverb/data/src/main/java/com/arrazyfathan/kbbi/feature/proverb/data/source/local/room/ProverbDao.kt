@@ -9,6 +9,9 @@ import com.arrazyfathan.kbbi.feature.proverb.data.source.local.entity.CachedProv
 
 @Dao
 interface ProverbDao {
+    @Query("SELECT * FROM cached_proverb_table ORDER BY slug ASC")
+    suspend fun getCachedProverbs(): List<CachedProverbEntity>
+
     @Query(
         "SELECT * FROM cached_proverb_table WHERE query = :query AND page = :page ORDER BY position ASC",
     )

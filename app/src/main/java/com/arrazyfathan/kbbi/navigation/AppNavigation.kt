@@ -75,6 +75,8 @@ import com.arrazyfathan.kbbi.feature.detail.presentation.navigation.DetailRoute
 import com.arrazyfathan.kbbi.feature.home.domain.model.ListWordModel
 import com.arrazyfathan.kbbi.feature.home.presentation.navigation.HomeRoute
 import com.arrazyfathan.kbbi.feature.proverb.presentation.navigation.ProverbRoute
+import com.arrazyfathan.kbbi.feature.settings.presentation.settings.SettingsRoute
+import com.arrazyfathan.kbbi.NotificationLaunchRequest
 import com.arrazyfathan.kbbi.feature.words.presentation.navigation.WordsRoute
 import com.github.skydoves.navgraph.annotations.NavGraphRoot
 import kotlinx.serialization.Serializable
@@ -97,6 +99,9 @@ sealed interface Screen : NavKey {
     data object Proverb : Screen
 
     @Serializable
+    data object Settings : Screen
+
+    @Serializable
     data object Bookmarks : Screen
 }
 
@@ -106,6 +111,7 @@ private val Screen.titleResId: Int
             Screen.Home -> R.string.home_title
             Screen.WordList -> R.string.word_list_tab_title
             Screen.Proverb -> R.string.proverb_title
+            Screen.Settings -> R.string.settings_title
             Screen.Bookmarks -> R.string.bookmarks_title
         }
 
@@ -115,6 +121,7 @@ private val Screen.iconResId: Int
             Screen.Home -> R.drawable.home
             Screen.WordList -> R.drawable.word
             Screen.Proverb -> R.drawable.ic_proverb
+            Screen.Settings -> R.drawable.settings
             Screen.Bookmarks -> R.drawable.saved
         }
 
@@ -124,6 +131,7 @@ private val Screen.iconSelectedResId: Int
             Screen.Home -> R.drawable.home_selected
             Screen.WordList -> R.drawable.word_selected
             Screen.Proverb -> R.drawable.ic_proverb
+            Screen.Settings -> R.drawable.settings
             Screen.Bookmarks -> R.drawable.saved_selected
         }
 
@@ -140,6 +148,9 @@ fun MainApp(
     shortcutRequest: AppShortcutRequest? = null,
     shortcutRequestKey: Long = 0L,
     onShortcutConsumed: () -> Unit = {},
+    notificationRequest: NotificationLaunchRequest? = null,
+    notificationRequestKey: Long = 0L,
+    onNotificationRequestConsumed: () -> Unit = {},
     appUpdateViewModel: AppUpdateViewModel = koinViewModel(),
 ) {
     val context = LocalContext.current
@@ -195,9 +206,22 @@ fun MainApp(
                 onShortcutConsumed()
             }
 
-            null -> {
-                Unit
+            null -> {}
+        }
+    }
+
+    LaunchedEffect(notificationRequestKey) {
+        when (notificationRequest) {
+            is NotificationLaunchRequest.Proverb -> {
+                navigator.navigateToRoot(Screen.Home)
+                navigator.navigate(Screen.Proverb)
+                onNotificationRequestConsumed()
             }
+            NotificationLaunchRequest.Bookmarks -> {
+                navigator.navigateToRoot(Screen.Bookmarks)
+                onNotificationRequestConsumed()
+            }
+            null -> Unit
         }
     }
 
@@ -246,6 +270,9 @@ fun MainApp(
                         onNavigateToProverb = {
                             navigator.navigate(Screen.Proverb)
                         },
+                        onNavigateToSettings = {
+                            navigator.navigate(Screen.Settings)
+                        },
                     )
                 }
                 entry<Screen.WordList> {
@@ -263,6 +290,9 @@ fun MainApp(
                             }
                         },
                     )
+                }
+                entry<Screen.Settings> {
+                    SettingsRoute(onNavigateBack = { if (!isUiBlocked) navigator.goBack() })
                 }
                 entry<Screen.Bookmarks> {
                     BookmarkRoute(

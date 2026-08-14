@@ -5,6 +5,13 @@ import java.util.Locale
 
 private const val KBBI_DEEP_LINK_SCHEME = "kbbi"
 private const val WORD_DEEP_LINK_HOST = "word"
+private const val PROVERB_DEEP_LINK_HOST = "proverb"
+private const val BOOKMARKS_DEEP_LINK_HOST = "bookmarks"
+
+sealed interface NotificationLaunchRequest {
+    data class Proverb(val slug: String?) : NotificationLaunchRequest
+    data object Bookmarks : NotificationLaunchRequest
+}
 
 internal fun Intent.extractExternalSearchQuery(): String? {
     val rawText =
@@ -29,6 +36,15 @@ internal fun Intent.extractExternalSearchQuery(): String? {
         }
 
     return rawText?.toKbbiSearchQuery()
+}
+
+internal fun Intent.extractNotificationLaunchRequest(): NotificationLaunchRequest? {
+    if (action != Intent.ACTION_VIEW || data?.scheme != KBBI_DEEP_LINK_SCHEME) return null
+    return when (data?.host) {
+        PROVERB_DEEP_LINK_HOST -> NotificationLaunchRequest.Proverb(data?.pathSegments?.firstOrNull())
+        BOOKMARKS_DEEP_LINK_HOST -> NotificationLaunchRequest.Bookmarks
+        else -> null
+    }
 }
 
 internal fun extractWordDeepLinkQuery(
