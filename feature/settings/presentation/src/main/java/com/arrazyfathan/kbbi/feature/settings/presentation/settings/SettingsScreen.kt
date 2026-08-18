@@ -2,7 +2,6 @@ package com.arrazyfathan.kbbi.feature.settings.presentation.settings
 
 import android.Manifest
 import android.content.Intent
-import android.net.Uri
 import android.os.Build
 import android.provider.Settings
 import androidx.activity.compose.rememberLauncherForActivityResult
@@ -24,7 +23,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.AlertDialog
@@ -38,7 +36,6 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.MediumTopAppBar
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -54,6 +51,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.nestedscroll.nestedScroll
@@ -75,7 +73,6 @@ import com.arrazyfathan.kbbi.core.presentation.designsystem.KBBITheme
 import com.arrazyfathan.kbbi.core.presentation.designsystem.MetropolisFontFamily
 import com.arrazyfathan.kbbi.core.presentation.designsystem.TextH1
 import com.arrazyfathan.kbbi.core.presentation.designsystem.TextP
-import com.arrazyfathan.kbbi.feature.settings.domain.model.ReminderPreference
 import com.arrazyfathan.kbbi.feature.settings.domain.model.ReminderTime
 import com.arrazyfathan.kbbi.feature.settings.domain.model.ReminderType
 import org.koin.androidx.compose.koinViewModel
@@ -83,8 +80,8 @@ import org.koin.androidx.compose.koinViewModel
 @Composable
 fun SettingsRoute(
     onNavigateBack: () -> Unit,
-    viewModel: SettingsViewModel = koinViewModel(),
 ) {
+    val viewModel: SettingsViewModel = koinViewModel()
     val context = androidx.compose.ui.platform.LocalContext.current
     val state by viewModel.state.collectAsStateWithLifecycle()
     var permissionType by remember { mutableStateOf<ReminderType?>(null) }
@@ -188,7 +185,8 @@ fun SettingsScreen(
 
     if (timePickerType != null && selectedPreference != null) {
         ReminderTimeDialog(
-            preference = selectedPreference,
+            initialHour = selectedPreference.time.hour,
+            initialMinute = selectedPreference.time.minute,
             onDismiss = { timePickerType = null },
             onConfirm = { time ->
                 onAction(SettingsAction.OnReminderTimeChanged(timePickerType!!, time))
@@ -279,7 +277,11 @@ private fun ReminderSection(
                 icon = R.drawable.word,
                 title = stringResource(R.string.notification_daily_word),
                 description = stringResource(R.string.notification_daily_word_description),
-                preference = state.notifications.dailyWord,
+                enabled = state.notifications.dailyWord.enabled,
+                timeLabel = "%02d:%02d".format(
+                    state.notifications.dailyWord.time.hour,
+                    state.notifications.dailyWord.time.minute,
+                ),
                 onToggle = { onAction(SettingsAction.OnReminderToggled(ReminderType.DAILY_WORD, it)) },
                 onTimeClick = { onTimeClick(ReminderType.DAILY_WORD) },
             )
@@ -288,7 +290,11 @@ private fun ReminderSection(
                 icon = R.drawable.ic_proverb,
                 title = stringResource(R.string.notification_daily_proverb),
                 description = stringResource(R.string.notification_daily_proverb_description),
-                preference = state.notifications.dailyProverb,
+                enabled = state.notifications.dailyProverb.enabled,
+                timeLabel = "%02d:%02d".format(
+                    state.notifications.dailyProverb.time.hour,
+                    state.notifications.dailyProverb.time.minute,
+                ),
                 onToggle = { onAction(SettingsAction.OnReminderToggled(ReminderType.DAILY_PROVERB, it)) },
                 onTimeClick = { onTimeClick(ReminderType.DAILY_PROVERB) },
             )
@@ -297,7 +303,11 @@ private fun ReminderSection(
                 icon = R.drawable.saved,
                 title = stringResource(R.string.notification_bookmark_review),
                 description = stringResource(R.string.notification_bookmark_review_description),
-                preference = state.notifications.bookmarkReview,
+                enabled = state.notifications.bookmarkReview.enabled,
+                timeLabel = "%02d:%02d".format(
+                    state.notifications.bookmarkReview.time.hour,
+                    state.notifications.bookmarkReview.time.minute,
+                ),
                 onToggle = { onAction(SettingsAction.OnReminderToggled(ReminderType.BOOKMARK_REVIEW, it)) },
                 onTimeClick = { onTimeClick(ReminderType.BOOKMARK_REVIEW) },
             )
@@ -310,12 +320,13 @@ private fun ReminderRow(
     icon: Int,
     title: String,
     description: String,
-    preference: ReminderPreference,
+    enabled: Boolean,
+    timeLabel: String,
     onToggle: (Boolean) -> Unit,
     onTimeClick: () -> Unit,
 ) {
-    val titleColor = if (preference.enabled) TextH1 else TextH1.copy(alpha = 0.58f)
-    val descriptionColor = if (preference.enabled) TextP else TextP.copy(alpha = 0.58f)
+    val titleColor = if (enabled) TextH1 else TextH1.copy(alpha = 0.58f)
+    val descriptionColor = if (enabled) TextP else TextP.copy(alpha = 0.58f)
 
     Row(
         verticalAlignment = Alignment.Top,
@@ -324,8 +335,8 @@ private fun ReminderRow(
         Icon(
             painter = painterResource(icon),
             contentDescription = null,
-            tint = BluePrimary.copy(alpha = if (preference.enabled) 1f else 0.45f),
-            modifier = Modifier.size(24.dp),
+            tint = BluePrimary.copy(alpha = if (enabled) 1f else 0.45f),
+            modifier = Modifier.size(18.dp),
         )
 
         Spacer(Modifier.width(14.dp))
@@ -352,14 +363,14 @@ private fun ReminderRow(
                     Text(
                         stringResource(
                             R.string.notification_time_label,
-                            "%02d:%02d".format(preference.time.hour, preference.time.minute),
+                            timeLabel,
                         ),
                     )
                 },
             )
         }
         Spacer(Modifier.width(8.dp))
-        Switch(checked = preference.enabled, onCheckedChange = onToggle)
+        Switch(modifier = Modifier.scale(0.7f), checked = enabled, onCheckedChange = onToggle)
     }
 }
 
@@ -392,11 +403,12 @@ private fun PermissionBanner(onOpenSystemSettings: () -> Unit) {
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun ReminderTimeDialog(
-    preference: ReminderPreference,
+    initialHour: Int,
+    initialMinute: Int,
     onDismiss: () -> Unit,
     onConfirm: (ReminderTime) -> Unit,
 ) {
-    val pickerState = rememberTimePickerState(preference.time.hour, preference.time.minute, is24Hour = true)
+    val pickerState = rememberTimePickerState(initialHour, initialMinute, is24Hour = true)
     AlertDialog(
         onDismissRequest = onDismiss,
         text = { TimePicker(pickerState) },

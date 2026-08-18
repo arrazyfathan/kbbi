@@ -1,5 +1,6 @@
 package com.arrazyfathan.kbbi.feature.settings.presentation.settings
 
+import androidx.compose.runtime.Immutable
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.arrazyfathan.kbbi.feature.settings.domain.model.NotificationSettings
@@ -15,19 +16,35 @@ import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
+@Immutable
 data class SettingsState(
     val notifications: NotificationSettings = NotificationSettings(),
 )
 
 sealed interface SettingsAction {
     data object OnStarted : SettingsAction
-    data class OnReminderToggled(val type: ReminderType, val enabled: Boolean) : SettingsAction
-    data class OnReminderTimeChanged(val type: ReminderType, val time: ReminderTime) : SettingsAction
-    data class OnPermissionResult(val type: ReminderType, val granted: Boolean) : SettingsAction
+
+    data class OnReminderToggled(
+        val type: ReminderType,
+        val enabled: Boolean,
+    ) : SettingsAction
+
+    data class OnReminderTimeChanged(
+        val type: ReminderType,
+        val time: ReminderTime,
+    ) : SettingsAction
+
+    data class OnPermissionResult(
+        val type: ReminderType,
+        val granted: Boolean,
+    ) : SettingsAction
 }
 
 sealed interface SettingsEvent {
-    data class RequestNotificationPermission(val type: ReminderType) : SettingsEvent
+    data class RequestNotificationPermission(
+        val type: ReminderType,
+    ) : SettingsEvent
+
     data object PermissionDenied : SettingsEvent
 }
 
@@ -58,7 +75,10 @@ class SettingsViewModel(
         }
     }
 
-    private fun toggle(type: ReminderType, enabled: Boolean) {
+    private fun toggle(
+        type: ReminderType,
+        enabled: Boolean,
+    ) {
         if (!enabled) {
             viewModelScope.launch {
                 repository.setEnabled(type, false)
@@ -75,7 +95,10 @@ class SettingsViewModel(
         }
     }
 
-    private fun onPermissionResult(type: ReminderType, granted: Boolean) {
+    private fun onPermissionResult(
+        type: ReminderType,
+        granted: Boolean,
+    ) {
         if (granted) {
             enable(type)
         } else {
@@ -90,14 +113,25 @@ class SettingsViewModel(
     private fun enable(type: ReminderType) {
         viewModelScope.launch {
             repository.setEnabled(type, true)
-            scheduler.schedule(type, state.value.notifications.preference(type).time)
+            scheduler.schedule(
+                type,
+                state.value.notifications
+                    .preference(type)
+                    .time,
+            )
         }
     }
 
-    private fun updateTime(type: ReminderType, time: ReminderTime) {
+    private fun updateTime(
+        type: ReminderType,
+        time: ReminderTime,
+    ) {
         viewModelScope.launch {
             repository.setTime(type, time)
-            if (state.value.notifications.preference(type).enabled) {
+            if (state.value.notifications
+                    .preference(type)
+                    .enabled
+            ) {
                 scheduler.schedule(type, time)
             }
         }
