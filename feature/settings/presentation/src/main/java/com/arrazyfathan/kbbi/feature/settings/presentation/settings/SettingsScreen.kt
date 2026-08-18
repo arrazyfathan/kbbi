@@ -25,7 +25,6 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.AssistChip
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -39,10 +38,8 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
-import androidx.compose.material3.TimePicker
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.TopAppBarScrollBehavior
-import androidx.compose.material3.rememberTimePickerState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -73,6 +70,7 @@ import com.arrazyfathan.kbbi.core.presentation.designsystem.KBBITheme
 import com.arrazyfathan.kbbi.core.presentation.designsystem.MetropolisFontFamily
 import com.arrazyfathan.kbbi.core.presentation.designsystem.TextH1
 import com.arrazyfathan.kbbi.core.presentation.designsystem.TextP
+import com.arrazyfathan.kbbi.core.presentation.designsystem.components.KBBITimePickerBottomSheet
 import com.arrazyfathan.kbbi.feature.settings.domain.model.ReminderTime
 import com.arrazyfathan.kbbi.feature.settings.domain.model.ReminderType
 import org.koin.androidx.compose.koinViewModel
@@ -184,12 +182,17 @@ fun SettingsScreen(
     }
 
     if (timePickerType != null && selectedPreference != null) {
-        ReminderTimeDialog(
+        KBBITimePickerBottomSheet(
             initialHour = selectedPreference.time.hour,
             initialMinute = selectedPreference.time.minute,
-            onDismiss = { timePickerType = null },
-            onConfirm = { time ->
-                onAction(SettingsAction.OnReminderTimeChanged(timePickerType!!, time))
+            onDismissRequest = { timePickerType = null },
+            onConfirm = { hour, minute ->
+                onAction(
+                    SettingsAction.OnReminderTimeChanged(
+                        timePickerType!!,
+                        ReminderTime(hour, minute),
+                    ),
+                )
                 timePickerType = null
             },
         )
@@ -398,29 +401,6 @@ private fun PermissionBanner(onOpenSystemSettings: () -> Unit) {
             }
         }
     }
-}
-
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-private fun ReminderTimeDialog(
-    initialHour: Int,
-    initialMinute: Int,
-    onDismiss: () -> Unit,
-    onConfirm: (ReminderTime) -> Unit,
-) {
-    val pickerState = rememberTimePickerState(initialHour, initialMinute, is24Hour = true)
-    AlertDialog(
-        onDismissRequest = onDismiss,
-        text = { TimePicker(pickerState) },
-        confirmButton = {
-            TextButton(onClick = { onConfirm(ReminderTime(pickerState.hour, pickerState.minute)) }) {
-                Text(stringResource(R.string.confirm))
-            }
-        },
-        dismissButton = {
-            TextButton(onClick = onDismiss) { Text(stringResource(R.string.cancel)) }
-        },
-    )
 }
 
 @Preview
