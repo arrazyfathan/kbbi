@@ -22,4 +22,9 @@
     <string name="notification_daily_proverb_channel">Peribahasa harian</string>
     <string name="notification_bookmark_channel">Tinjauan kata tersimpan</string>
     <string name="confirm">Konfirmasi</string>
+    <string name="cancel">Batal</string>
+    <string name="done">Selesai</string>
+    <string name="time_picker_title">Pilih waktu</string>
+    <string name="time_picker_hour_option">Jam %1$02d</string>
+    <string name="time_picker_minute_option">Menit %1$02d</string>
 </resources>
