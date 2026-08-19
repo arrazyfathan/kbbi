@@ -34,15 +34,9 @@ import com.arrazyfathan.kbbi.core.presentation.designsystem.MetropolisFontFamily
 import com.mikepenz.aboutlibraries.Libs
 import com.mikepenz.aboutlibraries.ui.compose.LibraryDefaults
 import com.mikepenz.aboutlibraries.ui.compose.m3.LibrariesContainer
-import com.mikepenz.aboutlibraries.ui.compose.m3.libraryColors
 import com.mikepenz.aboutlibraries.ui.compose.m3.style.m3VariantColors
-import com.mikepenz.aboutlibraries.ui.compose.m3.style.m3VariantTextStyles
 import com.mikepenz.aboutlibraries.ui.compose.produceLibraries
-import com.mikepenz.aboutlibraries.ui.compose.variant.DefaultLibraryBadges
-import com.mikepenz.aboutlibraries.ui.compose.variant.LibrariesDensity
 import com.mikepenz.aboutlibraries.ui.compose.variant.LibrariesVariant
-import com.mikepenz.aboutlibraries.ui.compose.variant.LibraryActionMode
-import com.mikepenz.aboutlibraries.ui.compose.variant.LibraryDetailMode
 import com.arrazyfathan.kbbi.core.R as CoreR
 
 @Composable
@@ -112,12 +106,13 @@ private fun OpenSourceLicensesContent(
             variant = LibrariesVariant.Traditional,
             divider = {
                 HorizontalDivider(
-                    thickness = 0.5.dp
+                    thickness = 0.5.dp,
                 )
             },
-            variantColors = LibraryDefaults.m3VariantColors(
-                rowExpandedBackground = Color.White,
-            ),
+            variantColors =
+                LibraryDefaults.m3VariantColors(
+                    rowExpandedBackground = Color.White,
+                ),
         )
     }
 }

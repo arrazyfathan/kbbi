@@ -9,6 +9,7 @@ import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableLongStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
@@ -19,14 +20,15 @@ import com.arrazyfathan.kbbi.core.utils.updateSystemBarStyle
 import com.arrazyfathan.kbbi.feature.splash.presentation.navigation.SplashRoute
 import com.arrazyfathan.kbbi.navigation.AppShortcutRequest
 import com.arrazyfathan.kbbi.navigation.MainApp
+import com.arrazyfathan.kbbi.navigation.MainAppLaunchRequests
 
 class MainActivity : AppCompatActivity() {
     private var externalSearchQuery by mutableStateOf<String?>(null)
-    private var externalSearchRequestKey by mutableStateOf(0L)
+    private var externalSearchRequestKey by mutableLongStateOf(0L)
     private var shortcutRequest by mutableStateOf<AppShortcutRequest?>(null)
-    private var shortcutRequestKey by mutableStateOf(0L)
+    private var shortcutRequestKey by mutableLongStateOf(0L)
     private var notificationRequest by mutableStateOf<NotificationLaunchRequest?>(null)
-    private var notificationRequestKey by mutableStateOf(0L)
+    private var notificationRequestKey by mutableLongStateOf(0L)
 
     override fun onCreate(savedInstanceState: Bundle?) {
         enableEdgeToEdge(
@@ -60,18 +62,21 @@ class MainActivity : AppCompatActivity() {
                     )
                 } else {
                     MainApp(
-                        externalSearchQuery = externalSearchQuery,
-                        externalSearchRequestKey = externalSearchRequestKey,
+                        launchRequests =
+                            MainAppLaunchRequests(
+                                externalSearchQuery = externalSearchQuery,
+                                externalSearchRequestKey = externalSearchRequestKey,
+                                shortcutRequest = shortcutRequest,
+                                shortcutRequestKey = shortcutRequestKey,
+                                notificationRequest = notificationRequest,
+                                notificationRequestKey = notificationRequestKey,
+                            ),
                         onExternalSearchConsumed = {
                             externalSearchQuery = null
                         },
-                        shortcutRequest = shortcutRequest,
-                        shortcutRequestKey = shortcutRequestKey,
                         onShortcutConsumed = {
                             shortcutRequest = null
                         },
-                        notificationRequest = notificationRequest,
-                        notificationRequestKey = notificationRequestKey,
                         onNotificationRequestConsumed = { notificationRequest = null },
                     )
                 }
@@ -87,25 +92,28 @@ class MainActivity : AppCompatActivity() {
 
     private fun handleLaunchIntent(intent: Intent) {
         val query = intent.extractExternalSearchQuery()
-        if (query != null) {
-            notificationRequest = null
-            shortcutRequest = null
-            externalSearchQuery = query
-            externalSearchRequestKey += 1
-            return
-        }
+        val notification = intent.extractNotificationLaunchRequest()
+        val shortcut = AppShortcutRequest.fromAction(intent.action)
+        when {
+            query != null -> {
+                notificationRequest = null
+                shortcutRequest = null
+                externalSearchQuery = query
+                externalSearchRequestKey += 1
+            }
 
-        intent.extractNotificationLaunchRequest()?.let { request ->
-            externalSearchQuery = null
-            shortcutRequest = null
-            notificationRequest = request
-            notificationRequestKey += 1
-            return
-        }
+            notification != null -> {
+                externalSearchQuery = null
+                shortcutRequest = null
+                notificationRequest = notification
+                notificationRequestKey += 1
+            }
 
-        val shortcut = AppShortcutRequest.fromAction(intent.action) ?: return
-        externalSearchQuery = null
-        shortcutRequest = shortcut
-        shortcutRequestKey += 1
+            shortcut != null -> {
+                externalSearchQuery = null
+                shortcutRequest = shortcut
+                shortcutRequestKey += 1
+            }
+        }
     }
 }
