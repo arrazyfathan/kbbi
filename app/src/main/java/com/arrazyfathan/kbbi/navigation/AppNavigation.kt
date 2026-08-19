@@ -27,6 +27,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.ripple
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.Immutable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.derivedStateOf
@@ -63,6 +64,7 @@ import com.airbnb.lottie.compose.LottieAnimation
 import com.airbnb.lottie.compose.LottieCompositionSpec
 import com.airbnb.lottie.compose.LottieConstants
 import com.airbnb.lottie.compose.rememberLottieComposition
+import com.arrazyfathan.kbbi.NotificationLaunchRequest
 import com.arrazyfathan.kbbi.core.R
 import com.arrazyfathan.kbbi.core.appupdate.presentation.AppUpdateAction
 import com.arrazyfathan.kbbi.core.appupdate.presentation.AppUpdatePrompt
@@ -76,7 +78,6 @@ import com.arrazyfathan.kbbi.feature.home.domain.model.ListWordModel
 import com.arrazyfathan.kbbi.feature.home.presentation.navigation.HomeRoute
 import com.arrazyfathan.kbbi.feature.proverb.presentation.navigation.ProverbRoute
 import com.arrazyfathan.kbbi.feature.settings.presentation.settings.SettingsRoute
-import com.arrazyfathan.kbbi.NotificationLaunchRequest
 import com.arrazyfathan.kbbi.feature.words.presentation.navigation.WordsRoute
 import com.github.skydoves.navgraph.annotations.NavGraphRoot
 import kotlinx.serialization.Serializable
@@ -143,19 +144,30 @@ data class DetailNavRoute(
 @Serializable
 data object OpenSourceLicensesRoute : NavKey
 
+@Immutable
+data class MainAppLaunchRequests(
+    val externalSearchQuery: String? = null,
+    val externalSearchRequestKey: Long = 0L,
+    val shortcutRequest: AppShortcutRequest? = null,
+    val shortcutRequestKey: Long = 0L,
+    val notificationRequest: NotificationLaunchRequest? = null,
+    val notificationRequestKey: Long = 0L,
+)
+
 @Composable
 fun MainApp(
-    externalSearchQuery: String? = null,
-    externalSearchRequestKey: Long = 0L,
+    launchRequests: MainAppLaunchRequests = MainAppLaunchRequests(),
     onExternalSearchConsumed: () -> Unit = {},
-    shortcutRequest: AppShortcutRequest? = null,
-    shortcutRequestKey: Long = 0L,
     onShortcutConsumed: () -> Unit = {},
-    notificationRequest: NotificationLaunchRequest? = null,
-    notificationRequestKey: Long = 0L,
     onNotificationRequestConsumed: () -> Unit = {},
-    appUpdateViewModel: AppUpdateViewModel = koinViewModel(),
 ) {
+    val appUpdateViewModel: AppUpdateViewModel = koinViewModel()
+    val externalSearchQuery = launchRequests.externalSearchQuery
+    val externalSearchRequestKey = launchRequests.externalSearchRequestKey
+    val shortcutRequest = launchRequests.shortcutRequest
+    val shortcutRequestKey = launchRequests.shortcutRequestKey
+    val notificationRequest = launchRequests.notificationRequest
+    val notificationRequestKey = launchRequests.notificationRequestKey
     val context = LocalContext.current
     val screens =
         listOf(
@@ -220,11 +232,15 @@ fun MainApp(
                 navigator.navigate(Screen.Proverb)
                 onNotificationRequestConsumed()
             }
+
             NotificationLaunchRequest.Bookmarks -> {
                 navigator.navigateToRoot(Screen.Bookmarks)
                 onNotificationRequestConsumed()
             }
-            null -> Unit
+
+            null -> {
+                Unit
+            }
         }
     }
 

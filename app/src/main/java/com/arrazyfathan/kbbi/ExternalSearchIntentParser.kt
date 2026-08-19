@@ -9,7 +9,10 @@ private const val PROVERB_DEEP_LINK_HOST = "proverb"
 private const val BOOKMARKS_DEEP_LINK_HOST = "bookmarks"
 
 sealed interface NotificationLaunchRequest {
-    data class Proverb(val slug: String?) : NotificationLaunchRequest
+    data class Proverb(
+        val slug: String?,
+    ) : NotificationLaunchRequest
+
     data object Bookmarks : NotificationLaunchRequest
 }
 

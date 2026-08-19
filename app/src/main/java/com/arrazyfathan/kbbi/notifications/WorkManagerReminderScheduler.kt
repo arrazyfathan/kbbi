@@ -16,7 +16,10 @@ private const val WORK_PERIOD_HOURS = 24L
 class WorkManagerReminderScheduler(
     private val context: Context,
 ) : ReminderScheduler {
-    override fun schedule(type: ReminderType, time: ReminderTime) {
+    override fun schedule(
+        type: ReminderType,
+        time: ReminderTime,
+    ) {
         val request =
             PeriodicWorkRequestBuilder<DailyReminderWorker>(WORK_PERIOD_HOURS, TimeUnit.HOURS)
                 .setInitialDelay(delayUntil(time), TimeUnit.MILLISECONDS)

@@ -11,11 +11,11 @@ import com.arrazyfathan.kbbi.feature.home.data.di.databaseModule
 import com.arrazyfathan.kbbi.feature.home.data.di.repositoryModule
 import com.arrazyfathan.kbbi.feature.proverb.data.di.proverbDataModule
 import com.arrazyfathan.kbbi.feature.settings.data.di.settingsDataModule
+import com.arrazyfathan.kbbi.feature.settings.domain.service.NotificationPermissionGateway
+import com.arrazyfathan.kbbi.feature.settings.domain.service.ReminderScheduler
 import com.arrazyfathan.kbbi.feature.settings.presentation.di.settingsPresentationModule
 import com.arrazyfathan.kbbi.notifications.AndroidNotificationPermissionGateway
 import com.arrazyfathan.kbbi.notifications.WorkManagerReminderScheduler
-import com.arrazyfathan.kbbi.feature.settings.domain.service.NotificationPermissionGateway
-import com.arrazyfathan.kbbi.feature.settings.domain.service.ReminderScheduler
 import org.koin.android.ext.koin.androidContext
 import org.koin.android.ext.koin.androidLogger
 import org.koin.core.context.startKoin
