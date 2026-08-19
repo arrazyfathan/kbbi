@@ -48,4 +48,7 @@ interface WordDao {
 
     @Query("SELECT * FROM history_table ORDER BY searchedAt DESC, word DESC")
     fun getListHistory(): Flow<List<HistoryEntity>>
+
+    @Query("DELETE FROM history_table")
+    suspend fun clearHistory()
 }

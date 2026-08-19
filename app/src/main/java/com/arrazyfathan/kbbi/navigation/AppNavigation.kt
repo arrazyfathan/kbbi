@@ -140,6 +140,9 @@ data class DetailNavRoute(
     val dataJson: String,
 ) : NavKey
 
+@Serializable
+data object OpenSourceLicensesRoute : NavKey
+
 @Composable
 fun MainApp(
     externalSearchQuery: String? = null,
@@ -292,7 +295,12 @@ fun MainApp(
                     )
                 }
                 entry<Screen.Settings> {
-                    SettingsRoute(onNavigateBack = { if (!isUiBlocked) navigator.goBack() })
+                    SettingsRoute(
+                        onNavigateBack = { if (!isUiBlocked) navigator.goBack() },
+                        onOpenSourceLicenses = {
+                            navigator.navigate(OpenSourceLicensesRoute)
+                        },
+                    )
                 }
                 entry<Screen.Bookmarks> {
                     BookmarkRoute(
@@ -307,6 +315,11 @@ fun MainApp(
                             routeJson.decodeFromString<ListWordModel>(route.dataJson)
                         }
                     DetailRoute(listWordModel = listWordModel)
+                }
+                entry<OpenSourceLicensesRoute> {
+                    OpenSourceLicensesScreen(
+                        onNavigateBack = { if (!isUiBlocked) navigator.goBack() },
+                    )
                 }
             },
         )

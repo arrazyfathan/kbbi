@@ -20,4 +20,6 @@ class WordLocalDataSource(
     suspend fun insertHistory(historyEntity: HistoryEntity) = wordDao.insertHistoryAndTrim(historyEntity)
 
     fun getAllHistories() = wordDao.getListHistory()
+
+    suspend fun clearHistory() = wordDao.clearHistory()
 }

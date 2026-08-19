@@ -6,6 +6,7 @@ import com.arrazyfathan.kbbi.feature.bookmark.presentation.bookmark.BookmarksVie
 import com.arrazyfathan.kbbi.feature.detail.presentation.detail.DetailViewModel
 import com.arrazyfathan.kbbi.feature.home.domain.usecase.AddSearchHistoryUseCase
 import com.arrazyfathan.kbbi.feature.home.domain.usecase.CheckWordSavedUseCase
+import com.arrazyfathan.kbbi.feature.home.domain.usecase.ClearSearchHistoryUseCase
 import com.arrazyfathan.kbbi.feature.home.domain.usecase.DeleteBookmarkUseCase
 import com.arrazyfathan.kbbi.feature.home.domain.usecase.GetWordEntriesUseCase
 import com.arrazyfathan.kbbi.feature.home.domain.usecase.GetWordSuggestionsUseCase
@@ -33,6 +34,7 @@ val useCaseModule =
         factoryOf(::SearchWordWithHistoryUseCase)
         factoryOf(::AddSearchHistoryUseCase)
         factoryOf(::ObserveSearchHistoryUseCase)
+        factoryOf(::ClearSearchHistoryUseCase)
         factoryOf(::SaveBookmarkUseCase)
         factoryOf(::DeleteBookmarkUseCase)
         factoryOf(::CheckWordSavedUseCase)

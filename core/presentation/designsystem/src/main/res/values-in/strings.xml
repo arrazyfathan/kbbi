@@ -125,4 +125,25 @@
     <string name="notification_daily_proverb_channel">Peribahasa harian</string>
     <string name="notification_bookmark_channel">Tinjauan kata tersimpan</string>
     <string name="confirm">Konfirmasi</string>
+    <string name="about_section_title">Tentang</string>
+    <string name="app_update_title">Pembaruan aplikasi</string>
+    <string name="app_update_available">v%1$s tersedia</string>
+    <string name="app_update_up_to_date">Terbaru</string>
+    <string name="app_version_title">Versi</string>
+    <string name="privacy_policy_title">Kebijakan Privasi</string>
+    <string name="terms_condition_title">Syarat &amp; Ketentuan</string>
+    <string name="share_app_title">Bagikan aplikasi</string>
+    <string name="share_app_text">Coba KBBI — aplikasi kamus bahasa Indonesia!</string>
+    <string name="report_bug_title">Laporkan masalah</string>
+    <string name="open_source_licenses_title">Lisensi sumber terbuka</string>
+    <string name="clear_search_history_title">Hapus riwayat pencarian</string>
+    <string name="clear_history_confirm_title">Hapus riwayat pencarian?</string>
+    <string name="clear_history_confirm_text">Tindakan ini tidak dapat dibatalkan.</string>
+    <string name="clear_history_confirmed">Riwayat pencarian dihapus</string>
+    <string name="data_section_title">Data</string>
+    <string name="coming_soon">Segera hadir</string>
+    <string name="update_checking">Memeriksa…</string>
+    <string name="update_check_failed">Gagal memeriksa pembaruan</string>
+    <string name="clear">Hapus</string>
+    <string name="new_badge">BARU</string>
 </resources>

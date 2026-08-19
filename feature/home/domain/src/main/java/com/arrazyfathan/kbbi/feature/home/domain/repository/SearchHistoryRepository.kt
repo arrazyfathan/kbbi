@@ -7,4 +7,6 @@ interface SearchHistoryRepository {
     suspend fun addToHistory(history: HistoryModel)
 
     fun getAllHistories(): Flow<List<HistoryModel>>
+
+    suspend fun clearHistory()
 }

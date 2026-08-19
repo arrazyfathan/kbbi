@@ -13,6 +13,7 @@ plugins {
     alias(libs.plugins.kotlin.serialization)
     alias(libs.plugins.google.devtools.ksp)
     alias(libs.plugins.navgraph)
+    alias(libs.plugins.aboutlibraries.android)
 }
 
 val packageName = "com.arrazyfathan.kbbi"
@@ -258,6 +259,7 @@ dependencies {
     implementation(libs.koin.core)
     implementation(libs.koin.android)
     implementation(libs.timber)
+    implementation(libs.aboutlibraries.compose.m3)
 
     // Compose
     implementation(platform(libs.androidx.compose.bom))

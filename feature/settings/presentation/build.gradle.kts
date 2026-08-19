@@ -19,7 +19,10 @@ android {
 }
 
 dependencies {
+    implementation(project(":core:app-update"))
     implementation(project(":core:presentation:designsystem"))
+    implementation(project(":core:presentation:ui"))
+    implementation(project(":feature:home:domain"))
     implementation(project(":feature:settings:domain"))
     implementation(libs.androidx.activity.compose)
     implementation(libs.androidx.appcompat)
