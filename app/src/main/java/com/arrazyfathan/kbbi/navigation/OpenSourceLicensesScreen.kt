@@ -4,15 +4,16 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
-import androidx.compose.material3.MediumTopAppBar
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
@@ -21,17 +22,29 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.arrazyfathan.kbbi.R
 import com.arrazyfathan.kbbi.core.presentation.designsystem.BlueBg
 import com.arrazyfathan.kbbi.core.presentation.designsystem.BluePrimary
 import com.arrazyfathan.kbbi.core.presentation.designsystem.BlueSecondary
+import com.arrazyfathan.kbbi.core.presentation.designsystem.KBBITheme
 import com.arrazyfathan.kbbi.core.presentation.designsystem.MetropolisFontFamily
+import com.mikepenz.aboutlibraries.Libs
+import com.mikepenz.aboutlibraries.ui.compose.LibraryDefaults
 import com.mikepenz.aboutlibraries.ui.compose.m3.LibrariesContainer
+import com.mikepenz.aboutlibraries.ui.compose.m3.libraryColors
+import com.mikepenz.aboutlibraries.ui.compose.m3.style.m3VariantColors
+import com.mikepenz.aboutlibraries.ui.compose.m3.style.m3VariantTextStyles
 import com.mikepenz.aboutlibraries.ui.compose.produceLibraries
+import com.mikepenz.aboutlibraries.ui.compose.variant.DefaultLibraryBadges
+import com.mikepenz.aboutlibraries.ui.compose.variant.LibrariesDensity
+import com.mikepenz.aboutlibraries.ui.compose.variant.LibrariesVariant
+import com.mikepenz.aboutlibraries.ui.compose.variant.LibraryActionMode
+import com.mikepenz.aboutlibraries.ui.compose.variant.LibraryDetailMode
 import com.arrazyfathan.kbbi.core.R as CoreR
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun OpenSourceLicensesScreen(onNavigateBack: () -> Unit) {
     val resources = LocalResources.current
@@ -42,8 +55,21 @@ fun OpenSourceLicensesScreen(onNavigateBack: () -> Unit) {
             .use { reader -> reader.readText() }
     }
 
+    OpenSourceLicensesContent(
+        libraries = libraries,
+        onNavigateBack = onNavigateBack,
+    )
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun OpenSourceLicensesContent(
+    libraries: Libs?,
+    onNavigateBack: () -> Unit,
+    modifier: Modifier = Modifier,
+) {
     Scaffold(
-        modifier = Modifier.fillMaxSize(),
+        modifier = modifier.fillMaxSize(),
         containerColor = BlueBg,
         topBar = {
             TopAppBar(
@@ -81,8 +107,63 @@ fun OpenSourceLicensesScreen(onNavigateBack: () -> Unit) {
         },
     ) { padding ->
         LibrariesContainer(
-            libraries = libraries,
             modifier = Modifier.fillMaxSize().padding(padding),
+            libraries = libraries,
+            variant = LibrariesVariant.Traditional,
+            divider = {
+                HorizontalDivider(
+                    thickness = 0.5.dp
+                )
+            },
+            variantColors = LibraryDefaults.m3VariantColors(
+                rowExpandedBackground = Color.White,
+            ),
+        )
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
+fun OpenSourceLicensesScreenPreview() {
+    val sampleJson =
+        """
+        {
+            "libraries": [
+                {
+                    "uniqueId": "androidx.compose.ui:ui",
+                    "artifactVersion": "1.7.0",
+                    "name": "Compose UI",
+                    "description": "Compose UI components",
+                    "website": "https://developer.android.com/jetpack/compose",
+                    "licenses": ["Apache-2.0"]
+                },
+                {
+                    "uniqueId": "com.mikepenz:aboutlibraries",
+                    "artifactVersion": "15.0.4",
+                    "name": "AboutLibraries",
+                    "description": "AboutLibraries library",
+                    "website": "https://github.com/mikepenz/AboutLibraries",
+                    "licenses": ["Apache-2.0"]
+                }
+            ],
+            "licenses": {
+                "Apache-2.0": {
+                    "name": "Apache License 2.0",
+                    "url": "https://www.apache.org/licenses/LICENSE-2.0.txt"
+                }
+            }
+        }
+        """.trimIndent()
+
+    val sampleLibs =
+        remember {
+            Libs.Builder().withJson(sampleJson).build()
+        }
+
+    KBBITheme {
+        OpenSourceLicensesContent(
+            libraries = sampleLibs,
+            onNavigateBack = {},
         )
     }
 }
