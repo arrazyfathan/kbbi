@@ -24,6 +24,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
@@ -65,6 +66,7 @@ import com.arrazyfathan.kbbi.core.R
 import com.arrazyfathan.kbbi.core.presentation.designsystem.BlueBg
 import com.arrazyfathan.kbbi.core.presentation.designsystem.InterFontFamily
 import com.arrazyfathan.kbbi.core.presentation.designsystem.KBBITheme
+import com.arrazyfathan.kbbi.core.presentation.designsystem.KbbiCompactExpandedPreviews
 import com.arrazyfathan.kbbi.core.presentation.designsystem.TextH1
 import com.arrazyfathan.kbbi.core.presentation.designsystem.TextP
 import com.arrazyfathan.kbbi.core.presentation.ui.AppAlertState
@@ -80,9 +82,15 @@ import kotlin.time.Duration.Companion.milliseconds
 
 private const val DETAIL_ALERT_DURATION_MILLIS = 2_200L
 
+enum class DetailPresentationMode {
+    FullScreen,
+    Pane,
+}
+
 @Composable
 fun DetailScreen(
     listWordModel: ListWordModel,
+    presentationMode: DetailPresentationMode = DetailPresentationMode.FullScreen,
     viewModel: DetailViewModel = koinViewModel(),
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
@@ -124,6 +132,7 @@ fun DetailScreen(
         onAction = viewModel::onAction,
         onShowAlert = { message, type -> showAlert(message, type) },
         alertState = alertState,
+        presentationMode = presentationMode,
     )
 }
 
@@ -134,6 +143,7 @@ fun DetailContent(
     onAction: (DetailAction) -> Unit,
     onShowAlert: (UiText, AppAlertType) -> Unit,
     alertState: AppAlertState?,
+    presentationMode: DetailPresentationMode = DetailPresentationMode.FullScreen,
 ) {
     val context = LocalContext.current
     val sharedFromKbbi = stringResource(R.string.shared_from_kbbi)
@@ -170,13 +180,23 @@ fun DetailContent(
     ) {
         LazyColumn(
             state = lazyListState,
-            modifier = Modifier.fillMaxSize(),
-            contentPadding = PaddingValues(start = 16.dp, end = 16.dp, bottom = 132.dp),
+            modifier = Modifier.fillMaxSize().widthIn(max = 840.dp).align(Alignment.TopCenter),
+            contentPadding =
+                PaddingValues(
+                    start = 16.dp,
+                    end = 16.dp,
+                    bottom = if (presentationMode == DetailPresentationMode.Pane) 96.dp else 132.dp,
+                ),
         ) {
             // Header spacing and expanded title
             item {
                 Spacer(
-                    modifier = Modifier.statusBarsPadding().height(96.dp),
+                    modifier =
+                        if (presentationMode == DetailPresentationMode.Pane) {
+                            Modifier.height(72.dp)
+                        } else {
+                            Modifier.statusBarsPadding().height(96.dp)
+                        },
                 )
                 Text(
                     text = listWordModel.word.replaceFirstChar { it.uppercase() },
@@ -248,7 +268,7 @@ fun DetailContent(
             modifier =
                 Modifier
                     .align(Alignment.BottomCenter)
-                    .padding(bottom = 44.dp)
+                    .padding(bottom = if (presentationMode == DetailPresentationMode.Pane) 20.dp else 44.dp)
                     .width(180.dp)
                     .height(54.dp)
                     .graphicsLayer {
@@ -508,7 +528,7 @@ private fun Context.sharePlainText(text: String) {
     )
 }
 
-@Preview(showBackground = true)
+@KbbiCompactExpandedPreviews
 @Composable
 fun DetailContentPreview() {
     val sampleListWordModel =

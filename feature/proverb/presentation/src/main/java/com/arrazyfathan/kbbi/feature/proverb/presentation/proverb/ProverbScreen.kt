@@ -21,18 +21,21 @@ import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.collectIsFocusedAsState
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.rememberLazyListState
@@ -100,6 +103,8 @@ import com.arrazyfathan.kbbi.core.presentation.designsystem.BluePrimary
 import com.arrazyfathan.kbbi.core.presentation.designsystem.BlueSecondary
 import com.arrazyfathan.kbbi.core.presentation.designsystem.InterFontFamily
 import com.arrazyfathan.kbbi.core.presentation.designsystem.KBBITheme
+import com.arrazyfathan.kbbi.core.presentation.designsystem.KbbiFormFactorPreviews
+import com.arrazyfathan.kbbi.core.presentation.designsystem.KbbiCompactExpandedPreviews
 import com.arrazyfathan.kbbi.core.presentation.designsystem.MetropolisFontFamily
 import com.arrazyfathan.kbbi.core.presentation.designsystem.TextH1
 import com.arrazyfathan.kbbi.core.presentation.designsystem.TextP
@@ -187,46 +192,93 @@ fun ProverbScreen(
         }
     }
 
-    Scaffold(
-        modifier = modifier.fillMaxSize().nestedScroll(scrollBehavior.nestedScrollConnection),
-        containerColor = BlueBg,
-        topBar = {
-            ProverbTopAppBar(
-                scrollBehavior = scrollBehavior,
-                onNavigateBack = onNavigateBack,
-            )
-        },
-    ) { innerPadding ->
-        Box(
-            modifier = Modifier.padding(innerPadding).fillMaxSize(),
-        ) {
-            ProverbList(
-                proverbs = proverbs,
-                onProverbClick = { onAction(ProverbAction.OnProverbClicked(it)) },
-                listState = listState,
-                modifier = Modifier.fillMaxSize().nestedScroll(searchBarScrollConnection),
-            )
-            FloatingProverbSearchField(
-                visible = isSearchVisible,
-                value = state.searchQuery,
-                onValueChange = { onAction(ProverbAction.OnSearchQueryChanged(it)) },
-                onSearch = { focusManager.clearFocus() },
-            )
+    BoxWithConstraints(modifier = modifier.fillMaxSize()) {
+        val isExpanded = maxWidth >= 840.dp
+        Scaffold(
+            modifier = Modifier.fillMaxSize().nestedScroll(scrollBehavior.nestedScrollConnection),
+            containerColor = BlueBg,
+            topBar = {
+                ProverbTopAppBar(
+                    scrollBehavior = scrollBehavior,
+                    onNavigateBack = onNavigateBack,
+                )
+            },
+        ) { innerPadding ->
+            if (isExpanded) {
+                Row(modifier = Modifier.padding(innerPadding).fillMaxSize()) {
+                    Box(modifier = Modifier.weight(0.46f).fillMaxHeight()) {
+                        ProverbList(
+                            proverbs = proverbs,
+                            onProverbClick = { onAction(ProverbAction.OnProverbClicked(it)) },
+                            listState = listState,
+                            modifier = Modifier.fillMaxSize().nestedScroll(searchBarScrollConnection),
+                        )
+                        FloatingProverbSearchField(
+                            visible = isSearchVisible,
+                            value = state.searchQuery,
+                            onValueChange = { onAction(ProverbAction.OnSearchQueryChanged(it)) },
+                            onSearch = { focusManager.clearFocus() },
+                        )
+                    }
+                    Surface(
+                        modifier = Modifier.weight(0.54f).fillMaxHeight().padding(12.dp),
+                        color = Color.White,
+                        shape = RoundedCornerShape(20.dp),
+                    ) {
+                        state.selectedProverb?.let { selected ->
+                            ProverbMeaningSheet(
+                                proverb = selected,
+                                isLoading = state.isMeaningLoading,
+                                modifier = Modifier.padding(24.dp),
+                            )
+                        } ?: Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                            Text(
+                                text = stringResource(R.string.proverb_detail_placeholder),
+                                color = TextP,
+                                modifier = Modifier.padding(24.dp),
+                            )
+                        }
+                    }
+                }
+            } else {
+                Box(
+                    modifier =
+                        Modifier
+                            .padding(innerPadding)
+                            .fillMaxSize()
+                            .widthIn(max = 720.dp)
+                            .align(Alignment.TopCenter),
+                ) {
+                    ProverbList(
+                        proverbs = proverbs,
+                        onProverbClick = { onAction(ProverbAction.OnProverbClicked(it)) },
+                        listState = listState,
+                        modifier = Modifier.fillMaxSize().nestedScroll(searchBarScrollConnection),
+                    )
+                    FloatingProverbSearchField(
+                        visible = isSearchVisible,
+                        value = state.searchQuery,
+                        onValueChange = { onAction(ProverbAction.OnSearchQueryChanged(it)) },
+                        onSearch = { focusManager.clearFocus() },
+                    )
+                }
+            }
         }
-    }
 
-    if (state.selectedProverb != null) {
-        ModalBottomSheet(
-            onDismissRequest = { onAction(ProverbAction.OnMeaningDismissed) },
-            sheetState = sheetState,
-            containerColor = Color.White,
-            shape = RoundedCornerShape(topStart = 18.dp, topEnd = 18.dp),
-        ) {
-            ProverbMeaningSheet(
-                proverb = state.selectedProverb,
-                isLoading = state.isMeaningLoading,
-                modifier = Modifier.padding(start = 20.dp, end = 20.dp, bottom = 28.dp),
-            )
+        if (!isExpanded && state.selectedProverb != null) {
+            ModalBottomSheet(
+                onDismissRequest = { onAction(ProverbAction.OnMeaningDismissed) },
+                sheetState = sheetState,
+                containerColor = Color.White,
+                shape = RoundedCornerShape(topStart = 18.dp, topEnd = 18.dp),
+                sheetMaxWidth = 640.dp,
+            ) {
+                ProverbMeaningSheet(
+                    proverb = state.selectedProverb,
+                    isLoading = state.isMeaningLoading,
+                    modifier = Modifier.padding(start = 20.dp, end = 20.dp, bottom = 28.dp),
+                )
+            }
         }
     }
 }
@@ -871,7 +923,7 @@ private fun ProverbCardPreview() {
     }
 }
 
-@Preview(showBackground = true)
+@KbbiFormFactorPreviews
 @Composable
 private fun ProverbScreenPreview() {
     val sampleProverbs =
@@ -895,7 +947,7 @@ private fun ProverbScreenPreview() {
     }
 }
 
-@Preview(showBackground = true)
+@KbbiCompactExpandedPreviews
 @Composable
 private fun ProverbScreenWithMeaningPreview() {
     val sampleProverbs =

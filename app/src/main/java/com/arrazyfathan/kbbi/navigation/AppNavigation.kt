@@ -11,20 +11,22 @@ import androidx.compose.animation.slideInHorizontally
 import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
-import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
-import androidx.compose.material3.ripple
+import androidx.compose.material3.Text
+import androidx.compose.material3.adaptive.ExperimentalMaterial3AdaptiveApi
+import androidx.compose.material3.adaptive.navigation3.ListDetailSceneStrategy
+import androidx.compose.material3.adaptive.navigation3.LocalListDetailSceneScope
+import androidx.compose.material3.adaptive.navigation3.rememberListDetailSceneStrategy
+import androidx.compose.material3.adaptive.navigationsuite.NavigationSuiteScaffold
+import androidx.compose.material3.adaptive.navigationsuite.NavigationSuiteType
+import androidx.compose.material3.adaptive.navigationsuite.rememberNavigationSuiteScaffoldState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.Immutable
@@ -40,11 +42,11 @@ import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.compose.runtime.toMutableStateList
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat
@@ -69,10 +71,15 @@ import com.arrazyfathan.kbbi.core.R
 import com.arrazyfathan.kbbi.core.appupdate.presentation.AppUpdateAction
 import com.arrazyfathan.kbbi.core.appupdate.presentation.AppUpdatePrompt
 import com.arrazyfathan.kbbi.core.appupdate.presentation.AppUpdateViewModel
+import com.arrazyfathan.kbbi.core.presentation.designsystem.KBBITheme
+import com.arrazyfathan.kbbi.core.presentation.designsystem.KbbiFormFactorPreviews
+import com.arrazyfathan.kbbi.core.presentation.designsystem.KbbiWindowWidthSizeClass
+import com.arrazyfathan.kbbi.core.presentation.designsystem.kbbiWindowWidthSizeClass
 import com.arrazyfathan.kbbi.core.presentation.ui.LocalAppLoadingController
 import com.arrazyfathan.kbbi.core.presentation.ui.rememberAppLoadingController
 import com.arrazyfathan.kbbi.core.utils.updateSystemBarStyle
 import com.arrazyfathan.kbbi.feature.bookmark.presentation.navigation.BookmarkRoute
+import com.arrazyfathan.kbbi.feature.detail.presentation.detail.DetailPresentationMode
 import com.arrazyfathan.kbbi.feature.detail.presentation.navigation.DetailRoute
 import com.arrazyfathan.kbbi.feature.home.domain.model.ListWordModel
 import com.arrazyfathan.kbbi.feature.home.presentation.navigation.HomeRoute
@@ -154,6 +161,7 @@ data class MainAppLaunchRequests(
     val notificationRequestKey: Long = 0L,
 )
 
+@OptIn(ExperimentalMaterial3AdaptiveApi::class)
 @Composable
 fun MainApp(
     launchRequests: MainAppLaunchRequests = MainAppLaunchRequests(),
@@ -183,7 +191,7 @@ fun MainApp(
     val navigator = remember(navigationState) { Navigator(navigationState) }
     val currentRoute = navigationState.currentRoute
     val isDetailVisible = currentRoute is DetailNavRoute
-    val showBottomNavigation = screens.any { screen -> currentRoute == screen }
+    val showNavigation = shouldShowNavigation(currentRoute, navigationState.topLevelRoute)
     val loadingController = rememberAppLoadingController()
     val routeJson =
         remember {
@@ -238,9 +246,7 @@ fun MainApp(
                 onNotificationRequestConsumed()
             }
 
-            null -> {
-                Unit
-            }
+            null -> return@LaunchedEffect
         }
     }
 
@@ -294,7 +300,12 @@ fun MainApp(
                         },
                     )
                 }
-                entry<Screen.WordList> {
+                entry<Screen.WordList>(
+                    metadata =
+                        ListDetailSceneStrategy.listPane(
+                            detailPlaceholder = { DetailPanePlaceholder() },
+                        ),
+                ) {
                     WordsRoute(
                         onNavigateToDetail = { word ->
                             navigator.navigate(DetailNavRoute(routeJson.encodeToString(word)))
@@ -318,19 +329,34 @@ fun MainApp(
                         },
                     )
                 }
-                entry<Screen.Bookmarks> {
+                entry<Screen.Bookmarks>(
+                    metadata =
+                        ListDetailSceneStrategy.listPane(
+                            detailPlaceholder = { DetailPanePlaceholder() },
+                        ),
+                ) {
                     BookmarkRoute(
                         onNavigateToDetail = { word ->
                             navigator.navigate(DetailNavRoute(routeJson.encodeToString(word)))
                         },
                     )
                 }
-                entry<DetailNavRoute> { route ->
+                entry<DetailNavRoute>(
+                    metadata = ListDetailSceneStrategy.detailPane(),
+                ) { route ->
                     val listWordModel =
                         remember(route.dataJson) {
                             routeJson.decodeFromString<ListWordModel>(route.dataJson)
                         }
-                    DetailRoute(listWordModel = listWordModel)
+                    DetailRoute(
+                        listWordModel = listWordModel,
+                        presentationMode =
+                            if (LocalListDetailSceneScope.current != null) {
+                                DetailPresentationMode.Pane
+                            } else {
+                                DetailPresentationMode.FullScreen
+                            },
+                    )
                 }
                 entry<OpenSourceLicensesRoute> {
                     OpenSourceLicensesScreen(
@@ -340,57 +366,66 @@ fun MainApp(
             },
         )
 
+    val listDetailSceneStrategy = rememberListDetailSceneStrategy<NavKey>()
+    val navigationSuiteState = rememberNavigationSuiteScaffoldState()
+
+    LaunchedEffect(showNavigation) {
+        if (showNavigation) navigationSuiteState.show() else navigationSuiteState.hide()
+    }
+
     CompositionLocalProvider(LocalAppLoadingController provides loadingController) {
         Box(modifier = Modifier.fillMaxSize()) {
-            NavDisplay(
-                entries = entries,
-                onBack = {
-                    if (!isUiBlocked) {
-                        navigator.goBack()
-                    }
-                },
-                modifier = Modifier.fillMaxSize(),
-                transitionSpec = { appNavigationTransition(showBottomNavigation) },
-                popTransitionSpec = { appPopNavigationTransition(showBottomNavigation) },
-                predictivePopTransitionSpec = { appPopNavigationTransition(showBottomNavigation) },
-            )
+            BoxWithConstraints(modifier = Modifier.fillMaxSize()) {
+                val navigationType = navigationSuiteTypeForWidth(maxWidth)
 
-            if (showBottomNavigation) {
-                Row(
-                    modifier =
-                        Modifier
-                            .align(Alignment.BottomCenter)
-                            .fillMaxWidth()
-                            .height(70.dp)
-                            .shadow(elevation = 16.dp)
-                            .background(Color.White),
-                    verticalAlignment = Alignment.CenterVertically,
-                ) {
-                    screens.forEach { screen ->
-                        val isSelected = navigationState.topLevelRoute == screen
-                        Box(
-                            modifier =
-                                Modifier.weight(1f).fillMaxHeight().clickable(
-                                    interactionSource = remember { MutableInteractionSource() },
-                                    indication = ripple(bounded = false, radius = 24.dp),
-                                ) {
-                                    if (!isUiBlocked && !isSelected) {
-                                        navigator.navigate(screen)
-                                    }
+                NavigationSuiteScaffold(
+                    modifier = Modifier.fillMaxSize(),
+                    layoutType = navigationType,
+                    state = navigationSuiteState,
+                    containerColor = Color.Transparent,
+                    navigationSuiteItems = {
+                        screens.forEach { screen ->
+                            val isSelected = navigationState.topLevelRoute == screen
+                            item(
+                                selected = isSelected,
+                                onClick = {
+                                    if (!isUiBlocked && !isSelected) navigator.navigate(screen)
                                 },
-                            contentAlignment = Alignment.Center,
-                        ) {
-                            Icon(
-                                modifier = Modifier.size(24.dp),
-                                painter =
-                                    painterResource(
-                                        id = if (isSelected) screen.iconSelectedResId else screen.iconResId,
-                                    ),
-                                contentDescription = null,
-                                tint = Color.Unspecified,
+                                icon = {
+                                    Icon(
+                                        modifier = Modifier.size(24.dp),
+                                        painter =
+                                            painterResource(
+                                                id = if (isSelected) screen.iconSelectedResId else screen.iconResId,
+                                            ),
+                                        contentDescription =
+                                            androidx.compose.ui.res
+                                                .stringResource(screen.titleResId),
+                                        tint = Color.Unspecified,
+                                    )
+                                },
+                                label = {
+                                    Text(
+                                        text =
+                                            androidx.compose.ui.res
+                                                .stringResource(screen.titleResId),
+                                    )
+                                },
                             )
                         }
-                    }
+                    },
+                ) {
+                    NavDisplay(
+                        entries = entries,
+                        onBack = {
+                            if (!isUiBlocked) navigator.goBack()
+                        },
+                        modifier = Modifier.fillMaxSize(),
+                        sceneStrategies = listOf(listDetailSceneStrategy),
+                        transitionSpec = { appNavigationTransition(showNavigation) },
+                        popTransitionSpec = { appPopNavigationTransition(showNavigation) },
+                        predictivePopTransitionSpec = { appPopNavigationTransition(showNavigation) },
+                    )
                 }
             }
 
@@ -406,6 +441,83 @@ fun MainApp(
 
             if (isUiBlocked) {
                 BlockingLoadingOverlay()
+            }
+        }
+    }
+}
+
+internal fun shouldShowNavigation(
+    currentRoute: NavKey,
+    topLevelRoute: NavKey,
+): Boolean =
+    currentRoute == Screen.Home ||
+        currentRoute == Screen.WordList ||
+        currentRoute == Screen.Bookmarks ||
+        (
+            currentRoute is DetailNavRoute &&
+                (topLevelRoute == Screen.WordList || topLevelRoute == Screen.Bookmarks)
+        )
+
+internal fun navigationSuiteTypeForWidth(width: Dp): NavigationSuiteType =
+    when (kbbiWindowWidthSizeClass(width)) {
+        KbbiWindowWidthSizeClass.Compact -> NavigationSuiteType.NavigationBar
+        KbbiWindowWidthSizeClass.Medium,
+        KbbiWindowWidthSizeClass.Expanded,
+        -> NavigationSuiteType.NavigationRail
+    }
+
+@Composable
+private fun DetailPanePlaceholder() {
+    Box(
+        modifier = Modifier.fillMaxSize().background(com.arrazyfathan.kbbi.core.presentation.designsystem.BlueBg),
+        contentAlignment = Alignment.Center,
+    ) {
+        Text(
+            text =
+                androidx.compose.ui.res
+                    .stringResource(R.string.detail_pane_placeholder),
+            color = com.arrazyfathan.kbbi.core.presentation.designsystem.TextP,
+        )
+    }
+}
+
+@KbbiFormFactorPreviews
+@Composable
+private fun AdaptiveNavigationSuitePreview() {
+    KBBITheme {
+        BoxWithConstraints(modifier = Modifier.fillMaxSize()) {
+            val navigationType = navigationSuiteTypeForWidth(maxWidth)
+            NavigationSuiteScaffold(
+                navigationSuiteItems = {
+                    listOf(Screen.Home, Screen.WordList, Screen.Bookmarks).forEach { screen ->
+                        item(
+                            selected = screen == Screen.Home,
+                            onClick = {},
+                            icon = {
+                                Icon(
+                                    painter = painterResource(screen.iconResId),
+                                    contentDescription = null,
+                                    tint = Color.Unspecified,
+                                )
+                            },
+                            label = {
+                                Text(
+                                    androidx.compose.ui.res
+                                        .stringResource(screen.titleResId),
+                                )
+                            },
+                        )
+                    }
+                },
+                layoutType = navigationType,
+            ) {
+                Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                    Text(
+                        text =
+                            androidx.compose.ui.res
+                                .stringResource(R.string.welcome_text),
+                    )
+                }
             }
         }
     }

@@ -3,6 +3,7 @@ package com.arrazyfathan.kbbi.navigation
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
@@ -14,6 +15,7 @@ import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
@@ -22,7 +24,6 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.arrazyfathan.kbbi.R
@@ -30,6 +31,7 @@ import com.arrazyfathan.kbbi.core.presentation.designsystem.BlueBg
 import com.arrazyfathan.kbbi.core.presentation.designsystem.BluePrimary
 import com.arrazyfathan.kbbi.core.presentation.designsystem.BlueSecondary
 import com.arrazyfathan.kbbi.core.presentation.designsystem.KBBITheme
+import com.arrazyfathan.kbbi.core.presentation.designsystem.KbbiCompactExpandedPreviews
 import com.arrazyfathan.kbbi.core.presentation.designsystem.MetropolisFontFamily
 import com.mikepenz.aboutlibraries.Libs
 import com.mikepenz.aboutlibraries.ui.compose.LibraryDefaults
@@ -100,24 +102,25 @@ private fun OpenSourceLicensesContent(
             )
         },
     ) { padding ->
-        LibrariesContainer(
+        androidx.compose.foundation.layout.Box(
             modifier = Modifier.fillMaxSize().padding(padding),
-            libraries = libraries,
-            variant = LibrariesVariant.Traditional,
-            divider = {
-                HorizontalDivider(
-                    thickness = 0.5.dp,
-                )
-            },
-            variantColors =
-                LibraryDefaults.m3VariantColors(
-                    rowExpandedBackground = Color.White,
-                ),
-        )
+            contentAlignment = Alignment.TopCenter,
+        ) {
+            LibrariesContainer(
+                modifier = Modifier.fillMaxSize().widthIn(max = 840.dp),
+                libraries = libraries,
+                variant = LibrariesVariant.Traditional,
+                divider = { HorizontalDivider(thickness = 0.5.dp) },
+                variantColors =
+                    LibraryDefaults.m3VariantColors(
+                        rowExpandedBackground = Color.White,
+                    ),
+            )
+        }
     }
 }
 
-@Preview(showBackground = true)
+@KbbiCompactExpandedPreviews
 @Composable
 fun OpenSourceLicensesScreenPreview() {
     val sampleJson =

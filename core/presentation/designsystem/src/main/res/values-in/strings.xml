@@ -1,4 +1,6 @@
 <resources>
+    <string name="detail_pane_placeholder">Pilih kata untuk membaca definisinya</string>
+    <string name="proverb_detail_placeholder">Pilih peribahasa untuk membaca maknanya</string>
     <string name="app_name">KBBI</string>
     <string name="version_name">0.0.0</string>
     <string name="logo_desc">Logo KBBI</string>

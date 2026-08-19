@@ -18,6 +18,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -27,6 +28,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.selection.selectable
 import androidx.compose.foundation.selection.selectableGroup
@@ -84,6 +86,8 @@ import com.arrazyfathan.kbbi.core.presentation.designsystem.BluePrimary
 import com.arrazyfathan.kbbi.core.presentation.designsystem.BlueSecondary
 import com.arrazyfathan.kbbi.core.presentation.designsystem.InterFontFamily
 import com.arrazyfathan.kbbi.core.presentation.designsystem.KBBITheme
+import com.arrazyfathan.kbbi.core.presentation.designsystem.KbbiFormFactorPreviews
+import com.arrazyfathan.kbbi.core.presentation.designsystem.KbbiCompactExpandedPreviews
 import com.arrazyfathan.kbbi.core.presentation.designsystem.MetropolisFontFamily
 import com.arrazyfathan.kbbi.core.presentation.designsystem.TextH1
 import com.arrazyfathan.kbbi.core.presentation.designsystem.TextP
@@ -201,41 +205,89 @@ fun SettingsScreen(
             )
         },
     ) { padding ->
-        Column(
-            modifier =
-                Modifier
-                    .fillMaxSize()
-                    .verticalScroll(rememberScrollState())
-                    .padding(padding)
-                    .padding(all = 16.dp),
-            verticalArrangement = Arrangement.spacedBy(14.dp),
-        ) {
-            AnimatedVisibility(
-                visible =
-                    permissionDenied ||
-                        (state.notifications.permissionRequired && !state.notifications.permissionGranted),
-                enter = fadeIn() + slideInVertically(initialOffsetY = { -it / 2 }),
-                exit = fadeOut() + slideOutVertically(targetOffsetY = { -it / 2 }),
-            ) {
-                PermissionBanner(onOpenSystemSettings = onOpenSystemSettings)
+        BoxWithConstraints(modifier = Modifier.fillMaxSize().padding(padding)) {
+            val isExpanded = maxWidth >= 840.dp
+            val showPermission =
+                permissionDenied ||
+                    (state.notifications.permissionRequired && !state.notifications.permissionGranted)
+            if (isExpanded) {
+                Row(
+                    modifier =
+                        Modifier
+                            .fillMaxWidth()
+                            .widthIn(max = 1200.dp)
+                            .align(Alignment.TopCenter)
+                            .verticalScroll(rememberScrollState())
+                            .padding(24.dp),
+                    horizontalArrangement = Arrangement.spacedBy(20.dp),
+                    verticalAlignment = Alignment.Top,
+                ) {
+                    Column(
+                        modifier = Modifier.weight(1f),
+                        verticalArrangement = Arrangement.spacedBy(14.dp),
+                    ) {
+                        SettingsPermissionBanner(
+                            visible = showPermission,
+                            onOpenSystemSettings = onOpenSystemSettings,
+                        )
+                        ReminderSection(
+                            state = state,
+                            onAction = onAction,
+                            onTimeClick = { timePickerType = it },
+                        )
+                        LanguageSection(
+                            selectedLanguage = state.selectedLanguage,
+                            onClick = { onAction(SettingsAction.OnLanguageClick) },
+                        )
+                    }
+                    Column(
+                        modifier = Modifier.weight(1f),
+                        verticalArrangement = Arrangement.spacedBy(14.dp),
+                    ) {
+                        DataSection(onAction = onAction)
+                        AboutSection(
+                            state = state,
+                            onAction = onAction,
+                            onShareApp = onShareApp,
+                            onOpenUri = onOpenUri,
+                            onOpenSourceLicenses = onOpenSourceLicenses,
+                        )
+                    }
+                }
+            } else {
+                Column(
+                    modifier =
+                        Modifier
+                            .fillMaxSize()
+                            .widthIn(max = 720.dp)
+                            .align(Alignment.TopCenter)
+                            .verticalScroll(rememberScrollState())
+                            .padding(16.dp),
+                    verticalArrangement = Arrangement.spacedBy(14.dp),
+                ) {
+                    SettingsPermissionBanner(
+                        visible = showPermission,
+                        onOpenSystemSettings = onOpenSystemSettings,
+                    )
+                    ReminderSection(
+                        state = state,
+                        onAction = onAction,
+                        onTimeClick = { timePickerType = it },
+                    )
+                    LanguageSection(
+                        selectedLanguage = state.selectedLanguage,
+                        onClick = { onAction(SettingsAction.OnLanguageClick) },
+                    )
+                    DataSection(onAction = onAction)
+                    AboutSection(
+                        state = state,
+                        onAction = onAction,
+                        onShareApp = onShareApp,
+                        onOpenUri = onOpenUri,
+                        onOpenSourceLicenses = onOpenSourceLicenses,
+                    )
+                }
             }
-            ReminderSection(
-                state = state,
-                onAction = onAction,
-                onTimeClick = { timePickerType = it },
-            )
-            LanguageSection(
-                selectedLanguage = state.selectedLanguage,
-                onClick = { onAction(SettingsAction.OnLanguageClick) },
-            )
-            DataSection(onAction = onAction)
-            AboutSection(
-                state = state,
-                onAction = onAction,
-                onShareApp = onShareApp,
-                onOpenUri = onOpenUri,
-                onOpenSourceLicenses = onOpenSourceLicenses,
-            )
         }
     }
 
@@ -288,6 +340,20 @@ fun SettingsScreen(
                 }
             },
         )
+    }
+}
+
+@Composable
+private fun SettingsPermissionBanner(
+    visible: Boolean,
+    onOpenSystemSettings: () -> Unit,
+) {
+    AnimatedVisibility(
+        visible = visible,
+        enter = fadeIn() + slideInVertically(initialOffsetY = { -it / 2 }),
+        exit = fadeOut() + slideOutVertically(targetOffsetY = { -it / 2 }),
+    ) {
+        PermissionBanner(onOpenSystemSettings = onOpenSystemSettings)
     }
 }
 
@@ -592,6 +658,7 @@ private fun LanguagePickerBottomSheet(
     ModalBottomSheet(
         onDismissRequest = onDismissRequest,
         containerColor = Color.White,
+        sheetMaxWidth = 640.dp,
     ) {
         Column(
             modifier = Modifier.fillMaxWidth().selectableGroup().padding(bottom = 24.dp),
@@ -826,10 +893,47 @@ private fun PermissionBanner(onOpenSystemSettings: () -> Unit) {
     }
 }
 
-@Preview
+@KbbiFormFactorPreviews
 @Composable
 private fun SettingsPreview() {
     KBBITheme { SettingsScreen(SettingsState(), onNavigateBack = {}, onAction = {}) }
+}
+
+@KbbiCompactExpandedPreviews
+@Composable
+private fun SettingsPermissionPreview() {
+    KBBITheme {
+        SettingsScreen(
+            state = SettingsState(),
+            permissionDenied = true,
+            onNavigateBack = {},
+            onAction = {},
+        )
+    }
+}
+
+@KbbiCompactExpandedPreviews
+@Composable
+private fun SettingsLanguagePickerPreview() {
+    KBBITheme {
+        SettingsScreen(
+            state = SettingsState(isLanguagePickerVisible = true),
+            onNavigateBack = {},
+            onAction = {},
+        )
+    }
+}
+
+@KbbiCompactExpandedPreviews
+@Composable
+private fun SettingsClearHistoryPreview() {
+    KBBITheme {
+        SettingsScreen(
+            state = SettingsState(isClearHistoryDialogVisible = true),
+            onNavigateBack = {},
+            onAction = {},
+        )
+    }
 }
 
 private const val REPORT_BUG_URL = "https://github.com/arrazyfathan/kbbi/issues"

@@ -25,6 +25,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
@@ -66,6 +67,7 @@ import com.arrazyfathan.kbbi.core.presentation.designsystem.BluePrimary
 import com.arrazyfathan.kbbi.core.presentation.designsystem.Grey
 import com.arrazyfathan.kbbi.core.presentation.designsystem.InterFontFamily
 import com.arrazyfathan.kbbi.core.presentation.designsystem.KBBITheme
+import com.arrazyfathan.kbbi.core.presentation.designsystem.KbbiCompactExpandedPreviews
 import com.arrazyfathan.kbbi.core.presentation.designsystem.MetropolisFontFamily
 import com.arrazyfathan.kbbi.core.presentation.designsystem.Red
 import com.arrazyfathan.kbbi.core.presentation.designsystem.SpaceGroteskFontFamily
@@ -165,9 +167,9 @@ fun BookmarksScreenContent(
             Spacer(modifier = Modifier.height(16.dp))
 
             LazyVerticalGrid(
-                columns = GridCells.Fixed(2),
-                modifier = Modifier.fillMaxSize(),
-                contentPadding = PaddingValues(bottom = 80.dp),
+                columns = GridCells.Adaptive(280.dp),
+                modifier = Modifier.fillMaxSize().widthIn(max = 1200.dp).align(Alignment.CenterHorizontally),
+                contentPadding = PaddingValues(bottom = 24.dp),
             ) {
                 items(state.bookmarks, key = { it.word }) { item ->
                     BookmarkItem(
@@ -411,7 +413,7 @@ fun DeleteConfirmationDialog(
     }
 }
 
-@Preview(showBackground = true)
+@KbbiCompactExpandedPreviews
 @Composable
 fun BookmarksScreenPreview() {
     val sampleBookmarks =
@@ -456,7 +458,7 @@ fun BookmarksScreenPreview() {
     }
 }
 
-@Preview(showBackground = true)
+@KbbiCompactExpandedPreviews
 @Composable
 fun BookmarksScreenEmptyPreview() {
     KBBITheme {

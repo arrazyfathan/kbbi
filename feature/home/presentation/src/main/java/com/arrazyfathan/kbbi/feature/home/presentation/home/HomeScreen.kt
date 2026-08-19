@@ -33,6 +33,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.lazy.staggeredgrid.LazyHorizontalStaggeredGrid
 import androidx.compose.foundation.lazy.staggeredgrid.StaggeredGridCells
 import androidx.compose.foundation.lazy.staggeredgrid.items
@@ -87,6 +88,8 @@ import com.arrazyfathan.kbbi.core.presentation.designsystem.BluePrimary
 import com.arrazyfathan.kbbi.core.presentation.designsystem.BlueSecondary
 import com.arrazyfathan.kbbi.core.presentation.designsystem.InterFontFamily
 import com.arrazyfathan.kbbi.core.presentation.designsystem.KBBITheme
+import com.arrazyfathan.kbbi.core.presentation.designsystem.KbbiFormFactorPreviews
+import com.arrazyfathan.kbbi.core.presentation.designsystem.KbbiCompactExpandedPreviews
 import com.arrazyfathan.kbbi.core.presentation.designsystem.MetropolisFontFamily
 import com.arrazyfathan.kbbi.core.presentation.designsystem.SpaceGroteskFontFamily
 import com.arrazyfathan.kbbi.core.presentation.designsystem.TextH1
@@ -295,13 +298,18 @@ fun HomeContent(
         Image(
             painter = painterResource(id = R.drawable.hero_home),
             contentDescription = stringResource(id = R.string.hero_image_text),
-            modifier = Modifier.align(Alignment.BottomEnd).fillMaxHeight(0.35f),
+            modifier = Modifier.align(Alignment.BottomEnd).fillMaxHeight(0.35f).widthIn(max = 480.dp),
             contentScale = ContentScale.FillHeight,
         )
 
         // Main Content Container
         Column(
-            modifier = Modifier.fillMaxSize().padding(horizontal = 16.dp),
+            modifier =
+                Modifier
+                    .fillMaxSize()
+                    .widthIn(max = 720.dp)
+                    .align(Alignment.TopCenter)
+                    .padding(horizontal = 16.dp),
         ) {
             Spacer(modifier = Modifier.height(50.dp))
 
@@ -523,7 +531,7 @@ fun HomeContent(
                     .align(Alignment.BottomCenter)
                     .clickable {
                         showBottomSheet = true
-                    }.padding(bottom = 86.dp),
+                    }.padding(bottom = 16.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
         ) {
             val swipeComposition by rememberLottieComposition(LottieCompositionSpec.RawRes(R.raw.swipeblue))
@@ -549,6 +557,7 @@ fun HomeContent(
                 sheetState = sheetState,
                 containerColor = Color.White,
                 shape = RoundedCornerShape(topStart = 10.dp, topEnd = 10.dp),
+                sheetMaxWidth = 640.dp,
             ) {
                 Column(
                     modifier =
@@ -614,6 +623,7 @@ fun HomeContent(
                 sheetState = voiceSheetState,
                 containerColor = Color.White,
                 shape = RoundedCornerShape(topStart = 10.dp, topEnd = 10.dp),
+                sheetMaxWidth = 640.dp,
             ) {
                 VoiceSearchBottomSheetContent(
                     partialText = state.voicePartialText,
@@ -915,7 +925,7 @@ private fun SearchSuggestions(
     }
 }
 
-@Preview(showBackground = true)
+@KbbiFormFactorPreviews
 @Composable
 fun HomeContentPreview() {
     KBBITheme {
@@ -937,7 +947,7 @@ fun HomeContentPreview() {
     }
 }
 
-@Preview(showBackground = true)
+@KbbiCompactExpandedPreviews
 @Composable
 fun HomeContentLoadingPreview() {
     KBBITheme {

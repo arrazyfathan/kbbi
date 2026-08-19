@@ -223,6 +223,7 @@ fun KBBITimePickerBottomSheet(
         modifier = modifier,
         sheetState = sheetState,
         containerColor = MaterialTheme.colorScheme.surface,
+        sheetMaxWidth = 640.dp,
     ) {
         TimePickerSheetContent(
             title = title,

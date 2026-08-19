@@ -9,8 +9,11 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.sizeIn
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -35,6 +38,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import com.arrazyfathan.kbbi.core.presentation.designsystem.BluePrimary
 import com.arrazyfathan.kbbi.core.presentation.designsystem.InterFontFamily
 import com.arrazyfathan.kbbi.core.presentation.designsystem.KBBITheme
+import com.arrazyfathan.kbbi.core.presentation.designsystem.KbbiCompactExpandedPreviews
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
@@ -90,7 +94,7 @@ fun SplashScreen(
             Image(
                 painter = painterResource(id = R.drawable.logo_kbbi),
                 contentDescription = stringResource(id = R.string.logo_desc),
-                modifier = Modifier.padding(bottom = 16.dp),
+                modifier = Modifier.sizeIn(maxWidth = 320.dp, maxHeight = 160.dp).padding(bottom = 16.dp),
             )
 
             val loadingComposition by rememberLottieComposition(LottieCompositionSpec.RawRes(R.raw.loading))
@@ -100,6 +104,7 @@ fun SplashScreen(
                 modifier =
                     Modifier
                         .fillMaxWidth()
+                        .widthIn(max = 420.dp)
                         .height(100.dp),
             )
         }
@@ -111,7 +116,8 @@ fun SplashScreen(
             modifier =
                 Modifier
                     .fillMaxWidth()
-                    .height(500.dp)
+                    .widthIn(max = 720.dp)
+                    .heightIn(max = 500.dp)
                     .align(Alignment.BottomCenter)
                     .offset { IntOffset(0, (readingTranslationY.value + 100).toInt()) }
                     .alpha(readingAlpha.value),
@@ -135,7 +141,7 @@ fun SplashScreen(
     }
 }
 
-@Preview(showBackground = true)
+@KbbiCompactExpandedPreviews
 @Composable
 fun SplashScreenPreview() {
     KBBITheme {

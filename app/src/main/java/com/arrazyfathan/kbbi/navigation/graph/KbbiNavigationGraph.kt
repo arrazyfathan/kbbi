@@ -19,9 +19,13 @@ import com.arrazyfathan.kbbi.feature.proverb.domain.model.ProverbDetailModel
 import com.arrazyfathan.kbbi.feature.proverb.domain.model.ProverbModel
 import com.arrazyfathan.kbbi.feature.proverb.presentation.proverb.ProverbScreen
 import com.arrazyfathan.kbbi.feature.proverb.presentation.proverb.ProverbState
+import com.arrazyfathan.kbbi.feature.settings.presentation.settings.SettingsScreen
+import com.arrazyfathan.kbbi.feature.settings.presentation.settings.SettingsState
 import com.arrazyfathan.kbbi.feature.words.presentation.words.WordListScreenContent
 import com.arrazyfathan.kbbi.feature.words.presentation.words.WordListState
 import com.arrazyfathan.kbbi.navigation.DetailNavRoute
+import com.arrazyfathan.kbbi.navigation.OpenSourceLicensesRoute
+import com.arrazyfathan.kbbi.navigation.OpenSourceLicensesScreen
 import com.arrazyfathan.kbbi.navigation.Screen
 import com.github.skydoves.navgraph.annotations.NavDestination
 import com.github.skydoves.navgraph.annotations.NavEdge
@@ -32,6 +36,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 @NavEdge(to = Screen.Proverb::class, label = "proverb menu")
 @NavEdge(to = Screen.WordList::class, label = "bottom nav")
 @NavEdge(to = Screen.Bookmarks::class, label = "bottom nav")
+@NavEdge(to = Screen.Settings::class, label = "settings menu")
 @NavDestination(route = Screen.Home::class)
 @Composable
 fun GraphHomeScreen() {
@@ -128,6 +133,27 @@ fun GraphWordDetailScreen() {
     }
 }
 
+@NavEdge(to = Screen.Home::class, label = "back")
+@NavEdge(to = OpenSourceLicensesRoute::class, label = "open source licenses")
+@NavDestination(route = Screen.Settings::class)
+@Composable
+fun GraphSettingsScreen() {
+    KBBITheme {
+        SettingsScreen(
+            state = SettingsState(),
+            onNavigateBack = {},
+            onAction = {},
+        )
+    }
+}
+
+@NavEdge(to = Screen.Settings::class, label = "back")
+@NavDestination(route = OpenSourceLicensesRoute::class)
+@Composable
+fun GraphOpenSourceLicensesScreen() {
+    KBBITheme { OpenSourceLicensesScreen(onNavigateBack = {}) }
+}
+
 @NavPreview(route = Screen.Home::class, primary = true)
 @Preview(showBackground = true, widthDp = 390, heightDp = 844)
 @Composable
@@ -152,6 +178,16 @@ internal fun GraphProverbPreview() = GraphProverbScreen()
 @Preview(showBackground = true, widthDp = 390, heightDp = 844)
 @Composable
 internal fun GraphWordDetailPreview() = GraphWordDetailScreen()
+
+@NavPreview(route = Screen.Settings::class, primary = true)
+@Preview(showBackground = true, widthDp = 390, heightDp = 844)
+@Composable
+internal fun GraphSettingsPreview() = GraphSettingsScreen()
+
+@NavPreview(route = OpenSourceLicensesRoute::class, primary = true)
+@Preview(showBackground = true, widthDp = 390, heightDp = 844)
+@Composable
+internal fun GraphOpenSourceLicensesPreview() = GraphOpenSourceLicensesScreen()
 
 private val sampleDictionary =
     listOf(
