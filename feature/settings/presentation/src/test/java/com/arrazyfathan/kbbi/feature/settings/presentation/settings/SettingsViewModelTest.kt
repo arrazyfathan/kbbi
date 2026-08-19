@@ -16,6 +16,8 @@ import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.test.setMain
 import org.junit.After
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
+import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
 
@@ -61,6 +63,62 @@ class SettingsViewModelTest {
         viewModel.onAction(SettingsAction.OnReminderTimeChanged(ReminderType.DAILY_WORD, newTime))
 
         assertEquals(newTime, scheduler.scheduledTime)
+    }
+
+    @Test
+    fun `starting settings resolves current language`() = runTest(dispatcher) {
+        val viewModel = SettingsViewModel(FakeSettingsRepository(), FakeScheduler())
+
+        viewModel.onAction(SettingsAction.OnStarted(AppLanguage.INDONESIAN))
+
+        assertEquals(AppLanguage.INDONESIAN, viewModel.state.value.selectedLanguage)
+    }
+
+    @Test
+    fun `language picker actions update visibility`() = runTest(dispatcher) {
+        val viewModel = SettingsViewModel(FakeSettingsRepository(), FakeScheduler())
+
+        viewModel.onAction(SettingsAction.OnLanguageClick)
+        assertTrue(viewModel.state.value.isLanguagePickerVisible)
+
+        viewModel.onAction(SettingsAction.OnLanguagePickerDismissed)
+        assertFalse(viewModel.state.value.isLanguagePickerVisible)
+    }
+
+    @Test
+    fun `selecting another language updates state and emits apply event`() = runTest(dispatcher) {
+        val viewModel = SettingsViewModel(FakeSettingsRepository(), FakeScheduler())
+        viewModel.onAction(SettingsAction.OnStarted(AppLanguage.ENGLISH))
+        viewModel.onAction(SettingsAction.OnLanguageClick)
+
+        viewModel.onAction(SettingsAction.OnLanguageSelected(AppLanguage.INDONESIAN))
+
+        assertEquals(AppLanguage.INDONESIAN, viewModel.state.value.selectedLanguage)
+        assertFalse(viewModel.state.value.isLanguagePickerVisible)
+        assertEquals(
+            SettingsEvent.ApplyLanguage(AppLanguage.INDONESIAN),
+            viewModel.events.first(),
+        )
+    }
+
+    @Test
+    fun `locale resolution prefers app locale then supported device locale`() {
+        assertEquals(
+            AppLanguage.INDONESIAN,
+            resolveAppLanguage(listOf("id-ID"), listOf("en-US")),
+        )
+        assertEquals(
+            AppLanguage.INDONESIAN,
+            resolveAppLanguage(listOf("in"), listOf("en-US")),
+        )
+        assertEquals(
+            AppLanguage.INDONESIAN,
+            resolveAppLanguage(emptyList(), listOf("fr-FR", "id-ID")),
+        )
+        assertEquals(
+            AppLanguage.ENGLISH,
+            resolveAppLanguage(emptyList(), listOf("fr-FR")),
+        )
     }
 }
 

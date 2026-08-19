@@ -19,10 +19,22 @@ import kotlinx.coroutines.launch
 @Immutable
 data class SettingsState(
     val notifications: NotificationSettings = NotificationSettings(),
+    val selectedLanguage: AppLanguage = AppLanguage.ENGLISH,
+    val isLanguagePickerVisible: Boolean = false,
 )
 
 sealed interface SettingsAction {
-    data object OnStarted : SettingsAction
+    data class OnStarted(
+        val currentLanguage: AppLanguage,
+    ) : SettingsAction
+
+    data object OnLanguageClick : SettingsAction
+
+    data object OnLanguagePickerDismissed : SettingsAction
+
+    data class OnLanguageSelected(
+        val language: AppLanguage,
+    ) : SettingsAction
 
     data class OnReminderToggled(
         val type: ReminderType,
@@ -41,6 +53,10 @@ sealed interface SettingsAction {
 }
 
 sealed interface SettingsEvent {
+    data class ApplyLanguage(
+        val language: AppLanguage,
+    ) : SettingsEvent
+
     data class RequestNotificationPermission(
         val type: ReminderType,
     ) : SettingsEvent
@@ -68,10 +84,47 @@ class SettingsViewModel(
 
     fun onAction(action: SettingsAction) {
         when (action) {
-            SettingsAction.OnStarted -> reconcilePermission()
-            is SettingsAction.OnReminderToggled -> toggle(action.type, action.enabled)
-            is SettingsAction.OnReminderTimeChanged -> updateTime(action.type, action.time)
-            is SettingsAction.OnPermissionResult -> onPermissionResult(action.type, action.granted)
+            is SettingsAction.OnStarted -> {
+                _state.update { it.copy(selectedLanguage = action.currentLanguage) }
+                reconcilePermission()
+            }
+
+            SettingsAction.OnLanguageClick -> {
+                _state.update { it.copy(isLanguagePickerVisible = true) }
+            }
+
+            SettingsAction.OnLanguagePickerDismissed -> {
+                _state.update { it.copy(isLanguagePickerVisible = false) }
+            }
+
+            is SettingsAction.OnLanguageSelected -> {
+                selectLanguage(action.language)
+            }
+
+            is SettingsAction.OnReminderToggled -> {
+                toggle(action.type, action.enabled)
+            }
+
+            is SettingsAction.OnReminderTimeChanged -> {
+                updateTime(action.type, action.time)
+            }
+
+            is SettingsAction.OnPermissionResult -> {
+                onPermissionResult(action.type, action.granted)
+            }
+        }
+    }
+
+    private fun selectLanguage(language: AppLanguage) {
+        val languageChanged = language != state.value.selectedLanguage
+        _state.update {
+            it.copy(
+                selectedLanguage = language,
+                isLanguagePickerVisible = false,
+            )
+        }
+        if (languageChanged) {
+            viewModelScope.launch { _events.send(SettingsEvent.ApplyLanguage(language)) }
         }
     }
 

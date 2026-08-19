@@ -72,6 +72,11 @@ android {
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
 
+    androidResources {
+        generateLocaleConfig = true
+        localeFilters += listOf("en", "in")
+    }
+
     flavorDimensions += "stage"
     productFlavors {
         create("development") {
@@ -233,6 +238,7 @@ dependencies {
     implementation(project(":feature:settings:presentation"))
 
     implementation(libs.androidx.core.ktx)
+    implementation(libs.androidx.appcompat)
     implementation(libs.material)
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)

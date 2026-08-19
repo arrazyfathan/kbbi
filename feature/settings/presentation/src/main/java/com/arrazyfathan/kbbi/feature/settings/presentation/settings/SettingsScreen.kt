@@ -1,18 +1,22 @@
 package com.arrazyfathan.kbbi.feature.settings.presentation.settings
 
 import android.Manifest
+import android.content.Context
 import android.content.Intent
 import android.os.Build
 import android.provider.Settings
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.appcompat.app.AppCompatDelegate
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -23,6 +27,9 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.selection.selectable
+import androidx.compose.foundation.selection.selectableGroup
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.AssistChip
@@ -34,6 +41,8 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.MediumTopAppBar
+import androidx.compose.material3.ModalBottomSheet
+import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
@@ -54,12 +63,16 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.core.app.LocaleManagerCompat
 import androidx.core.net.toUri
+import androidx.core.os.LocaleListCompat
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.arrazyfathan.kbbi.core.R
 import com.arrazyfathan.kbbi.core.presentation.designsystem.BlueBg
@@ -76,9 +89,7 @@ import com.arrazyfathan.kbbi.feature.settings.domain.model.ReminderType
 import org.koin.androidx.compose.koinViewModel
 
 @Composable
-fun SettingsRoute(
-    onNavigateBack: () -> Unit,
-) {
+fun SettingsRoute(onNavigateBack: () -> Unit) {
     val viewModel: SettingsViewModel = koinViewModel()
     val context = androidx.compose.ui.platform.LocalContext.current
     val state by viewModel.state.collectAsStateWithLifecycle()
@@ -91,9 +102,15 @@ fun SettingsRoute(
         }
 
     LaunchedEffect(Unit) {
-        viewModel.onAction(SettingsAction.OnStarted)
+        viewModel.onAction(SettingsAction.OnStarted(resolveCurrentAppLanguage(context)))
         viewModel.events.collect { event ->
             when (event) {
+                is SettingsEvent.ApplyLanguage -> {
+                    AppCompatDelegate.setApplicationLocales(
+                        LocaleListCompat.forLanguageTags(event.language.languageTag),
+                    )
+                }
+
                 is SettingsEvent.RequestNotificationPermission -> {
                     permissionType = event.type
                     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
@@ -160,8 +177,7 @@ fun SettingsScreen(
                     .fillMaxSize()
                     .verticalScroll(rememberScrollState())
                     .padding(padding)
-                    .padding(horizontal = 20.dp)
-                    .padding(bottom = 24.dp),
+                    .padding(all = 16.dp),
             verticalArrangement = Arrangement.spacedBy(14.dp),
         ) {
             AnimatedVisibility(
@@ -177,6 +193,10 @@ fun SettingsScreen(
                 state = state,
                 onAction = onAction,
                 onTimeClick = { timePickerType = it },
+            )
+            LanguageSection(
+                selectedLanguage = state.selectedLanguage,
+                onClick = { onAction(SettingsAction.OnLanguageClick) },
             )
         }
     }
@@ -197,7 +217,23 @@ fun SettingsScreen(
             },
         )
     }
+
+    if (state.isLanguagePickerVisible) {
+        LanguagePickerBottomSheet(
+            selectedLanguage = state.selectedLanguage,
+            onLanguageSelected = { onAction(SettingsAction.OnLanguageSelected(it)) },
+            onDismissRequest = { onAction(SettingsAction.OnLanguagePickerDismissed) },
+        )
+    }
 }
+
+private fun resolveCurrentAppLanguage(context: Context): AppLanguage =
+    resolveAppLanguage(
+        applicationLanguageTags = LocaleManagerCompat.getApplicationLocales(context).asLanguageTags(),
+        systemLanguageTags = LocaleManagerCompat.getSystemLocales(context).asLanguageTags(),
+    )
+
+private fun LocaleListCompat.asLanguageTags(): List<String> = toLanguageTags().split(',').filter(String::isNotBlank)
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -258,13 +294,160 @@ private fun SettingsTopAppBar(
 }
 
 @Composable
+private fun LanguageSection(
+    selectedLanguage: AppLanguage,
+    onClick: () -> Unit,
+) {
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(24.dp),
+        colors = CardDefaults.cardColors(containerColor = Color.White),
+    ) {
+        Column(modifier = Modifier.fillMaxWidth()) {
+            Text(
+                text = stringResource(R.string.language_section_title),
+                style = MaterialTheme.typography.titleMedium,
+                color = TextH1,
+                modifier = Modifier.padding(horizontal = 16.dp, vertical = 14.dp),
+            )
+            HorizontalDivider(modifier = Modifier.padding(horizontal = 18.dp), color = BlueBg)
+            Row(
+                modifier =
+                    Modifier
+                        .clickable(onClick = onClick)
+                        .fillMaxWidth()
+                        .padding(horizontal = 18.dp, vertical = 18.dp),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                LanguageBadge(language = selectedLanguage)
+                Spacer(Modifier.width(14.dp))
+                Column(modifier = Modifier.weight(1f)) {
+                    Text(
+                        text = stringResource(R.string.app_language_title),
+                        style = MaterialTheme.typography.titleSmall,
+                        color = TextH1,
+                    )
+                    Spacer(Modifier.height(2.dp))
+                    Text(
+                        text = stringResource(selectedLanguage.labelResId),
+                        style = MaterialTheme.typography.bodySmall,
+                        color = TextP,
+                    )
+                }
+                Text(
+                    text = "›",
+                    style = MaterialTheme.typography.headlineSmall,
+                    color = BluePrimary,
+                    modifier = Modifier.clearAndSetSemantics { },
+                )
+            }
+        }
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun LanguagePickerBottomSheet(
+    selectedLanguage: AppLanguage,
+    onLanguageSelected: (AppLanguage) -> Unit,
+    onDismissRequest: () -> Unit,
+) {
+    ModalBottomSheet(
+        onDismissRequest = onDismissRequest,
+        containerColor = Color.White,
+    ) {
+        Column(
+            modifier = Modifier.fillMaxWidth().selectableGroup().padding(bottom = 24.dp),
+        ) {
+            Text(
+                text = stringResource(R.string.choose_language_title),
+                style = MaterialTheme.typography.titleLarge,
+                color = TextH1,
+                modifier = Modifier.padding(horizontal = 24.dp, vertical = 12.dp),
+            )
+            AppLanguage.entries.forEach { language ->
+                LanguageOptionRow(
+                    language = language,
+                    selected = language == selectedLanguage,
+                    onClick = { onLanguageSelected(language) },
+                )
+            }
+        }
+    }
+}
+
+@Composable
+private fun LanguageOptionRow(
+    language: AppLanguage,
+    selected: Boolean,
+    onClick: () -> Unit,
+) {
+    Row(
+        modifier =
+            Modifier
+                .fillMaxWidth()
+                .selectable(
+                    selected = selected,
+                    onClick = onClick,
+                    role = Role.RadioButton,
+                ).padding(horizontal = 24.dp, vertical = 14.dp),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        LanguageBadge(language = language)
+        Spacer(Modifier.width(16.dp))
+        Text(
+            text = stringResource(language.labelResId),
+            style = MaterialTheme.typography.bodyLarge,
+            color = TextH1,
+            modifier = Modifier.weight(1f),
+        )
+        RadioButton(selected = selected, onClick = null)
+    }
+}
+
+@Composable
+private fun LanguageBadge(language: AppLanguage) {
+    Box(
+        modifier =
+            Modifier
+                .size(40.dp)
+                .background(
+                    brush = Brush.verticalGradient(listOf(BlueSecondary, BluePrimary)),
+                    CircleShape,
+                ).clearAndSetSemantics { },
+        contentAlignment = Alignment.Center,
+    ) {
+        Text(
+            text = language.badgeLabel,
+            style = MaterialTheme.typography.labelMedium,
+            color = Color.White,
+            fontWeight = FontWeight.Bold,
+        )
+    }
+}
+
+private val AppLanguage.labelResId: Int
+    get() =
+        when (this) {
+            AppLanguage.INDONESIAN -> R.string.language_indonesian
+            AppLanguage.ENGLISH -> R.string.language_english
+        }
+
+private val AppLanguage.badgeLabel: String
+    get() =
+        when (this) {
+            AppLanguage.INDONESIAN -> "ID"
+            AppLanguage.ENGLISH -> "EN"
+        }
+
+@Composable
 private fun ReminderSection(
     state: SettingsState,
     onAction: (SettingsAction) -> Unit,
     onTimeClick: (ReminderType) -> Unit,
 ) {
     Card(
-        modifier = Modifier.fillMaxWidth().padding(top = 24.dp),
+        modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(24.dp),
         colors = CardDefaults.cardColors(containerColor = Color.White),
     ) {
@@ -281,10 +464,11 @@ private fun ReminderSection(
                 title = stringResource(R.string.notification_daily_word),
                 description = stringResource(R.string.notification_daily_word_description),
                 enabled = state.notifications.dailyWord.enabled,
-                timeLabel = "%02d:%02d".format(
-                    state.notifications.dailyWord.time.hour,
-                    state.notifications.dailyWord.time.minute,
-                ),
+                timeLabel =
+                    "%02d:%02d".format(
+                        state.notifications.dailyWord.time.hour,
+                        state.notifications.dailyWord.time.minute,
+                    ),
                 onToggle = { onAction(SettingsAction.OnReminderToggled(ReminderType.DAILY_WORD, it)) },
                 onTimeClick = { onTimeClick(ReminderType.DAILY_WORD) },
             )
@@ -294,10 +478,11 @@ private fun ReminderSection(
                 title = stringResource(R.string.notification_daily_proverb),
                 description = stringResource(R.string.notification_daily_proverb_description),
                 enabled = state.notifications.dailyProverb.enabled,
-                timeLabel = "%02d:%02d".format(
-                    state.notifications.dailyProverb.time.hour,
-                    state.notifications.dailyProverb.time.minute,
-                ),
+                timeLabel =
+                    "%02d:%02d".format(
+                        state.notifications.dailyProverb.time.hour,
+                        state.notifications.dailyProverb.time.minute,
+                    ),
                 onToggle = { onAction(SettingsAction.OnReminderToggled(ReminderType.DAILY_PROVERB, it)) },
                 onTimeClick = { onTimeClick(ReminderType.DAILY_PROVERB) },
             )
@@ -307,10 +492,11 @@ private fun ReminderSection(
                 title = stringResource(R.string.notification_bookmark_review),
                 description = stringResource(R.string.notification_bookmark_review_description),
                 enabled = state.notifications.bookmarkReview.enabled,
-                timeLabel = "%02d:%02d".format(
-                    state.notifications.bookmarkReview.time.hour,
-                    state.notifications.bookmarkReview.time.minute,
-                ),
+                timeLabel =
+                    "%02d:%02d".format(
+                        state.notifications.bookmarkReview.time.hour,
+                        state.notifications.bookmarkReview.time.minute,
+                    ),
                 onToggle = { onAction(SettingsAction.OnReminderToggled(ReminderType.BOOKMARK_REVIEW, it)) },
                 onTimeClick = { onTimeClick(ReminderType.BOOKMARK_REVIEW) },
             )

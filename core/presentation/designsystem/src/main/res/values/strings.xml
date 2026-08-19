@@ -1,7 +1,7 @@
 <resources>
     <string name="app_name">KBBI</string>
     <string name="version_name">0.0.0</string>
-    <string name="logo_desc">logo_kbbi</string>
+    <string name="logo_desc">KBBI logo</string>
     <string name="home_title">Home</string>
     <string name="word_list_tab_title">Word List</string>
     <string name="proverb_title">Proverb</string>
@@ -21,7 +21,7 @@
     <string name="hero_image_text">Home hero image</string>
     <string name="search_word_list_hint">Search word list …</string>
     <string name="did_you_mean_label">Did you mean?</string>
-    <string name="button_search">button_search</string>
+    <string name="button_search">Search</string>
     <string name="button_voice_search">Voice search</string>
     <string name="voice_search_listening">Listening …</string>
     <string name="voice_search_sheet_title">Listening</string>
@@ -100,6 +100,11 @@
     <string name="settings_title">Settings</string>
     <string name="settings_menu_title">Settings</string>
     <string name="settings_menu_subtitle">Notifications and preferences</string>
+    <string name="language_section_title">Language</string>
+    <string name="app_language_title">App language</string>
+    <string name="choose_language_title">Choose language</string>
+    <string name="language_indonesian">Bahasa Indonesia</string>
+    <string name="language_english">English</string>
     <string name="notification_settings_title">Notifications</string>
     <string name="notification_settings_subtitle">Build a daily Indonesian vocabulary habit with reminders you choose.</string>
     <string name="notification_settings_kicker">MAKE IT A HABIT</string>
@@ -110,15 +115,15 @@
     <string name="notification_time_label">Every day at %1$s</string>
     <string name="notification_permission_title">Notifications are paused</string>
     <string name="notification_open_system_settings">Open system settings</string>
-    <string name="notification_daily_word">Kata Hari Ini</string>
+    <string name="notification_daily_word">Word of the day</string>
     <string name="notification_daily_proverb">Daily proverb</string>
     <string name="notification_bookmark_review">Review saved bookmarks</string>
     <string name="notification_permission_denied">Notifications are disabled. Allow notification permission in system settings to use reminders.</string>
-    <string name="notification_daily_word_title">Kata Hari Ini</string>
+    <string name="notification_daily_word_title">Word of the day</string>
     <string name="notification_daily_word_body">Learn “%1$s” today.</string>
     <string name="notification_daily_proverb_title">Daily proverb</string>
     <string name="notification_bookmark_title">Review your bookmarks</string>
-    <string name="notification_daily_word_channel">Kata Hari Ini</string>
+    <string name="notification_daily_word_channel">Word of the day</string>
     <string name="notification_daily_proverb_channel">Daily proverb</string>
     <string name="notification_bookmark_channel">Bookmark review</string>
     <string name="confirm">Confirm</string>
