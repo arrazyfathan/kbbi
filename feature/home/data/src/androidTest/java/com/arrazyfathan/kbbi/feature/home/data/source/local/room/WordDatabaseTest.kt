@@ -121,4 +121,16 @@ class WordDatabaseTest {
             assertEquals("pintar", historyList[0].word)
             assertEquals("hebat", historyList[1].word)
         }
+
+    @Test
+    @Throws(Exception::class)
+    fun clearHistoryRemovesAllHistoryRows() =
+        runBlocking {
+            wordDao.insertHistory(HistoryEntity(word = "pintar"))
+            wordDao.insertHistory(HistoryEntity(word = "hebat"))
+
+            wordDao.clearHistory()
+
+            assertTrue(wordDao.getListHistory().first().isEmpty())
+        }
 }

@@ -111,4 +111,15 @@ class WordUseCasesTest {
 
             assertEquals(listOf("aku", "kamu"), GetWordEntriesUseCase(fakeRepository)())
         }
+
+    @Test
+    fun clearSearchHistoryRemovesAllHistories() =
+        runBlocking {
+            AddSearchHistoryUseCase(fakeRepository)("buku")
+            AddSearchHistoryUseCase(fakeRepository)("pena")
+
+            ClearSearchHistoryUseCase(fakeRepository)()
+
+            assertTrue(ObserveSearchHistoryUseCase(fakeRepository)().first().isEmpty())
+        }
 }

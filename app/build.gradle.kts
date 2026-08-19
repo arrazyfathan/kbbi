@@ -13,6 +13,7 @@ plugins {
     alias(libs.plugins.kotlin.serialization)
     alias(libs.plugins.google.devtools.ksp)
     alias(libs.plugins.navgraph)
+    alias(libs.plugins.aboutlibraries.android)
 }
 
 val packageName = "com.arrazyfathan.kbbi"
@@ -70,6 +71,11 @@ android {
         targetSdk = 37
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+    }
+
+    androidResources {
+        generateLocaleConfig = true
+        localeFilters += listOf("en", "in")
     }
 
     flavorDimensions += "stage"
@@ -233,6 +239,7 @@ dependencies {
     implementation(project(":feature:settings:presentation"))
 
     implementation(libs.androidx.core.ktx)
+    implementation(libs.androidx.appcompat)
     implementation(libs.material)
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
@@ -252,6 +259,7 @@ dependencies {
     implementation(libs.koin.core)
     implementation(libs.koin.android)
     implementation(libs.timber)
+    implementation(libs.aboutlibraries.compose.m3)
 
     // Compose
     implementation(platform(libs.androidx.compose.bom))

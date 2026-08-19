@@ -88,6 +88,11 @@ class WordRepository(
             it.toHistoryModels()
         }
 
+    override suspend fun clearHistory() =
+        withContext(Dispatchers.IO) {
+            localDataSource.clearHistory()
+        }
+
     override suspend fun deleteWord(word: String) =
         withContext(Dispatchers.IO) {
             return@withContext localDataSource.unbookmarkWord(word)

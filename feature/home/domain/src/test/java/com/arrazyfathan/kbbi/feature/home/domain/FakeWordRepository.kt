@@ -60,5 +60,9 @@ class FakeWordRepository :
 
     override fun getAllHistories(): Flow<List<HistoryModel>> = histories
 
+    override suspend fun clearHistory() {
+        histories.value = emptyList()
+    }
+
     override suspend fun getWords(): List<String> = catalogWords
 }

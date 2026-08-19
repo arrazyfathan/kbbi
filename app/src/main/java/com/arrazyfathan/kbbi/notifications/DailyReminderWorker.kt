@@ -30,24 +30,36 @@ class DailyReminderWorker(
     workerParams: WorkerParameters,
 ) : CoroutineWorker(appContext, workerParams) {
     override suspend fun doWork(): Result {
-        val type = inputData.getString(REMINDER_TYPE_KEY)?.let { runCatching { ReminderType.valueOf(it) }.getOrNull() }
-            ?: return Result.failure()
-        val settings = GlobalContext.get().get<NotificationSettingsRepository>().settings.first()
+        val type =
+            inputData.getString(REMINDER_TYPE_KEY)?.let { runCatching { ReminderType.valueOf(it) }.getOrNull() }
+                ?: return Result.failure()
+        val settings =
+            GlobalContext
+                .get()
+                .get<NotificationSettingsRepository>()
+                .settings
+                .first()
         val preference = settings.preference(type)
         if (!preference.enabled || (settings.permissionRequired && !settings.permissionGranted)) return Result.success()
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU &&
-            ContextCompat.checkSelfPermission(applicationContext, Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED
-        ) return Result.success()
+            ContextCompat.checkSelfPermission(applicationContext, Manifest.permission.POST_NOTIFICATIONS) !=
+            PackageManager.PERMISSION_GRANTED
+        ) {
+            return Result.success()
+        }
 
-        val content = when (type) {
-            ReminderType.DAILY_WORD -> wordContent(GlobalContext.get().get())
-            ReminderType.DAILY_PROVERB -> proverbContent(GlobalContext.get().get())
-            ReminderType.BOOKMARK_REVIEW -> bookmarkContent(GlobalContext.get().get())
-        } ?: return Result.success()
+        val localizedContext = languageContext()
+        val content =
+            when (type) {
+                ReminderType.DAILY_WORD -> wordContent(GlobalContext.get().get(), localizedContext)
+                ReminderType.DAILY_PROVERB -> proverbContent(GlobalContext.get().get(), localizedContext)
+                ReminderType.BOOKMARK_REVIEW -> bookmarkContent(GlobalContext.get().get(), localizedContext)
+            } ?: return Result.success()
 
-        createChannel(type)
+        createChannel(type, localizedContext)
         val notification =
-            NotificationCompat.Builder(applicationContext, channelId(type))
+            NotificationCompat
+                .Builder(applicationContext, channelId(type))
                 .setSmallIcon(com.arrazyfathan.kbbi.core.R.drawable.ic_new_icon_foreground)
                 .setContentTitle(content.title)
                 .setContentText(content.body)
@@ -60,34 +72,43 @@ class DailyReminderWorker(
         return Result.success()
     }
 
-    private suspend fun wordContent(repository: WordCatalogRepository): NotificationContent? {
+    private suspend fun wordContent(
+        repository: WordCatalogRepository,
+        localizedContext: Context,
+    ): NotificationContent? {
         val words = repository.getWords().filter { it.isNotBlank() }
         if (words.isEmpty()) return null
         val word = words.getOrNull(dailyIndex(words.size)) ?: return null
         return NotificationContent(
-            title = applicationContext.getString(R.string.notification_daily_word_title),
-            body = applicationContext.getString(R.string.notification_daily_word_body, word),
+            title = localizedContext.getString(R.string.notification_daily_word_title),
+            body = localizedContext.getString(R.string.notification_daily_word_body, word),
             pendingIntent = pendingIntent("kbbi://word/${Uri.encode(word)}"),
         )
     }
 
-    private suspend fun proverbContent(repository: ProverbRepository): NotificationContent? {
+    private suspend fun proverbContent(
+        repository: ProverbRepository,
+        localizedContext: Context,
+    ): NotificationContent? {
         val proverbs = repository.getCachedProverbsForReminder().filter { it.text.isNotBlank() && it.slug.isNotBlank() }
         if (proverbs.isEmpty()) return null
         val proverb = proverbs.getOrNull(dailyIndex(proverbs.size)) ?: return null
         return NotificationContent(
-            title = applicationContext.getString(R.string.notification_daily_proverb_title),
+            title = localizedContext.getString(R.string.notification_daily_proverb_title),
             body = proverb.text,
             pendingIntent = pendingIntent("kbbi://proverb/${Uri.encode(proverb.slug)}"),
         )
     }
 
-    private suspend fun bookmarkContent(repository: BookmarkRepository): NotificationContent? {
+    private suspend fun bookmarkContent(
+        repository: BookmarkRepository,
+        localizedContext: Context,
+    ): NotificationContent? {
         val count = repository.getBookmarks().first().size
         if (count == 0) return null
         return NotificationContent(
-            title = applicationContext.getString(R.string.notification_bookmark_title),
-            body = applicationContext.resources.getQuantityString(R.plurals.notification_bookmark_body, count, count),
+            title = localizedContext.getString(R.string.notification_bookmark_title),
+            body = localizedContext.resources.getQuantityString(R.plurals.notification_bookmark_body, count, count),
             pendingIntent = pendingIntent("kbbi://bookmarks"),
         )
     }
@@ -106,24 +127,36 @@ class DailyReminderWorker(
             PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE,
         )
 
-    private fun createChannel(type: ReminderType) {
+    private fun createChannel(
+        type: ReminderType,
+        localizedContext: Context,
+    ) {
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O) return
         val manager = applicationContext.getSystemService(NotificationManager::class.java)
         manager.createNotificationChannel(
             NotificationChannel(
                 channelId(type),
-                applicationContext.getString(channelName(type)),
+                localizedContext.getString(channelName(type)),
                 NotificationManager.IMPORTANCE_DEFAULT,
             ),
         )
     }
 
-    private data class NotificationContent(val title: String, val body: String, val pendingIntent: PendingIntent)
+    private fun languageContext(): Context = ContextCompat.getContextForLanguage(applicationContext)
+
+    private data class NotificationContent(
+        val title: String,
+        val body: String,
+        val pendingIntent: PendingIntent,
+    )
 
     companion object {
         const val REMINDER_TYPE_KEY = "reminder_type"
+
         fun channelId(type: ReminderType) = "kbbi_reminder_${type.name.lowercase()}"
+
         fun notificationId(type: ReminderType) = 4_100 + type.ordinal
+
         private fun channelName(type: ReminderType): Int =
             when (type) {
                 ReminderType.DAILY_WORD -> R.string.notification_daily_word_channel

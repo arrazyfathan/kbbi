@@ -3,10 +3,10 @@ package com.arrazyfathan.kbbi
 import android.content.Intent
 import android.graphics.Color
 import android.os.Bundle
-import androidx.activity.ComponentActivity
 import androidx.activity.SystemBarStyle
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.appcompat.app.AppCompatActivity
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -20,7 +20,7 @@ import com.arrazyfathan.kbbi.feature.splash.presentation.navigation.SplashRoute
 import com.arrazyfathan.kbbi.navigation.AppShortcutRequest
 import com.arrazyfathan.kbbi.navigation.MainApp
 
-class MainActivity : ComponentActivity() {
+class MainActivity : AppCompatActivity() {
     private var externalSearchQuery by mutableStateOf<String?>(null)
     private var externalSearchRequestKey by mutableStateOf(0L)
     private var shortcutRequest by mutableStateOf<AppShortcutRequest?>(null)
