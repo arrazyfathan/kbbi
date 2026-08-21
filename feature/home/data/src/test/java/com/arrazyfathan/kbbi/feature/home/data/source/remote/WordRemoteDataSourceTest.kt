@@ -103,6 +103,73 @@ class WordRemoteDataSourceTest {
             assertEquals(DataError.NotFound, (result as AppResult.Error).error)
         }
 
+    @Test
+    fun translateRequestsEnglishTargetAndMapsSuccessfulResponse() =
+        runBlocking {
+            var requestedPath: String? = null
+            var targetLanguage: String? = null
+            val dataSource =
+                WordRemoteDataSource(
+                    httpClient =
+                        httpClientWithMockEngine {
+                            requestedPath = it.url.encodedPath
+                            targetLanguage = it.url.parameters["to"]
+                            respondJson(TRANSLATE_RESPONSE)
+                        },
+                    visitorIdProvider = FakeVisitorIdProvider("mobile-visitor-1"),
+                )
+
+            val result = dataSource.translate("belajar")
+
+            assertEquals("/translate/belajar", requestedPath)
+            assertEquals("en", targetLanguage)
+            assertTrue(result is AppResult.Success)
+            val translated = (result as AppResult.Success).data
+            assertEquals("belajar", translated.word)
+            assertEquals("learn", translated.translation)
+            assertEquals("id", translated.from)
+            assertEquals("en", translated.to)
+            assertEquals("belajar", translated.entries.single().headword)
+            assertEquals("n", translated.entries.single().meanings.single().wordClass)
+            assertEquals("attempt to gain knowledge or skill", translated.entries.single().meanings.single().translation)
+        }
+
+    @Test
+    fun translateMapsUnsuccessfulApiResponseToRemoteError() =
+        runBlocking {
+            val dataSource =
+                WordRemoteDataSource(
+                    httpClient =
+                        httpClientWithMockEngine {
+                            respondJson("""{"success":false,"message":"Word not found"}""")
+                        },
+                    visitorIdProvider = FakeVisitorIdProvider("mobile-visitor-1"),
+                )
+
+            val result = dataSource.translate("missing")
+
+            assertTrue(result is AppResult.Error)
+            assertEquals(DataError.Remote("Word not found"), (result as AppResult.Error).error)
+        }
+
+    @Test
+    fun translateMapsMissingDataToNotFound() =
+        runBlocking {
+            val dataSource =
+                WordRemoteDataSource(
+                    httpClient =
+                        httpClientWithMockEngine {
+                            respondJson("""{"success":true,"message":"Translation successful"}""")
+                        },
+                    visitorIdProvider = FakeVisitorIdProvider("mobile-visitor-1"),
+                )
+
+            val result = dataSource.translate("kosong")
+
+            assertTrue(result is AppResult.Error)
+            assertEquals(DataError.NotFound, (result as AppResult.Error).error)
+        }
+
     private fun httpClientWithMockEngine(handler: suspend MockRequestHandleScope.(HttpRequestData) -> HttpResponseData) =
         HttpClientFactory(Json { ignoreUnknownKeys = true })
             .build(MockEngine { request -> handler(request) })
@@ -176,6 +243,32 @@ private const val WORD_SEARCH_EMPTY_ENTRIES_RESPONSE =
         "word": "kosong",
         "visitorCount": 0,
         "entries": []
+      }
+    }
+    """
+
+private const val TRANSLATE_RESPONSE =
+    """
+    {
+      "success": true,
+      "message": "Translation successful",
+      "data": {
+        "word": "belajar",
+        "translation": "learn",
+        "from": "id",
+        "to": "en",
+        "entries": [
+          {
+            "headword": "belajar",
+            "definitions": [
+              {
+                "wordClass": "n",
+                "description": "berusaha memperoleh kepandaian atau ilmu",
+                "translation": "attempt to gain knowledge or skill"
+              }
+            ]
+          }
+        ]
       }
     }
     """

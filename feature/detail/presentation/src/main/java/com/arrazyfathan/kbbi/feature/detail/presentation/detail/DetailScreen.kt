@@ -32,6 +32,7 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.material3.ripple
@@ -56,6 +57,7 @@ import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -73,6 +75,9 @@ import com.arrazyfathan.kbbi.core.presentation.ui.AppTopAlert
 import com.arrazyfathan.kbbi.core.presentation.ui.UiText
 import com.arrazyfathan.kbbi.feature.home.domain.model.ListWordModel
 import com.arrazyfathan.kbbi.feature.home.domain.model.MeaningModel
+import com.arrazyfathan.kbbi.feature.home.domain.model.TranslateModel
+import com.arrazyfathan.kbbi.feature.home.domain.model.TranslatedMeaningModel
+import com.arrazyfathan.kbbi.feature.home.domain.model.TranslatedWordModel
 import com.arrazyfathan.kbbi.feature.home.domain.model.WordModel
 import kotlinx.coroutines.delay
 import org.koin.androidx.compose.koinViewModel
@@ -83,8 +88,9 @@ private const val DETAIL_ALERT_DURATION_MILLIS = 2_200L
 @Composable
 fun DetailScreen(
     listWordModel: ListWordModel,
-    viewModel: DetailViewModel = koinViewModel(),
 ) {
+
+    val viewModel: DetailViewModel = koinViewModel()
     val state by viewModel.state.collectAsStateWithLifecycle()
     var alertState by remember { mutableStateOf<AppAlertState?>(null) }
     var alertKey by remember { mutableIntStateOf(0) }
@@ -138,6 +144,17 @@ fun DetailContent(
     val context = LocalContext.current
     val sharedFromKbbi = stringResource(R.string.shared_from_kbbi)
     val lazyListState = rememberLazyListState()
+    val translatedWord =
+        remember(state.translation, state.isTranslationEnabled) {
+            if (state.isTranslationEnabled) state.translation?.translation else null
+        }
+    val translationsByHeadword =
+        remember(state.translation) {
+            state.translation
+                ?.entries
+                ?.associate { entry -> entry.headword to entry.meanings.map { it.translation } }
+                .orEmpty()
+        }
     val bookmarkInteractionSource = remember { MutableInteractionSource() }
     val isBookmarkPressed by bookmarkInteractionSource.collectIsPressedAsState()
     val bookmarkButtonScale by animateFloatAsState(
@@ -171,7 +188,7 @@ fun DetailContent(
         LazyColumn(
             state = lazyListState,
             modifier = Modifier.fillMaxSize(),
-            contentPadding = PaddingValues(start = 16.dp, end = 16.dp, bottom = 132.dp),
+            contentPadding = PaddingValues(bottom = 132.dp),
         ) {
             // Header spacing and expanded title
             item {
@@ -179,7 +196,8 @@ fun DetailContent(
                     modifier = Modifier.statusBarsPadding().height(96.dp),
                 )
                 Text(
-                    text = listWordModel.word.replaceFirstChar { it.uppercase() },
+                    text =
+                        (translatedWord ?: listWordModel.word).replaceFirstChar { it.uppercase() },
                     color = TextH1,
                     fontSize = 34.sp,
                     fontFamily = InterFontFamily,
@@ -187,16 +205,25 @@ fun DetailContent(
                     modifier = Modifier.padding(horizontal = 16.dp).padding(top = 20.dp),
                 )
                 listWordModel.visitorCount?.let { visitorCount ->
-                    Spacer(modifier = Modifier.height(8.dp))
-                    Text(
-                        text = stringResource(R.string.word_visitor_count, visitorCount),
-                        color = TextP,
-                        fontSize = 14.sp,
-                        fontFamily = InterFontFamily,
-                        fontWeight = FontWeight.Medium,
+                    Spacer(modifier = Modifier.height(12.dp))
+                    VisitorCountChip(
+                        visitorCount = visitorCount,
                         modifier = Modifier.padding(horizontal = 16.dp).padding(bottom = 20.dp),
                     )
                 } ?: Spacer(modifier = Modifier.height(20.dp))
+                TranslateToggleRow(
+                    isEnabled = state.isTranslationEnabled,
+                    isLoading = state.isTranslationLoading,
+                    onToggle = { enabled ->
+                        onAction(
+                            DetailAction.OnTranslateToggled(
+                                word = listWordModel.word,
+                                enabled = enabled,
+                            ),
+                        )
+                    },
+                    modifier = Modifier.padding(horizontal = 16.dp).padding(bottom = 12.dp),
+                )
             }
 
             // Word details cards
@@ -204,6 +231,9 @@ fun DetailContent(
                 WordEntryCard(
                     index = index,
                     wordModel = wordModel,
+                    translatedWord = translatedWord,
+                    isTranslationEnabled = state.isTranslationEnabled,
+                    translationsByHeadword = translationsByHeadword,
                     onCopyClick = {
                         val clipboardManager = context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
                         val clip = ClipData.newPlainText("meaning", wordModel.toDefinitionCopyText())
@@ -235,7 +265,8 @@ fun DetailContent(
             contentAlignment = Alignment.Center,
         ) {
             Text(
-                text = listWordModel.word.replaceFirstChar { it.uppercase() },
+                text =
+                    (translatedWord ?: listWordModel.word).replaceFirstChar { it.uppercase() },
                 color = TextH1,
                 fontSize = 26.sp,
                 fontFamily = InterFontFamily,
@@ -305,13 +336,16 @@ fun DetailContent(
 fun WordEntryCard(
     index: Int,
     wordModel: WordModel,
+    translatedWord: String?,
+    isTranslationEnabled: Boolean,
+    translationsByHeadword: Map<String, List<String>>,
     onCopyClick: () -> Unit,
     onShareClick: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     Card(
-        modifier = modifier.fillMaxWidth().padding(vertical = 8.dp),
-        shape = RoundedCornerShape(10.dp),
+        modifier = modifier.fillMaxWidth().padding(vertical = 8.dp, horizontal = 16.dp),
+        shape = RoundedCornerShape(20.dp),
         colors = CardDefaults.cardColors(containerColor = Color.White),
         elevation = CardDefaults.cardElevation(defaultElevation = 0.dp),
     ) {
@@ -339,7 +373,8 @@ fun WordEntryCard(
                 Spacer(modifier = Modifier.width(16.dp))
 
                 Text(
-                    text = wordModel.entry,
+                    text =
+                        (translatedWord ?: wordModel.entry).replaceFirstChar { it.uppercase() },
                     color = TextH1,
                     fontFamily = InterFontFamily,
                     fontWeight = FontWeight.SemiBold,
@@ -354,11 +389,18 @@ fun WordEntryCard(
                 modifier = Modifier.fillMaxWidth().padding(start = 46.dp),
             ) {
                 wordModel.meanings.forEachIndexed { meaningIndex, meaning ->
+                    val translations = translationsByHeadword[wordModel.entry]
+                    val displayDescription =
+                        if (isTranslationEnabled) {
+                            translations?.getOrNull(meaningIndex) ?: meaning.description
+                        } else {
+                            meaning.description
+                        }
                     val annotatedText =
                         buildMeaningText(
                             position = meaningIndex,
                             wordClass = meaning.wordClass,
-                            rawDescription = meaning.description,
+                            rawDescription = displayDescription,
                         )
 
                     Text(
@@ -433,6 +475,100 @@ fun WordEntryCard(
             }
         }
     }
+}
+
+@Composable
+fun VisitorCountChip(
+    visitorCount: Int,
+    modifier: Modifier = Modifier,
+) {
+    Row(
+        modifier =
+            modifier
+                .clip(RoundedCornerShape(100.dp))
+                .background(Color.White)
+                .padding(horizontal = 14.dp, vertical = 8.dp),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Icon(
+            painter = painterResource(id = R.drawable.ic_eye),
+            contentDescription = null,
+            tint = TextH1,
+            modifier = Modifier.size(14.dp),
+        )
+        Spacer(modifier = Modifier.width(6.dp))
+        Text(
+            text = stringResource(R.string.word_visitor_count, visitorCount),
+            color = TextH1,
+            fontFamily = InterFontFamily,
+            fontWeight = FontWeight.Medium,
+            fontSize = 13.sp,
+        )
+    }
+}
+
+@Composable
+fun TranslateToggleRow(
+    isEnabled: Boolean,
+    isLoading: Boolean,
+    onToggle: (Boolean) -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    Row(
+        modifier = modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.Start,
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Row(
+            modifier =
+                Modifier
+                    .clip(RoundedCornerShape(100.dp))
+                    .background(Color.White)
+                    .padding(4.dp),
+            horizontalArrangement = Arrangement.spacedBy(4.dp),
+        ) {
+            TranslateSegment(
+                text = stringResource(R.string.show_original),
+                selected = !isEnabled,
+                onClick = { onToggle(false) },
+            )
+            TranslateSegment(
+                text = stringResource(R.string.show_english_translation),
+                selected = isEnabled,
+                onClick = { onToggle(true) },
+            )
+        }
+        if (isLoading) {
+            Spacer(modifier = Modifier.width(12.dp))
+            CircularProgressIndicator(
+                modifier = Modifier.size(18.dp),
+                strokeWidth = 2.dp,
+                color = TextH1,
+            )
+        }
+    }
+}
+
+@Composable
+private fun TranslateSegment(
+    text: String,
+    selected: Boolean,
+    onClick: () -> Unit,
+) {
+    Text(
+        text = text,
+        color = if (selected) Color.White else TextH1,
+        fontFamily = InterFontFamily,
+        fontWeight = if (selected) FontWeight.SemiBold else FontWeight.Medium,
+        fontSize = 13.sp,
+        textAlign = TextAlign.Center,
+        modifier =
+            Modifier
+                .clip(RoundedCornerShape(100.dp))
+                .background(if (selected) TextH1 else Color.Transparent)
+                .clickable(onClick = onClick)
+                .padding(horizontal = 18.dp, vertical = 9.dp),
+    )
 }
 
 @Composable
@@ -568,6 +704,62 @@ fun DetailContentSavedPreview() {
                     message = UiText.DynamicString("Bookmarked"),
                     type = AppAlertType.Success,
                 ),
+        )
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
+fun DetailContentTranslatedPreview() {
+    val sampleListWordModel =
+        ListWordModel(
+            word = "belajar",
+            listWords =
+                listOf(
+                    WordModel(
+                        entry = "belajar",
+                        meanings =
+                            listOf(
+                                MeaningModel(wordClass = "v", description = "berusaha memperoleh kepandaian atau ilmu"),
+                            ),
+                    ),
+                ),
+        )
+
+    val translated =
+        TranslateModel(
+            word = "belajar",
+            translation = "learn",
+            from = "id",
+            to = "en",
+            entries =
+                listOf(
+                    TranslatedWordModel(
+                        headword = "belajar",
+                        meanings =
+                            listOf(
+                                TranslatedMeaningModel(
+                                    wordClass = "v",
+                                    description = "berusaha memperoleh kepandaian atau ilmu",
+                                    translation = "attempt to gain knowledge or skill",
+                                ),
+                            ),
+                    ),
+                ),
+        )
+
+    KBBITheme {
+        DetailContent(
+            listWordModel = sampleListWordModel,
+            state =
+                DetailState(
+                    isSaved = false,
+                    isTranslationEnabled = true,
+                    translation = translated,
+                ),
+            onAction = {},
+            onShowAlert = { _, _ -> },
+            alertState = null,
         )
     }
 }

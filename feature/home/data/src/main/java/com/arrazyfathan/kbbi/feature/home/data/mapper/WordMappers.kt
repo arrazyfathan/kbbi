@@ -5,10 +5,16 @@ import com.arrazyfathan.kbbi.feature.home.data.source.local.entity.ListWordEntit
 import com.arrazyfathan.kbbi.feature.home.data.source.local.entity.MeaningEntity
 import com.arrazyfathan.kbbi.feature.home.data.source.local.entity.WordEntity
 import com.arrazyfathan.kbbi.feature.home.data.source.remote.dto.MeaningDto
+import com.arrazyfathan.kbbi.feature.home.data.source.remote.dto.TranslateDataDto
+import com.arrazyfathan.kbbi.feature.home.data.source.remote.dto.TranslatedDefinitionDto
+import com.arrazyfathan.kbbi.feature.home.data.source.remote.dto.TranslatedEntryDto
 import com.arrazyfathan.kbbi.feature.home.data.source.remote.dto.WordDto
 import com.arrazyfathan.kbbi.feature.home.domain.model.HistoryModel
 import com.arrazyfathan.kbbi.feature.home.domain.model.ListWordModel
 import com.arrazyfathan.kbbi.feature.home.domain.model.MeaningModel
+import com.arrazyfathan.kbbi.feature.home.domain.model.TranslateModel
+import com.arrazyfathan.kbbi.feature.home.domain.model.TranslatedMeaningModel
+import com.arrazyfathan.kbbi.feature.home.domain.model.TranslatedWordModel
 import com.arrazyfathan.kbbi.feature.home.domain.model.WordModel
 
 fun WordDto.toDomain(): WordModel =
@@ -18,6 +24,28 @@ fun WordDto.toDomain(): WordModel =
     )
 
 fun List<WordDto>.toWordModels(): List<WordModel> = map { it.toDomain() }
+
+fun TranslateDataDto.toDomain(): TranslateModel =
+    TranslateModel(
+        word = word,
+        translation = translation,
+        from = from,
+        to = to,
+        entries = entries.map { it.toDomain() },
+    )
+
+private fun TranslatedEntryDto.toDomain(): TranslatedWordModel =
+    TranslatedWordModel(
+        headword = headword,
+        meanings = definitions.map { it.toDomain() },
+    )
+
+private fun TranslatedDefinitionDto.toDomain(): TranslatedMeaningModel =
+    TranslatedMeaningModel(
+        wordClass = wordClass,
+        description = description,
+        translation = translation,
+    )
 
 private fun MeaningDto.toDomain(): MeaningModel =
     MeaningModel(

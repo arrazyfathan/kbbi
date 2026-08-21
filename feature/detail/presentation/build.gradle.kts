@@ -32,6 +32,7 @@ kotlin {
 }
 
 dependencies {
+    implementation(project(":core:domain"))
     implementation(project(":core:presentation:designsystem"))
     implementation(project(":core:presentation:ui"))
     implementation(project(":feature:home:domain"))
@@ -41,4 +42,7 @@ dependencies {
     implementation(libs.kotlinx.coroutines.core)
     implementation(libs.kotlinx.coroutines.android)
     implementation(libs.koin.androidx.compose)
+
+    testImplementation(libs.junit)
+    testImplementation(libs.kotlinx.coroutines.test)
 }

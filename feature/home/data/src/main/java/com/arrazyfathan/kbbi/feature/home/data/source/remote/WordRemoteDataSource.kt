@@ -5,10 +5,13 @@ import com.arrazyfathan.kbbi.core.domain.model.AppResult
 import com.arrazyfathan.kbbi.core.domain.model.DataError
 import com.arrazyfathan.kbbi.feature.home.data.mapper.toDomain
 import com.arrazyfathan.kbbi.feature.home.data.source.remote.dto.ListWordDto
+import com.arrazyfathan.kbbi.feature.home.data.source.remote.dto.TranslateDto
 import com.arrazyfathan.kbbi.feature.home.domain.model.ListWordModel
+import com.arrazyfathan.kbbi.feature.home.domain.model.TranslateModel
 import io.ktor.client.HttpClient
 
 private const val VISITOR_ID_HEADER = "x-visitor-id"
+private const val TRANSLATE_TARGET_LANGUAGE = "en"
 
 class WordRemoteDataSource(
     private val httpClient: HttpClient,
@@ -26,6 +29,18 @@ class WordRemoteDataSource(
             is AppResult.Error -> result
         }
 
+    suspend fun translate(word: String): AppResult<TranslateModel, DataError> =
+        when (
+            val result =
+                httpClient.get<TranslateDto>(
+                    route = "/translate/$word",
+                    queryParameters = mapOf("to" to TRANSLATE_TARGET_LANGUAGE),
+                )
+        ) {
+            is AppResult.Success -> result.data.toTranslateResult()
+            is AppResult.Error -> result
+        }
+
     private fun ListWordDto.toWordResult(): AppResult<ListWordModel, DataError> {
         val searchData = data
         val words = searchData?.entries.orEmpty()
@@ -38,6 +53,16 @@ class WordRemoteDataSource(
                         visitorCount = searchData.visitorCount,
                     ),
                 )
+            !success -> AppResult.Error(DataError.Remote(message))
+            else -> AppResult.Error(DataError.NotFound)
+        }
+    }
+
+    private fun TranslateDto.toTranslateResult(): AppResult<TranslateModel, DataError> {
+        val translateData = data
+        return when {
+            success && translateData != null ->
+                AppResult.Success(translateData.toDomain())
             !success -> AppResult.Error(DataError.Remote(message))
             else -> AppResult.Error(DataError.NotFound)
         }

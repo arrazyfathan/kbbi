@@ -11,6 +11,7 @@ import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.Immutable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -26,6 +27,7 @@ enum class AppAlertType {
     Failed,
 }
 
+@Immutable
 data class AppAlertState(
     val message: UiText,
     val type: AppAlertType,
@@ -51,11 +53,7 @@ fun AppTopAlert(
         }
 
     Box(
-        modifier =
-            modifier
-                .fillMaxWidth()
-                .statusBarsPadding()
-                .padding(horizontal = 16.dp, vertical = 12.dp),
+        modifier = modifier.fillMaxWidth().statusBarsPadding().padding(horizontal = 16.dp, vertical = 12.dp),
         contentAlignment = Alignment.TopCenter,
     ) {
         Card(
@@ -64,10 +62,7 @@ fun AppTopAlert(
             elevation = CardDefaults.cardElevation(defaultElevation = 10.dp),
         ) {
             Row(
-                modifier =
-                    Modifier
-                        .background(containerColor)
-                        .padding(horizontal = 18.dp, vertical = 14.dp),
+                modifier = Modifier.background(containerColor).padding(horizontal = 18.dp, vertical = 14.dp),
                 verticalAlignment = Alignment.CenterVertically,
             ) {
                 Text(

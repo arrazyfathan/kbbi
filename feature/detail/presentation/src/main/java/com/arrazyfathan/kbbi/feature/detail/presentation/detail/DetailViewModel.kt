@@ -1,12 +1,17 @@
 package com.arrazyfathan.kbbi.feature.detail.presentation.detail
 
 import androidx.annotation.StringRes
+import androidx.compose.runtime.Immutable
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.arrazyfathan.kbbi.core.R
+import com.arrazyfathan.kbbi.core.domain.model.onFailure
+import com.arrazyfathan.kbbi.core.domain.model.onSuccess
+import com.arrazyfathan.kbbi.feature.home.domain.model.TranslateModel
 import com.arrazyfathan.kbbi.feature.home.domain.model.WordModel
 import com.arrazyfathan.kbbi.feature.home.domain.usecase.CheckWordSavedUseCase
 import com.arrazyfathan.kbbi.feature.home.domain.usecase.DeleteBookmarkUseCase
+import com.arrazyfathan.kbbi.feature.home.domain.usecase.GetWordTranslationUseCase
 import com.arrazyfathan.kbbi.feature.home.domain.usecase.SaveBookmarkUseCase
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.channels.Channel
@@ -16,8 +21,12 @@ import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
+@Immutable
 data class DetailState(
     val isSaved: Boolean = false,
+    val isTranslationEnabled: Boolean = false,
+    val isTranslationLoading: Boolean = false,
+    val translation: TranslateModel? = null,
 )
 
 sealed interface DetailAction {
@@ -29,6 +38,11 @@ sealed interface DetailAction {
         val word: String,
         val wordList: List<WordModel>,
         val visitorCount: Int?,
+    ) : DetailAction
+
+    data class OnTranslateToggled(
+        val word: String,
+        val enabled: Boolean,
     ) : DetailAction
 }
 
@@ -42,6 +56,7 @@ class DetailViewModel(
     private val checkWordSaved: CheckWordSavedUseCase,
     private val saveBookmark: SaveBookmarkUseCase,
     private val deleteBookmark: DeleteBookmarkUseCase,
+    private val getWordTranslation: GetWordTranslationUseCase,
 ) : ViewModel() {
     private val _state = MutableStateFlow(DetailState())
     val state = _state.asStateFlow()
@@ -50,11 +65,13 @@ class DetailViewModel(
     val events = _events.receiveAsFlow()
 
     private var savedStateJob: Job? = null
+    private var translationJob: Job? = null
 
     fun onAction(action: DetailAction) {
         when (action) {
             is DetailAction.OnStarted -> observeSavedState(action.word)
             is DetailAction.OnBookmarkClick -> toggleBookmark(action.word, action.wordList, action.visitorCount)
+            is DetailAction.OnTranslateToggled -> toggleTranslation(action.word, action.enabled)
         }
     }
 
@@ -84,5 +101,43 @@ class DetailViewModel(
                 }
             }
         }
+    }
+
+    private fun toggleTranslation(
+        word: String,
+        enabled: Boolean,
+    ) {
+        if (enabled) {
+            enableTranslation(word)
+        } else {
+            _state.update { it.copy(isTranslationEnabled = false) }
+        }
+    }
+
+    private fun enableTranslation(word: String) {
+        val cachedTranslation = state.value.translation
+        if (cachedTranslation != null) {
+            _state.update { it.copy(isTranslationEnabled = true) }
+            return
+        }
+
+        if (translationJob != null) return
+        _state.update { it.copy(isTranslationLoading = true) }
+        translationJob =
+            viewModelScope.launch {
+                getWordTranslation(word)
+                    .onSuccess { translation ->
+                        _state.update {
+                            it.copy(
+                                isTranslationEnabled = true,
+                                isTranslationLoading = false,
+                                translation = translation,
+                            )
+                        }
+                    }.onFailure {
+                        _state.update { it.copy(isTranslationLoading = false) }
+                        _events.send(DetailEvent.ShowMessage(R.string.translate_failed))
+                    }
+            }
     }
 }
