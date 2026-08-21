@@ -216,17 +216,6 @@ class SettingsViewModelTest {
         assertMessage(R.string.clear_history_confirmed, viewModel.events.first())
     }
 
-    @Test
-    fun `privacy and terms clicks emit coming-soon message`() = runTest(dispatcher) {
-        val viewModel = createViewModel()
-
-        viewModel.onAction(SettingsAction.OnPrivacyPolicyClick)
-        assertMessage(R.string.coming_soon, viewModel.events.first())
-
-        viewModel.onAction(SettingsAction.OnTermsClick)
-        assertMessage(R.string.coming_soon, viewModel.events.first())
-    }
-
     private fun createViewModel(
         repository: FakeSettingsRepository = FakeSettingsRepository(),
         scheduler: FakeScheduler = FakeScheduler(),

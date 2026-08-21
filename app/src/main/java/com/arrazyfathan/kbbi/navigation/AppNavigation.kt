@@ -78,6 +78,8 @@ import com.arrazyfathan.kbbi.feature.home.domain.model.ListWordModel
 import com.arrazyfathan.kbbi.feature.home.presentation.navigation.HomeRoute
 import com.arrazyfathan.kbbi.feature.proverb.presentation.navigation.ProverbRoute
 import com.arrazyfathan.kbbi.feature.settings.presentation.settings.SettingsRoute
+import com.arrazyfathan.kbbi.feature.settings.presentation.legal.PrivacyPolicyScreen
+import com.arrazyfathan.kbbi.feature.settings.presentation.legal.TermsConditionsScreen
 import com.arrazyfathan.kbbi.feature.words.presentation.navigation.WordsRoute
 import com.github.skydoves.navgraph.annotations.NavGraphRoot
 import kotlinx.serialization.Serializable
@@ -143,6 +145,12 @@ data class DetailNavRoute(
 
 @Serializable
 data object OpenSourceLicensesRoute : NavKey
+
+@Serializable
+data object PrivacyPolicyRoute : NavKey
+
+@Serializable
+data object TermsConditionsRoute : NavKey
 
 @Immutable
 data class MainAppLaunchRequests(
@@ -313,6 +321,12 @@ fun MainApp(
                 entry<Screen.Settings> {
                     SettingsRoute(
                         onNavigateBack = { if (!isUiBlocked) navigator.goBack() },
+                        onOpenPrivacyPolicy = {
+                            navigator.navigate(PrivacyPolicyRoute)
+                        },
+                        onOpenTermsConditions = {
+                            navigator.navigate(TermsConditionsRoute)
+                        },
                         onOpenSourceLicenses = {
                             navigator.navigate(OpenSourceLicensesRoute)
                         },
@@ -334,6 +348,16 @@ fun MainApp(
                 }
                 entry<OpenSourceLicensesRoute> {
                     OpenSourceLicensesScreen(
+                        onNavigateBack = { if (!isUiBlocked) navigator.goBack() },
+                    )
+                }
+                entry<PrivacyPolicyRoute> {
+                    PrivacyPolicyScreen(
+                        onNavigateBack = { if (!isUiBlocked) navigator.goBack() },
+                    )
+                }
+                entry<TermsConditionsRoute> {
+                    TermsConditionsScreen(
                         onNavigateBack = { if (!isUiBlocked) navigator.goBack() },
                     )
                 }

@@ -95,6 +95,8 @@ import org.koin.androidx.compose.koinViewModel
 @Composable
 fun SettingsRoute(
     onNavigateBack: () -> Unit,
+    onOpenPrivacyPolicy: () -> Unit,
+    onOpenTermsConditions: () -> Unit,
     onOpenSourceLicenses: () -> Unit,
 ) {
     val viewModel: SettingsViewModel = koinViewModel()
@@ -143,6 +145,8 @@ fun SettingsRoute(
         state = state,
         permissionDenied = permissionDenied,
         onNavigateBack = onNavigateBack,
+        onOpenPrivacyPolicy = onOpenPrivacyPolicy,
+        onOpenTermsConditions = onOpenTermsConditions,
         onAction = viewModel::onAction,
         onOpenSystemSettings = {
             val intent =
@@ -182,6 +186,8 @@ fun SettingsScreen(
     permissionDenied: Boolean = false,
     onNavigateBack: () -> Unit,
     onAction: (SettingsAction) -> Unit,
+    onOpenPrivacyPolicy: () -> Unit = {},
+    onOpenTermsConditions: () -> Unit = {},
     onOpenSystemSettings: () -> Unit = {},
     onShareApp: () -> Unit = {},
     onOpenUri: (String) -> Unit = {},
@@ -234,6 +240,8 @@ fun SettingsScreen(
                 onAction = onAction,
                 onShareApp = onShareApp,
                 onOpenUri = onOpenUri,
+                onOpenPrivacyPolicy = onOpenPrivacyPolicy,
+                onOpenTermsConditions = onOpenTermsConditions,
                 onOpenSourceLicenses = onOpenSourceLicenses,
             )
         }
@@ -363,6 +371,8 @@ private fun AboutSection(
     onAction: (SettingsAction) -> Unit,
     onShareApp: () -> Unit,
     onOpenUri: (String) -> Unit,
+    onOpenPrivacyPolicy: () -> Unit,
+    onOpenTermsConditions: () -> Unit,
     onOpenSourceLicenses: () -> Unit,
 ) {
     val updateSubtitle =
@@ -403,13 +413,13 @@ private fun AboutSection(
         SettingsMenuRow(
             title = stringResource(R.string.privacy_policy_title),
             icon = R.drawable.ic_privacy,
-            onClick = { onAction(SettingsAction.OnPrivacyPolicyClick) },
+            onClick = onOpenPrivacyPolicy,
         )
         SettingsDivider()
         SettingsMenuRow(
             title = stringResource(R.string.terms_condition_title),
             icon = R.drawable.ic_document,
-            onClick = { onAction(SettingsAction.OnTermsClick) },
+            onClick = onOpenTermsConditions,
         )
         SettingsDivider()
         SettingsMenuRow(

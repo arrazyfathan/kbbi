@@ -54,10 +54,6 @@ sealed interface SettingsAction {
 
     data object OnClearHistoryDismissed : SettingsAction
 
-    data object OnPrivacyPolicyClick : SettingsAction
-
-    data object OnTermsClick : SettingsAction
-
     data class OnLanguageSelected(
         val language: AppLanguage,
     ) : SettingsAction
@@ -146,10 +142,6 @@ class SettingsViewModel(
             SettingsAction.OnClearHistoryDismissed -> {
                 _state.update { it.copy(isClearHistoryDialogVisible = false) }
             }
-
-            SettingsAction.OnPrivacyPolicyClick,
-            SettingsAction.OnTermsClick,
-            -> showMessage(R.string.coming_soon)
 
             is SettingsAction.OnLanguageSelected -> {
                 selectLanguage(action.language)
