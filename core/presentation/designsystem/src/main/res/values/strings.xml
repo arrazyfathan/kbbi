@@ -1,6 +1,6 @@
 <resources>
     <string name="app_name">KBBI</string>
-    <string name="version_name">0.0.0</string>
+    <string name="version_name" translatable="false">0.0.0</string>
     <string name="logo_desc">KBBI logo</string>
     <string name="home_title">Home</string>
     <string name="word_list_tab_title">Word List</string>

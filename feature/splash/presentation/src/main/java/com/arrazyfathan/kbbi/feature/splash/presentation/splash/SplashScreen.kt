@@ -19,10 +19,12 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -31,12 +33,13 @@ import com.airbnb.lottie.compose.LottieCompositionSpec
 import com.airbnb.lottie.compose.LottieConstants
 import com.airbnb.lottie.compose.rememberLottieComposition
 import com.arrazyfathan.kbbi.core.R
-import androidx.compose.ui.tooling.preview.Preview
 import com.arrazyfathan.kbbi.core.presentation.designsystem.BluePrimary
+import com.arrazyfathan.kbbi.core.presentation.designsystem.BlueSecondary
 import com.arrazyfathan.kbbi.core.presentation.designsystem.InterFontFamily
 import com.arrazyfathan.kbbi.core.presentation.designsystem.KBBITheme
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import kotlin.time.Duration.Companion.milliseconds
 
 @Composable
 fun SplashScreen(
@@ -66,15 +69,22 @@ fun SplashScreen(
                 animationSpec = tween(durationMillis = 2000, easing = { it }),
             )
         }
-        delay(3000)
+        delay(3000.milliseconds)
         onTimeout()
     }
 
     Box(
         modifier =
-            modifier
-                .fillMaxSize()
-                .background(BluePrimary),
+            modifier.fillMaxSize().background(
+                brush =
+                    Brush.verticalGradient(
+                        colors =
+                            listOf(
+                                BluePrimary,
+                                BlueSecondary,
+                            ),
+                    ),
+            ),
     ) {
         Column(
             modifier =
@@ -97,10 +107,7 @@ fun SplashScreen(
             LottieAnimation(
                 composition = loadingComposition,
                 iterations = LottieConstants.IterateForever,
-                modifier =
-                    Modifier
-                        .fillMaxWidth()
-                        .height(100.dp),
+                modifier = Modifier.fillMaxWidth().height(100.dp),
             )
         }
 
@@ -127,10 +134,7 @@ fun SplashScreen(
             color = Color.White,
             fontSize = 12.sp,
             fontFamily = InterFontFamily,
-            modifier =
-                Modifier
-                    .align(Alignment.BottomCenter)
-                    .padding(bottom = 16.dp),
+            modifier = Modifier.align(Alignment.BottomCenter).padding(bottom = 24.dp),
         )
     }
 }

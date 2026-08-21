@@ -1,6 +1,5 @@
 <resources>
     <string name="app_name">KBBI</string>
-    <string name="version_name">0.0.0</string>
     <string name="logo_desc">Logo KBBI</string>
     <string name="home_title">Beranda</string>
     <string name="word_list_tab_title">Daftar Kata</string>
