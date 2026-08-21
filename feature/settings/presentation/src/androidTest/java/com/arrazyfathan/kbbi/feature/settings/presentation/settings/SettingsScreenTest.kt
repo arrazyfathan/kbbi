@@ -3,6 +3,7 @@ package com.arrazyfathan.kbbi.feature.settings.presentation.settings
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.junit4.v2.createComposeRule
 import androidx.compose.ui.test.onNodeWithText
+import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performScrollTo
 import com.arrazyfathan.kbbi.core.presentation.designsystem.KBBITheme
 import org.junit.Rule
@@ -55,5 +56,27 @@ class SettingsScreenTest {
         ).forEach { text ->
             composeTestRule.onNodeWithText(text).performScrollTo().assertIsDisplayed()
         }
+    }
+    @Test
+    fun legalRows_invokeNavigationCallbacks() {
+        var privacyOpened = false
+        var termsOpened = false
+        composeTestRule.setContent {
+            KBBITheme {
+                SettingsScreen(
+                    state = SettingsState(),
+                    onNavigateBack = {},
+                    onAction = {},
+                    onOpenPrivacyPolicy = { privacyOpened = true },
+                    onOpenTermsConditions = { termsOpened = true },
+                )
+            }
+        }
+
+        composeTestRule.onNodeWithText("Privacy Policy").performScrollTo().performClick()
+        composeTestRule.onNodeWithText("Terms & Conditions").performScrollTo().performClick()
+
+        assert(privacyOpened)
+        assert(termsOpened)
     }
 }
