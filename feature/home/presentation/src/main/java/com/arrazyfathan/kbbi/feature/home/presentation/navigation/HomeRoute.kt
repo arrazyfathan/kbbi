@@ -7,10 +7,10 @@ import com.arrazyfathan.kbbi.feature.home.presentation.home.HomeScreen
 
 @Composable
 fun HomeRoute(
+    modifier: Modifier = Modifier,
     onNavigateToDetail: (ListWordModel) -> Unit,
     onNavigateToProverb: () -> Unit,
     onNavigateToSettings: () -> Unit = {},
-    modifier: Modifier = Modifier,
     externalSearchQuery: String? = null,
     externalSearchRequestKey: Long = 0L,
     onExternalSearchConsumed: () -> Unit = {},

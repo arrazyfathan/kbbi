@@ -4,6 +4,9 @@ import com.arrazyfathan.kbbi.feature.home.data.source.local.entity.ListWordEntit
 import com.arrazyfathan.kbbi.feature.home.data.source.local.entity.MeaningEntity
 import com.arrazyfathan.kbbi.feature.home.data.source.local.entity.WordEntity
 import com.arrazyfathan.kbbi.feature.home.data.source.remote.dto.MeaningDto
+import com.arrazyfathan.kbbi.feature.home.data.source.remote.dto.TranslatedDefinitionDto
+import com.arrazyfathan.kbbi.feature.home.data.source.remote.dto.TranslatedEntryDto
+import com.arrazyfathan.kbbi.feature.home.data.source.remote.dto.TranslateDataDto
 import com.arrazyfathan.kbbi.feature.home.data.source.remote.dto.WordDto
 import com.arrazyfathan.kbbi.feature.home.domain.model.MeaningModel
 import com.arrazyfathan.kbbi.feature.home.domain.model.WordModel
@@ -64,5 +67,36 @@ class WordMappersTest {
         assertEquals(1, entityWord.meanings.size)
         assertEquals("adv", entityWord.meanings[0].wordClass)
         assertEquals("keterangan", entityWord.meanings[0].description)
+    }
+
+    @Test
+    fun translateDataDtoMapsToDomainModel() {
+        val definition =
+            TranslatedDefinitionDto(
+                wordClass = "v",
+                description = "berusaha memperoleh kepandaian atau ilmu",
+                translation = "attempt to gain knowledge or skill",
+            )
+        val entry = TranslatedEntryDto(headword = "belajar", definitions = listOf(definition))
+        val dto =
+            TranslateDataDto(
+                word = "belajar",
+                translation = "learn",
+                from = "id",
+                to = "en",
+                entries = listOf(entry),
+            )
+
+        val domain = dto.toDomain()
+
+        assertEquals("belajar", domain.word)
+        assertEquals("learn", domain.translation)
+        assertEquals("id", domain.from)
+        assertEquals("en", domain.to)
+        assertEquals(1, domain.entries.size)
+        assertEquals("belajar", domain.entries[0].headword)
+        assertEquals(1, domain.entries[0].meanings.size)
+        assertEquals("v", domain.entries[0].meanings[0].wordClass)
+        assertEquals("attempt to gain knowledge or skill", domain.entries[0].meanings[0].translation)
     }
 }

@@ -12,6 +12,7 @@ import com.arrazyfathan.kbbi.feature.home.data.source.remote.VisitorIdProvider
 import com.arrazyfathan.kbbi.feature.home.data.source.remote.WordRemoteDataSource
 import com.arrazyfathan.kbbi.feature.home.domain.repository.BookmarkRepository
 import com.arrazyfathan.kbbi.feature.home.domain.repository.SearchHistoryRepository
+import com.arrazyfathan.kbbi.feature.home.domain.repository.TranslateRepository
 import com.arrazyfathan.kbbi.feature.home.domain.repository.WordCatalogRepository
 import com.arrazyfathan.kbbi.feature.home.domain.repository.WordSearchRepository
 import org.koin.android.ext.koin.androidContext
@@ -62,5 +63,6 @@ val repositoryModule =
             bind<WordSearchRepository>()
             bind<BookmarkRepository>()
             bind<SearchHistoryRepository>()
+            bind<TranslateRepository>()
         }
     }

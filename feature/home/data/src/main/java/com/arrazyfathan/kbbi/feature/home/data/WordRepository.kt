@@ -11,9 +11,11 @@ import com.arrazyfathan.kbbi.feature.home.data.source.local.entity.ListWordEntit
 import com.arrazyfathan.kbbi.feature.home.data.source.remote.WordRemoteDataSource
 import com.arrazyfathan.kbbi.feature.home.domain.model.HistoryModel
 import com.arrazyfathan.kbbi.feature.home.domain.model.ListWordModel
+import com.arrazyfathan.kbbi.feature.home.domain.model.TranslateModel
 import com.arrazyfathan.kbbi.feature.home.domain.model.WordModel
 import com.arrazyfathan.kbbi.feature.home.domain.repository.BookmarkRepository
 import com.arrazyfathan.kbbi.feature.home.domain.repository.SearchHistoryRepository
+import com.arrazyfathan.kbbi.feature.home.domain.repository.TranslateRepository
 import com.arrazyfathan.kbbi.feature.home.domain.repository.WordSearchRepository
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
@@ -28,7 +30,8 @@ class WordRepository(
     private val localDataSource: WordLocalDataSource,
 ) : WordSearchRepository,
     BookmarkRepository,
-    SearchHistoryRepository {
+    SearchHistoryRepository,
+    TranslateRepository {
     override suspend fun getMeaningOfWord(word: String): AppResult<ListWordModel, DataError> {
         val remoteResult = remoteDataSource.getMeaningOfWord(word)
         if (remoteResult is AppResult.Success) {
@@ -104,4 +107,7 @@ class WordRepository(
         localDataSource.getSavedWords().map {
             it.map { entity -> entity.toDomain() }
         }
+
+    override suspend fun getTranslation(word: String): AppResult<TranslateModel, DataError> =
+        remoteDataSource.translate(word)
 }
