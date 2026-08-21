@@ -1,9 +1,5 @@
 package com.arrazyfathan.kbbi.feature.bookmark.presentation.bookmark
 
-import android.os.Build
-import android.os.VibrationEffect
-import android.os.Vibrator
-import android.os.VibratorManager
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
@@ -35,6 +31,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -42,9 +39,9 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
@@ -59,31 +56,42 @@ import com.airbnb.lottie.compose.LottieCompositionSpec
 import com.airbnb.lottie.compose.LottieConstants
 import com.airbnb.lottie.compose.rememberLottieComposition
 import com.arrazyfathan.kbbi.core.R
-import com.arrazyfathan.kbbi.feature.home.domain.model.ListWordModel
-import com.arrazyfathan.kbbi.feature.home.domain.model.MeaningModel
-import com.arrazyfathan.kbbi.feature.home.domain.model.WordModel
 import com.arrazyfathan.kbbi.core.presentation.designsystem.BluePrimary
+import com.arrazyfathan.kbbi.core.presentation.designsystem.BlueSecondary
 import com.arrazyfathan.kbbi.core.presentation.designsystem.Grey
 import com.arrazyfathan.kbbi.core.presentation.designsystem.InterFontFamily
+import com.arrazyfathan.kbbi.core.presentation.designsystem.KBBIHapticType
 import com.arrazyfathan.kbbi.core.presentation.designsystem.KBBITheme
 import com.arrazyfathan.kbbi.core.presentation.designsystem.MetropolisFontFamily
 import com.arrazyfathan.kbbi.core.presentation.designsystem.Red
 import com.arrazyfathan.kbbi.core.presentation.designsystem.SpaceGroteskFontFamily
 import com.arrazyfathan.kbbi.core.presentation.designsystem.TextH1
 import com.arrazyfathan.kbbi.core.presentation.designsystem.TextP
+import com.arrazyfathan.kbbi.feature.home.domain.model.ListWordModel
+import com.arrazyfathan.kbbi.feature.home.domain.model.MeaningModel
+import com.arrazyfathan.kbbi.feature.home.domain.model.WordModel
 import org.koin.androidx.compose.koinViewModel
 
 @Composable
 fun BookmarksScreen(
+    onHaptic: (KBBIHapticType) -> Unit,
     modifier: Modifier = Modifier,
     onNavigateToDetail: (ListWordModel) -> Unit,
-    viewModel: BookmarksViewModel = koinViewModel(),
 ) {
+    val viewModel: BookmarksViewModel = koinViewModel()
     val state by viewModel.state.collectAsStateWithLifecycle()
+    LaunchedEffect(Unit) {
+        viewModel.events.collect { event ->
+            when (event) {
+                BookmarksEvent.BookmarkDeleted -> onHaptic(KBBIHapticType.Confirm)
+            }
+        }
+    }
     BookmarksScreenContent(
         state = state,
         onNavigateToDetail = onNavigateToDetail,
         onAction = viewModel::onAction,
+        onHaptic = onHaptic,
         modifier = modifier,
     )
 }
@@ -93,12 +101,25 @@ fun BookmarksScreenContent(
     state: BookmarksState,
     onNavigateToDetail: (ListWordModel) -> Unit,
     onAction: (BookmarksAction) -> Unit,
+    onHaptic: (KBBIHapticType) -> Unit = {},
     modifier: Modifier = Modifier,
 ) {
     var wordToDelete by remember { mutableStateOf<ListWordModel?>(null) }
 
     Box(
-        modifier = modifier.fillMaxSize().background(BluePrimary).statusBarsPadding(),
+        modifier =
+            modifier
+                .fillMaxSize()
+                .background(
+                    brush =
+                        Brush.verticalGradient(
+                            colors =
+                                listOf(
+                                    BluePrimary,
+                                    BlueSecondary,
+                                ),
+                        ),
+                ).statusBarsPadding(),
     ) {
         // Background Hero Image if not empty
         if (state.bookmarks.isNotEmpty()) {
@@ -178,6 +199,7 @@ fun BookmarksScreenContent(
                         onDeleteInitiated = {
                             wordToDelete = item
                         },
+                        onHaptic = onHaptic,
                     )
                 }
             }
@@ -208,27 +230,10 @@ fun BookmarkItem(
     model: ListWordModel,
     onClick: () -> Unit,
     onDeleteInitiated: () -> Unit,
+    onHaptic: (KBBIHapticType) -> Unit = {},
     modifier: Modifier = Modifier,
 ) {
-    val context = LocalContext.current
     var isDeleteOverlayVisible by remember { mutableStateOf(false) }
-
-    val triggerVibration = {
-        val vibrator =
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-                context.getSystemService(VibratorManager::class.java)?.defaultVibrator
-            } else {
-                context.getSystemService(Vibrator::class.java)
-            }
-        vibrator?.let {
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                it.vibrate(VibrationEffect.createOneShot(50L, VibrationEffect.DEFAULT_AMPLITUDE))
-            } else {
-                @Suppress("DEPRECATION")
-                it.vibrate(50L)
-            }
-        }
-    }
 
     Box(
         modifier = modifier.padding(8.dp).fillMaxWidth().height(110.dp),
@@ -243,7 +248,7 @@ fun BookmarkItem(
                         }
                     },
                     onLongClick = {
-                        triggerVibration()
+                        onHaptic(KBBIHapticType.LongPress)
                         isDeleteOverlayVisible = true
                     },
                 ),
@@ -424,7 +429,10 @@ fun BookmarksScreenPreview() {
                             entry = "belajar",
                             meanings =
                                 listOf(
-                                    MeaningModel(wordClass = "v", description = "berusaha memperoleh kepandaian atau ilmu"),
+                                    MeaningModel(
+                                        wordClass = "v",
+                                        description = "berusaha memperoleh kepandaian atau ilmu",
+                                    ),
                                 ),
                         ),
                     ),
@@ -439,7 +447,7 @@ fun BookmarksScreenPreview() {
                                 listOf(
                                     MeaningModel(
                                         wordClass = "v",
-                                        description = "memasukkan bahan makanan ke dalam mulut serta mengunyah dan menelannya",
+                                        description = "memasukkan bahan makanan ke dalam mulut",
                                     ),
                                 ),
                         ),

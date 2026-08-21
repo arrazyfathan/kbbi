@@ -146,6 +146,9 @@
     <string name="clear_history_confirm_text">This action cannot be undone.</string>
     <string name="clear_history_confirmed">Search history cleared</string>
     <string name="data_section_title">Data</string>
+    <string name="interaction_section_title">Interaction</string>
+    <string name="haptic_feedback_title">Haptic feedback</string>
+    <string name="haptic_feedback_description">Use subtle vibrations for actions and results</string>
     <string name="coming_soon">Coming soon</string>
     <string name="update_checking">Checking…</string>
     <string name="update_check_failed">Couldn\'t check for updates</string>

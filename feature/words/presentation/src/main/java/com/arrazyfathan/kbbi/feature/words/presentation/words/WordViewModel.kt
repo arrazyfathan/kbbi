@@ -1,13 +1,14 @@
 package com.arrazyfathan.kbbi.feature.words.presentation.words
 
+import androidx.compose.runtime.Immutable
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.arrazyfathan.kbbi.core.domain.model.AppResult
+import com.arrazyfathan.kbbi.core.presentation.ui.UiText
+import com.arrazyfathan.kbbi.core.presentation.ui.asUiText
 import com.arrazyfathan.kbbi.feature.home.domain.model.ListWordModel
 import com.arrazyfathan.kbbi.feature.home.domain.usecase.GetWordEntriesUseCase
 import com.arrazyfathan.kbbi.feature.home.domain.usecase.SearchWordUseCase
-import com.arrazyfathan.kbbi.core.presentation.ui.UiText
-import com.arrazyfathan.kbbi.core.presentation.ui.asUiText
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -19,6 +20,7 @@ import kotlinx.coroutines.launch
 /**
  * Created by Ar Razy Fathan Rabbani on 18/03/23.
  */
+@Immutable
 data class WordListState(
     val searchQuery: String = "",
     val words: List<String> = emptyList(),
@@ -63,7 +65,9 @@ class WordViewModel(
 
     fun onAction(action: WordListAction) {
         when (action) {
-            WordListAction.OnStarted -> loadWords()
+            WordListAction.OnStarted -> {
+                loadWords()
+            }
 
             is WordListAction.OnSearchQueryChanged -> {
                 _state.update {
@@ -74,7 +78,9 @@ class WordViewModel(
                 }
             }
 
-            is WordListAction.OnWordClicked -> search(action.word)
+            is WordListAction.OnWordClicked -> {
+                search(action.word)
+            }
         }
     }
 

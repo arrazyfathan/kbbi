@@ -1,210 +1,210 @@
-
-
 # KBBI
 
-KBBI is an unofficial Android dictionary app for **Kamus Besar Bahasa Indonesia**. The app combines a remote dictionary API with a bundled local word index and an offline-first Room cache so users can search words quickly, revisit previously opened meanings without a network connection, and keep bookmarks and recent search history on-device.
+KBBI is an unofficial Android dictionary for **Kamus Besar Bahasa Indonesia**, built for fast lookup, offline-friendly reading, proverbs, translations, bookmarks, and daily learning reminders.
 
 <p align="center">
-  <a href="https://opensource.org/licenses/Apache-2.0"><img alt="License" src="https://img.shields.io/badge/License-Apache%202.0-blue.svg"/></a>
-  <a href="https://android-arsenal.com/api?level=23"><img alt="API" src="https://img.shields.io/badge/API-23%2B-brightgreen.svg?style=flat"/></a>
+  <a href="https://github.com/arrazyfathan/kbbi/releases/download/5.15.1/kbbi-v5.15.1-release.apk"><strong>⬇ Download KBBI 5.15.1 APK</strong></a>
+  ·
+  <a href="https://github.com/arrazyfathan/kbbi/releases/latest">Latest release notes</a>
 </p>
 
 <p align="center">
-  <img src="media/Final.png" alt="KBBI app preview" />
+  <a href="https://opensource.org/licenses/Apache-2.0"><img alt="License: Apache 2.0" src="https://img.shields.io/badge/License-Apache%202.0-blue.svg"/></a>
+  <a href="https://android-arsenal.com/api?level=23"><img alt="Minimum API 23" src="https://img.shields.io/badge/API-23%2B-brightgreen.svg"/></a>
+  <a href="https://github.com/arrazyfathan/kbbi/releases/latest"><img alt="Latest release" src="https://img.shields.io/github/v/release/arrazyfathan/kbbi"/></a>
 </p>
 
-## Overview
+> The APK is distributed through GitHub Releases. Android may ask you to allow installation from your browser or file manager. Verify that the download comes from `github.com/arrazyfathan/kbbi` before installing it.
 
-This repository contains the Android client for KBBI. The project is organized as a multi-module Clean Architecture codebase:
+<p align="center">
+  <img src="media/Final.png" alt="KBBI Android application preview" />
+</p>
 
-- `:app` owns application startup, Koin assembly, and the root Navigation3 graph.
-- `:core:*` contains shared data, domain, logging, presentation, and utility code.
-- `:feature:*` contains feature-specific presentation, data, and domain modules.
-- Feature navigation is exposed through each feature's `navigation` package and wired from `:app`.
-- Presentation uses Jetpack Compose, ViewModels, state, and one-shot UI events.
-- Data access uses repositories, use cases, Room, Ktor, OkHttp, and kotlinx.serialization.
-- Dependency injection uses Koin modules composed at the app boundary.
-- Product flavors are available for `development` and `production`.
+## About the project
+
+This repository contains the Android client for KBBI. It combines a remote dictionary service with a bundled local word index and on-device Room caches. A successful lookup is cached so previously opened content can remain available when the network is unavailable.
+
+The app does not require an account. Bookmarks, search history, cached content, reminder preferences, language selection, and haptic preferences are stored locally on the device.
+
+KBBI is an unofficial project and is not operated by or affiliated with the Indonesian government or the official KBBI publisher.
 
 ## Features
 
-- Search Indonesian words from the home screen
-- Show home search suggestions from the bundled local word index
-- Browse a bundled local word list from `feature/home/data/src/main/assets/entries.json`
-- View detailed word entries and meanings
-- Share word definitions to other apps
-- Receive shared text from other apps and search it in KBBI
-- Cache successful meaning lookups locally, including words opened from the word list
-- Browse and search Indonesian proverbs with paged results
-- Cache proverb pages and proverb meanings for fallback when the remote API is unavailable
-- Save bookmarked words locally
-- Keep recent search history locally
-- Animated splash screen and Lottie-based loading/empty states
-- Shared design system, UI text handling, error mapping, networking, and logging
+### Dictionary and discovery
+
+- Search Indonesian words and meanings from the home screen.
+- Get suggestions from the bundled local word index before submitting a search.
+- Browse and filter the complete bundled word-entry list.
+- Use Android speech recognition for voice search.
+- Show optional word and meaning translations in the detail screen.
+- Copy or share formatted definitions through Android's share sheet.
+
+### Offline-friendly local data
+
+- Cache successful word lookups in Room.
+- Reopen cached meanings without a network connection.
+- Cache proverb pages and proverb details for fallback when the remote service fails.
+- Preserve cached meanings when a bookmark is removed.
+- Store recent search history locally and clear it from Settings.
+
+### Proverbs and bookmarks
+
+- Browse and search Indonesian proverbs with Paging 3.
+- Open proverb meanings with remote-first, cache-fallback behavior.
+- Save words as bookmarks and remove them with long-press actions.
+- Open bookmark, word, and proverb destinations from notifications and deep links.
+
+### Android integrations
+
+- Search selected text through Android's `ACTION_PROCESS_TEXT` menu.
+- Receive shared `text/plain` content from other apps.
+- Handle `kbbi://word/{word}`, `kbbi://proverb/{slug}`, and `kbbi://bookmarks` links.
+- Provide launcher shortcuts for search, bookmarks, proverbs, and a random word.
+- Schedule daily word, daily proverb, and bookmark-review reminders with WorkManager.
+- Request microphone and notification permissions only when their related feature is used.
+
+### Settings and app experience
+
+- Choose English or Indonesian as the application language.
+- Configure reminder types and delivery times independently.
+- Enable or disable semantic haptic feedback across the application.
+- Check GitHub Releases for app updates and download a newer APK.
+- View privacy policy, terms and conditions, and open-source licenses in the app.
+- Use Material 3, edge-to-edge layouts, animated transitions, and Lottie states.
 
 <p align="right">
-  <img src="media/preview.gif" alt="Animated preview" width="32%" />
+  <img src="media/preview.gif" alt="Animated KBBI application preview" width="32%" />
 </p>
 
-## Tech Stack
+## Architecture
 
-- **Language:** Kotlin
-- **Build tooling:** Gradle, Android Gradle Plugin `9.2.1`, Kotlin `2.4.0`
-- **Java target:** Java 17
-- **Minimum SDK:** 23
-- **Target/Compile SDK:** 37
-- **UI:** Jetpack Compose, Material 3, Lottie Compose
-- **Navigation:** AndroidX Navigation3
-- **Architecture:** Clean Architecture, MVVM-style presentation, Repository pattern, UseCase layer
-- **Async/data:** Coroutines, StateFlow, Channel-based events
-- **Local storage:** Room `2.8.4`
-- **Networking:** Ktor Client, kotlinx.serialization, OkHttp engine/logging
-- **Dependency injection:** Koin `4.2.2`
-- **Code quality:** Detekt, Ktlint
-- **Distribution/automation:** Fastlane, GitHub Actions
+KBBI is a multi-module Android project organized by feature and layer. Dependencies point inward toward domain contracts:
 
-## Module Structure
+```text
+:app
+  ├── application startup and Koin assembly
+  ├── Navigation3 root graph and external-intent routing
+  ├── notification permission and WorkManager adapters
+  └── application-wide UI coordination
+
+:feature:<name>:presentation
+  ├── feature domain contracts
+  ├── :core:domain
+  ├── :core:presentation:ui
+  └── :core:presentation:designsystem
+
+:feature:<name>:data
+  ├── feature domain contracts
+  ├── :core:data
+  ├── :core:domain
+  └── :core:logging
+
+:feature:<name>:domain
+  └── domain models, repository interfaces, and use cases
+```
+
+Presentation follows an MVI-style unidirectional flow with immutable screen state, user actions, ViewModels, and one-shot events. Koin assembles implementations at the application boundary.
+
+### Module map
 
 ```text
 .
 ├── app/
-│   └── src/main/java/com/arrazyfathan/kbbi/
-│       ├── BaseApplication.kt       # Koin startup
-│       ├── MainActivity.kt          # Activity entry point
-│       ├── di/                      # App-level module assembly
-│       └── navigation/              # Root app navigation graph
+│   ├── di/                         # App-level use-case and ViewModel registration
+│   ├── intent/                     # External text, sharing, and deep-link parsing
+│   ├── navigation/                 # Navigation3 graph, routes, and shortcuts
+│   ├── notifications/              # WorkManager scheduler, worker, permission gateway
+│   └── ui/                         # Application-wide UI state
 ├── core/
-│   ├── app-update/                  # App update checking and prompting logic
-│   ├── data/                        # Shared Ktor client and safe API call helpers
-│   ├── di/                          # Shared core Koin modules
-│   ├── domain/                      # AppResult, DataError, shared domain primitives
-│   ├── logging/                     # App and network logging helpers
+│   ├── app-update/                 # GitHub release checks and update prompt
+│   ├── data/                       # Shared Ktor client and safe API calls
+│   ├── di/                         # Shared Koin modules
+│   ├── domain/                     # AppResult, DataError, shared primitives
+│   ├── logging/                    # Application and network logging
 │   ├── presentation/
-│   │   ├── designsystem/            # Theme, colors, type, icons, resources, components
-│   │   └── ui/                      # UiText, DataErrorToText, shared UI helpers
-│   └── utils/                       # System bar and platform utilities
+│   │   ├── designsystem/           # Theme, typography, resources, haptics, components
+│   │   └── ui/                     # UiText, alerts, errors, loading coordination
+│   └── utils/                      # System-bar and voice-recognition helpers
 ├── feature/
-│   ├── bookmark/
-│   │   └── presentation/            # Bookmark screen, ViewModel, route
-│   ├── detail/
-│   │   └── presentation/            # Detail screen, ViewModel, route
+│   ├── bookmark/presentation/      # Saved-word UI and deletion flow
+│   ├── detail/presentation/        # Meanings, translation, copy/share, bookmark state
 │   ├── home/
-│   │   ├── data/                    # Room, remote/local data sources, repository impl
-│   │   ├── domain/                  # Word models, repositories, use cases
-│   │   └── presentation/            # Home screen, ViewModel, route
+│   │   ├── data/                   # Word Room DB, remote API, bundled catalog
+│   │   ├── domain/                 # Word/search/bookmark/translation contracts
+│   │   └── presentation/           # Search, suggestions, history, voice input
 │   ├── proverb/
-│   │   ├── data/                    # Paging, Room cache, remote data source
-│   │   ├── domain/                  # Proverb models, repository, use cases
-│   │   └── presentation/            # Proverb screen, ViewModel, route
-│   ├── splash/
-│   │   └── presentation/            # Splash screen and route
-│   └── words/
-│       └── presentation/            # Word list screen, ViewModel, route
-├── fastlane/                        # Release/distribution automation
-├── gradle/libs.versions.toml        # Centralized dependency and plugin versions
-└── .github/workflows/               # CI and tagged release pipeline
+│   │   ├── data/                   # Paging, remote source, Room cache
+│   │   ├── domain/                 # Proverb contracts and use cases
+│   │   └── presentation/           # Proverb list, search, and meaning UI
+│   ├── settings/
+│   │   ├── data/                   # DataStore preference implementations
+│   │   ├── domain/                 # Reminder and UI preference contracts
+│   │   └── presentation/           # Settings, language, legal documents
+│   ├── splash/presentation/        # Animated startup screen
+│   └── words/presentation/         # Searchable local word list
+├── .github/workflows/              # Validation and tagged release pipeline
+├── fastlane/                       # Local automation
+└── gradle/libs.versions.toml        # Dependency and plugin versions
 ```
 
-## Architecture
+## Data flow
 
-The dependency direction is kept inward:
+### Word lookup
 
-```text
-app
- ├── feature:*:presentation
- ├── core:di
- └── core:presentation:designsystem
+1. The query is normalized and validated by the domain use case.
+2. Local suggestions come from `feature/home/data/src/main/assets/entries.json`.
+3. `WordRepository` checks `kbbi_db` for a cached entry.
+4. Cached data is returned immediately when available.
+5. A cache miss requests the configured dictionary API.
+6. A successful response is persisted in Room.
+7. Bookmarking changes the stored entry's `isSaved` flag; removing a bookmark keeps its cached meaning.
 
-feature:*:presentation
- ├── feature:home:domain
- ├── core:domain
- ├── core:presentation:ui
- └── core:presentation:designsystem
+The bundled asset contains word entries, not full definitions. A word must be opened successfully at least once before its meaning is available offline.
 
-feature:home:data
- ├── feature:home:domain
- ├── core:data
- ├── core:domain
- └── core:logging
+### Proverb lookup
 
-feature:proverb:data
- ├── feature:proverb:domain
- ├── core:data
- └── core:domain
+1. `ProverbViewModel` debounces the search query.
+2. Paging loads matching pages from the remote API.
+3. Successful pages are cached in `proverb_db`.
+4. Cached pages are used when a remote page fails.
+5. Proverb details are remote-first and cached by slug for later fallback.
 
-core modules
- └── shared primitives with no feature ownership
-```
+### Preferences and reminders
 
-`HttpClientFactory` and `SafeApiCall` live in `:core:data` so every feature data module can reuse the same network setup. `UiText` and `DataErrorToText` live in `:core:presentation:ui` so presentation modules can map domain/data errors to localized UI messages consistently.
+- DataStore persists reminder configuration and haptic preferences.
+- WorkManager schedules unique periodic work for each enabled reminder type.
+- Notification taps route back into the appropriate word, proverb, or bookmark destination.
+- App language is stored through AndroidX per-app locale APIs.
 
-Word meaning lookup is handled by `WordRepository` in `:feature:home:data`. It checks Room first, returns cached meanings when present, calls the remote API only on cache miss, and stores successful remote responses back into Room. Cached meanings and bookmarks share `word_table`; `isSaved = false` means the word is cached only, while `isSaved = true` means it also appears in the bookmark list.
+## Technology
 
-Proverb lookup is handled by `NetworkProverbRepository` in `:feature:proverb:data`. Proverb lists are loaded with Paging, successful pages are cached in `proverb_db`, and cached pages are used when a remote page load fails. Proverb detail requests are remote-first; successful detail responses are cached, and cached detail is returned when the remote request fails.
+| Area | Technology |
+|---|---|
+| Language | Kotlin 2.4.10, Java 17 target |
+| Build | Gradle 9.7.1, Android Gradle Plugin 9.3.1, KSP |
+| Android | Minimum SDK 23, target/compile SDK 37 |
+| UI | Jetpack Compose BOM 2026.08.00, Material 3, Lottie |
+| Navigation | AndroidX Navigation3 |
+| State | ViewModel, StateFlow, coroutines, channel-backed events |
+| Networking | Ktor Client 3.5.2 with OkHttp and kotlinx.serialization |
+| Persistence | Room 2.8.4, Preferences DataStore 1.2.1 |
+| Background work | WorkManager 2.11.2 |
+| Dependency injection | Koin 4.2.2 |
+| Lists | Paging 3.5.1 |
+| Quality | Android Lint, Detekt, Ktlint, Kover |
+| Automation | GitHub Actions, Fastlane, Renovate |
 
-## Application Flow
-
-The app starts at the splash destination, then enters the main flow owned by the root navigation graph in `:app`.
-
-- **Home:** Search words, show local suggestions, display loading/error states, cache successful meanings, and store recent searches.
-- **Words:** Filter the bundled local word index, then open word details through the same cache-aware lookup flow.
-- **Proverbs:** Search and page through proverb results, then open proverb meanings with cached fallback.
-- **Bookmarks:** View saved entries and remove them from bookmarks without deleting cached meanings.
-- **Detail:** Show meanings for a selected word, share definitions, and toggle bookmark state.
-
-Each feature exposes its route from a `navigation` package, while `AppNavigation` in `:app` composes those destinations into the app graph.
-
-## Data Sources
-
-### Remote API
-
-- Base URL: configure `KBBI_BASE_URL` in `local.properties`, a Gradle property, or the `KBBI_BASE_URL` environment variable.
-- Shared network helpers: `core/data/src/main/java/com/arrazyfathan/kbbi/core/data/remote/network`
-
-### Local Data
-
-- **Room database:** stores cached meanings, bookmark flags, and search history in `kbbi_db`
-- **Proverb Room database:** stores cached proverb pages and cached proverb details in `proverb_db`
-- **Asset file:** `feature/home/data/src/main/assets/entries.json` provides the local searchable word index used by home search suggestions and the word list. It contains entries only, not definitions.
-
-Current word lookup behavior:
-
-1. The app normalizes and validates the query in `SearchWordUseCase`.
-2. `HomeViewModel` can suggest matching entries from the bundled local word index before submission.
-3. `WordRepository` checks Room for an existing `word_table` row.
-4. If cached, the app opens the detail screen from local data.
-5. If missing, the repository requests `/search/{word}` from the remote API.
-6. Successful remote responses are stored in Room with `isSaved = false`.
-7. Bookmarking the word upserts the same cached payload with `isSaved = true`.
-8. Removing a bookmark sets `isSaved = false`, preserving the cached meaning for offline lookup.
-
-Android text integration:
-
-1. `SearchInKbbiActivity` is an activity alias for `ACTION_PROCESS_TEXT`, allowing selected text in other apps to be searched in KBBI.
-2. `ShareToKbbiActivity` is an activity alias for `ACTION_SEND` with `text/plain`, allowing shared text from other apps to be searched in KBBI.
-3. `MainActivity` extracts the first likely search token from incoming text and forwards it into the home search flow.
-4. The detail screen sends formatted plain-text definitions through Android's share chooser.
-
-Current proverb lookup behavior:
-
-1. `ProverbViewModel` debounces the search query and requests paged results through `GetListProverbsUseCase`.
-2. `ProverbPagingSource` loads pages from the remote API.
-3. Successful page responses replace the cached page data for the query in `proverb_db`.
-4. If a remote page load fails, the paging source returns the cached page when available.
-5. Tapping a proverb requests detail through `GetProverbMeaningUseCase`.
-6. Successful detail responses are cached by slug.
-7. If a detail request fails, cached detail is returned when available.
+Dependency versions are centralized in [`gradle/libs.versions.toml`](gradle/libs.versions.toml).
 
 ## Requirements
 
-To build the project locally, use:
-
-- Android Studio with current Android SDK tooling
+- Android Studio with Android SDK 37 installed
 - JDK 17
-- Android SDK Platform 37
-- An Android device or emulator for runtime testing
+- Git
+- Access to a compatible KBBI API base URL
+- Android device or emulator running API 23 or newer
 
-## Getting Started
+## Local setup
 
 ### 1. Clone the repository
 
@@ -213,113 +213,98 @@ git clone https://github.com/arrazyfathan/kbbi.git
 cd kbbi
 ```
 
-### 2. Configure the Android SDK
+### 2. Configure local properties
 
-Your `local.properties` should point to a valid Android SDK installation:
+Create `local.properties` and provide both the Android SDK path and API URL:
 
 ```properties
-sdk.dir=/path/to/Android/sdk
+sdk.dir=/absolute/path/to/Android/sdk
+KBBI_BASE_URL=https://your-compatible-api.example/
 ```
 
-### 3. Sync dependencies
+`KBBI_BASE_URL` may instead be passed as a Gradle property or environment variable:
 
 ```sh
-./gradlew help
+./gradlew -PKBBI_BASE_URL=https://your-compatible-api.example/ help
 ```
 
-If Gradle sync succeeds, the project is ready to open in Android Studio.
+The build fails early when no API URL is configured. Keep private endpoints and credentials out of version control.
 
-## Build Variants
+### 3. Build or install the development variant
 
-The app defines one flavor dimension, `stage`, with two product flavors:
+```sh
+./gradlew assembleDevelopmentDebug
+./gradlew installDevelopmentDebug
+```
 
-- `development` uses application ID `com.arrazyfathan.kbbi.dev`
-- `production` uses application ID `com.arrazyfathan.kbbi`
+In Android Studio, select the `developmentDebug` build variant and run the `app` configuration.
 
-Examples:
+## Build variants and versioning
+
+The `stage` flavor dimension defines:
+
+| Variant | Application ID | App label |
+|---|---|---|
+| `development` | `com.arrazyfathan.kbbi.dev` | `Dev KBBI` |
+| `production` | `com.arrazyfathan.kbbi` | `KBBI` |
+
+Common tasks:
 
 ```sh
 ./gradlew assembleDevelopmentDebug
 ./gradlew assembleProductionDebug
 ```
 
-Release APK names are customized automatically:
+Version components come from [`app/version.properties`](app/version.properties). Release APK names are generated as:
 
 - Production: `kbbi-v<version>-release.apk`
-- Non-production: `kbbi-<flavor>-v<version>-release.apk`
+- Other flavors: `kbbi-<flavor>-v<version>-release.apk`
 
-Version values are driven by [`app/version.properties`](app/version.properties).
+## Testing and quality
 
-## Running the App
-
-For local development, the normal entry point is the development debug build:
+Run the same validation used by CI:
 
 ```sh
-./gradlew installDevelopmentDebug
+./gradlew testDevelopmentDebugUnitTest lintDevelopmentDebug assembleDevelopmentDebug --stacktrace
 ```
 
-Or from Android Studio, choose the `developmentDebug` variant and run the `app` configuration.
-
-## Testing
-
-Local unit tests are split across the app, core, and feature modules. Instrumented tests currently live under the feature data layer where Android-dependent Room behavior is validated.
-
-Run JVM unit tests:
+Additional checks:
 
 ```sh
-./gradlew testDevelopmentDebugUnitTest :core:logging:testDebugUnitTest :core:domain:test :feature:home:data:testDebugUnitTest :feature:home:domain:test
-```
-
-Compile Android tests:
-
-```sh
-./gradlew :feature:home:data:compileDebugAndroidTestKotlin
-```
-
-Focused compile checks for the current cache and word-list flow:
-
-```sh
-./gradlew --no-daemon :feature:home:data:compileDebugKotlin :feature:home:data:compileDebugAndroidTestKotlin
-./gradlew --no-daemon :feature:words:presentation:compileDebugKotlin :app:compileDevelopmentDebugKotlin
-```
-
-Run Android tests on a connected device or emulator:
-
-```sh
-./gradlew :feature:home:data:connectedDebugAndroidTest
-```
-
-## Coverage
-
-The project uses the JetBrains Kover plugin. For the development debug variant:
-
-```sh
-./gradlew app:koverLogDevelopmentDebug
-./gradlew app:koverHtmlReportDevelopmentDebug
-```
-
-The HTML report is generated at `app/build/reports/kover/htmlDevelopmentDebug/index.html`.
-
-## Quality and Validation
-
-Useful validation commands:
-
-```sh
-./gradlew lintDevelopmentDebug
 ./gradlew detekt
 ./gradlew ktlintCheck
-./gradlew assembleDevelopmentDebug
 ```
 
-A focused post-refactor validation pass:
+Run connected Android tests on an emulator or device:
 
 ```sh
-./gradlew testDevelopmentDebugUnitTest :core:logging:testDebugUnitTest :core:domain:test :feature:home:data:testDebugUnitTest :feature:home:domain:test :feature:home:data:compileDebugAndroidTestKotlin
+./gradlew connectedDevelopmentDebugAndroidTest
 ```
 
-## Release Signing
+Generate Kover coverage for the application variant:
 
-Release builds are intentionally blocked unless signing is configured. The Gradle build expects these values through either Gradle properties or environment variables:
+```sh
+./gradlew :app:koverLogDevelopmentDebug
+./gradlew :app:koverHtmlReportDevelopmentDebug
+```
+
+The HTML report is written under `app/build/reports/kover/`.
+
+Tests cover domain use cases, remote and local data behavior, mapping, app updates, external intents, shortcuts, ViewModels, settings, Room, legal screens, and design-system components.
+
+## Permissions
+
+| Permission | Purpose |
+|---|---|
+| Internet/network state | Dictionary, translation, proverb, and release requests |
+| Microphone | Voice search; requested when voice search is used |
+| Notifications | Daily reminders; requested when a reminder is enabled on Android 13+ |
+
+Haptic feedback uses Android's semantic Compose haptic API and does not require the `VIBRATE` permission.
+
+## Release signing
+
+Production release packaging is blocked unless all signing values are supplied as Gradle properties or environment variables:
 
 ```text
 ANDROID_KEYSTORE_PATH
@@ -338,84 +323,38 @@ export ANDROID_KEY_PASSWORD=your-key-password
 ./gradlew assembleProductionRelease
 ```
 
-Without those values, any signed release packaging task will fail by design.
+## CI/CD and releases
 
-## Fastlane
+The workflow in [`.github/workflows/android.yml`](.github/workflows/android.yml) performs the following:
 
-The repository includes Fastlane setup.
+- Pull requests and pushes to `main`: unit tests, Android lint, and a development debug APK.
+- Version tags: signed production APK build, artifact upload, generated commit notes, and GitHub Release publication.
 
-Install Ruby dependencies:
+Release secrets:
 
-```sh
-bundle install
-```
-
-Available lane:
-
-```sh
-bundle exec fastlane android test
-```
-
-Current behavior:
-
-- `android test` runs Gradle tests
-
-## CI/CD
-
-GitHub Actions workflow: `.github/workflows/android.yml`
-
-### Pull requests and pushes to `main`
-
-The `validate` job runs:
-
-```sh
-./gradlew testDevelopmentDebugUnitTest lintDevelopmentDebug assembleDevelopmentDebug --stacktrace
-```
-
-If successful, it uploads the development debug APK as a workflow artifact.
-
-### Tagged releases
-
-When a git tag is pushed, the `release` job:
-
-1. Validates signing secrets
-2. Builds `assembleProductionRelease`
-3. Uploads the signed production APK as an artifact
-4. Publishes a GitHub release with generated release notes
-
-Required GitHub secrets:
-
+- `KBBI_BASE_URL`
 - `ANDROID_KEYSTORE_BASE64`
 - `ANDROID_KEYSTORE_PASSWORD`
 - `ANDROID_KEY_ALIAS`
 - `ANDROID_KEY_PASSWORD`
 
-## Design and UX Notes
+Fastlane currently provides `bundle exec fastlane android test`, which delegates to Gradle tests.
 
-The current app includes:
+## Project documentation
 
-- Compose-first screen implementation
-- Material 3 components and app theming
-- Shared design system module for theme, type, colors, icons, resources, and components
-- Shared `UiText` and `DataErrorToText` for localized presentation messages
-- Custom splash screen animation
-- Lottie-based loading and empty states
-- AndroidX edge-to-edge system bar setup
-- Compose previews for key screens and content components
+- [Future development roadmap](docs/future-development.md)
+- [Architecture evolution notes](planning.md)
+- [Fastlane configuration](fastlane/README.md)
+- [GitHub releases](https://github.com/arrazyfathan/kbbi/releases)
+- [Issue tracker](https://github.com/arrazyfathan/kbbi/issues)
 
-## Screenshots and Metrics
+## Screenshots and metrics
 
 ### MAD Score
 
-![summary](media/summary.png "Summary")
-![kotlin](media/kotlin.png "Kotlin")
-![jetpack](media/jetpack.png "Jetpack")
-
-## Download
-
-Latest published APK:
-
-- <https://github.com/arrazyfathan/kbbi/releases/download/1.0/app-release.apk>
+![MAD Score summary](media/summary.png "MAD Score summary")
+![Kotlin score](media/kotlin.png "Kotlin score")
+![Jetpack score](media/jetpack.png "Jetpack score")
 
 ## License
 
@@ -426,7 +365,7 @@ Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
 You may obtain a copy of the License at
 
-http://www.apache.org/licenses/LICENSE-2.0
+https://www.apache.org/licenses/LICENSE-2.0
 
 Unless required by applicable law or agreed to in writing, software
 distributed under the License is distributed on an "AS IS" BASIS,

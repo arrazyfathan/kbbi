@@ -44,6 +44,7 @@ import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
@@ -64,11 +65,12 @@ import com.airbnb.lottie.compose.LottieAnimation
 import com.airbnb.lottie.compose.LottieCompositionSpec
 import com.airbnb.lottie.compose.LottieConstants
 import com.airbnb.lottie.compose.rememberLottieComposition
-import com.arrazyfathan.kbbi.NotificationLaunchRequest
 import com.arrazyfathan.kbbi.core.R
 import com.arrazyfathan.kbbi.core.appupdate.presentation.AppUpdateAction
 import com.arrazyfathan.kbbi.core.appupdate.presentation.AppUpdatePrompt
 import com.arrazyfathan.kbbi.core.appupdate.presentation.AppUpdateViewModel
+import com.arrazyfathan.kbbi.core.presentation.designsystem.KBBIHapticType
+import com.arrazyfathan.kbbi.core.presentation.designsystem.perform
 import com.arrazyfathan.kbbi.core.presentation.ui.LocalAppLoadingController
 import com.arrazyfathan.kbbi.core.presentation.ui.rememberAppLoadingController
 import com.arrazyfathan.kbbi.core.utils.updateSystemBarStyle
@@ -77,10 +79,12 @@ import com.arrazyfathan.kbbi.feature.detail.presentation.navigation.DetailRoute
 import com.arrazyfathan.kbbi.feature.home.domain.model.ListWordModel
 import com.arrazyfathan.kbbi.feature.home.presentation.navigation.HomeRoute
 import com.arrazyfathan.kbbi.feature.proverb.presentation.navigation.ProverbRoute
-import com.arrazyfathan.kbbi.feature.settings.presentation.settings.SettingsRoute
 import com.arrazyfathan.kbbi.feature.settings.presentation.legal.PrivacyPolicyScreen
 import com.arrazyfathan.kbbi.feature.settings.presentation.legal.TermsConditionsScreen
+import com.arrazyfathan.kbbi.feature.settings.presentation.settings.SettingsRoute
 import com.arrazyfathan.kbbi.feature.words.presentation.navigation.WordsRoute
+import com.arrazyfathan.kbbi.intent.NotificationLaunchRequest
+import com.arrazyfathan.kbbi.ui.AppUiViewModel
 import com.github.skydoves.navgraph.annotations.NavGraphRoot
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
@@ -170,6 +174,7 @@ fun MainApp(
     onNotificationRequestConsumed: () -> Unit = {},
 ) {
     val appUpdateViewModel: AppUpdateViewModel = koinViewModel()
+    val appUiViewModel: AppUiViewModel = koinViewModel()
     val externalSearchQuery = launchRequests.externalSearchQuery
     val externalSearchRequestKey = launchRequests.externalSearchRequestKey
     val shortcutRequest = launchRequests.shortcutRequest
@@ -177,6 +182,7 @@ fun MainApp(
     val notificationRequest = launchRequests.notificationRequest
     val notificationRequestKey = launchRequests.notificationRequestKey
     val context = LocalContext.current
+    val platformHapticFeedback = LocalHapticFeedback.current
     val screens =
         listOf(
             Screen.Home,
@@ -203,6 +209,15 @@ fun MainApp(
         derivedStateOf { loadingController.isBlocking }
     }
     val appUpdateState by appUpdateViewModel.state.collectAsStateWithLifecycle()
+    val appUiState by appUiViewModel.state.collectAsStateWithLifecycle()
+    val performHaptic: (KBBIHapticType) -> Unit =
+        remember(appUiState.hapticsEnabled, platformHapticFeedback) {
+            { type ->
+                if (appUiState.hapticsEnabled) {
+                    platformHapticFeedback.perform(type)
+                }
+            }
+        }
 
     LaunchedEffect(externalSearchRequestKey) {
         if (externalSearchQuery != null) {
@@ -275,6 +290,7 @@ fun MainApp(
             entryProvider {
                 entry<Screen.Home> {
                     HomeRoute(
+                        onHaptic = performHaptic,
                         externalSearchQuery = externalSearchQuery,
                         externalSearchRequestKey = externalSearchRequestKey,
                         onExternalSearchConsumed = onExternalSearchConsumed,
@@ -304,6 +320,7 @@ fun MainApp(
                 }
                 entry<Screen.WordList> {
                     WordsRoute(
+                        onHaptic = performHaptic,
                         onNavigateToDetail = { word ->
                             navigator.navigate(DetailNavRoute(routeJson.encodeToString(word)))
                         },
@@ -311,6 +328,7 @@ fun MainApp(
                 }
                 entry<Screen.Proverb> {
                     ProverbRoute(
+                        onHaptic = performHaptic,
                         onNavigateBack = {
                             if (!isUiBlocked) {
                                 navigator.goBack()
@@ -320,6 +338,7 @@ fun MainApp(
                 }
                 entry<Screen.Settings> {
                     SettingsRoute(
+                        onHaptic = performHaptic,
                         onNavigateBack = { if (!isUiBlocked) navigator.goBack() },
                         onOpenPrivacyPolicy = {
                             navigator.navigate(PrivacyPolicyRoute)
@@ -334,6 +353,7 @@ fun MainApp(
                 }
                 entry<Screen.Bookmarks> {
                     BookmarkRoute(
+                        onHaptic = performHaptic,
                         onNavigateToDetail = { word ->
                             navigator.navigate(DetailNavRoute(routeJson.encodeToString(word)))
                         },
@@ -344,7 +364,10 @@ fun MainApp(
                         remember(route.dataJson) {
                             routeJson.decodeFromString<ListWordModel>(route.dataJson)
                         }
-                    DetailRoute(listWordModel = listWordModel)
+                    DetailRoute(
+                        listWordModel = listWordModel,
+                        onHaptic = performHaptic,
+                    )
                 }
                 entry<OpenSourceLicensesRoute> {
                     OpenSourceLicensesScreen(

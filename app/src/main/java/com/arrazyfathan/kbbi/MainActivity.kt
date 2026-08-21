@@ -18,6 +18,9 @@ import com.arrazyfathan.kbbi.core.R
 import com.arrazyfathan.kbbi.core.presentation.designsystem.KBBITheme
 import com.arrazyfathan.kbbi.core.utils.updateSystemBarStyle
 import com.arrazyfathan.kbbi.feature.splash.presentation.navigation.SplashRoute
+import com.arrazyfathan.kbbi.intent.NotificationLaunchRequest
+import com.arrazyfathan.kbbi.intent.extractExternalSearchQuery
+import com.arrazyfathan.kbbi.intent.extractNotificationLaunchRequest
 import com.arrazyfathan.kbbi.navigation.AppShortcutRequest
 import com.arrazyfathan.kbbi.navigation.MainApp
 import com.arrazyfathan.kbbi.navigation.MainAppLaunchRequests

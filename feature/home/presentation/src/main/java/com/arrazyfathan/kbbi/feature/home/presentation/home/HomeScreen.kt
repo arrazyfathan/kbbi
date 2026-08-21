@@ -61,6 +61,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.pointer.pointerInput
@@ -86,6 +87,7 @@ import com.arrazyfathan.kbbi.core.presentation.designsystem.BlueBg
 import com.arrazyfathan.kbbi.core.presentation.designsystem.BluePrimary
 import com.arrazyfathan.kbbi.core.presentation.designsystem.BlueSecondary
 import com.arrazyfathan.kbbi.core.presentation.designsystem.InterFontFamily
+import com.arrazyfathan.kbbi.core.presentation.designsystem.KBBIHapticType
 import com.arrazyfathan.kbbi.core.presentation.designsystem.KBBITheme
 import com.arrazyfathan.kbbi.core.presentation.designsystem.MetropolisFontFamily
 import com.arrazyfathan.kbbi.core.presentation.designsystem.SpaceGroteskFontFamily
@@ -102,6 +104,7 @@ private const val HOME_SEARCH_LOADING_SOURCE = "home_search"
 
 @Composable
 fun HomeScreen(
+    onHaptic: (KBBIHapticType) -> Unit,
     modifier: Modifier = Modifier,
     externalSearchQuery: String? = null,
     externalSearchRequestKey: Long = 0L,
@@ -112,8 +115,8 @@ fun HomeScreen(
     onNavigateToDetail: (ListWordModel) -> Unit,
     onNavigateToProverb: () -> Unit,
     onNavigateToSettings: () -> Unit = {},
-    viewModel: HomeViewModel = koinViewModel(),
 ) {
+    val viewModel: HomeViewModel = koinViewModel()
     val context = LocalContext.current
     val loadingController = LocalAppLoadingController.current
     val state by viewModel.state.collectAsStateWithLifecycle()
@@ -154,6 +157,7 @@ fun HomeScreen(
             if (isGranted) {
                 viewModel.onAction(HomeAction.OnVoiceSearchStarted)
                 voiceRecognitionController?.startListening()
+                onHaptic(KBBIHapticType.ToggleOn)
             } else {
                 viewModel.onAction(HomeAction.OnVoiceSearchPermissionDenied)
             }
@@ -168,6 +172,7 @@ fun HomeScreen(
         if (VoiceRecognitionUtils.hasRecordAudioPermission(context)) {
             viewModel.onAction(HomeAction.OnVoiceSearchStarted)
             voiceRecognitionController.startListening()
+            onHaptic(KBBIHapticType.ToggleOn)
         } else {
             microphonePermissionLauncher.launch(Manifest.permission.RECORD_AUDIO)
         }
@@ -193,11 +198,15 @@ fun HomeScreen(
         viewModel.events.collect { event ->
             when (event) {
                 is HomeEvent.NavigateToDetail -> {
+                    onHaptic(KBBIHapticType.Confirm)
                     onNavigateToDetail(event.word)
                 }
 
                 is HomeEvent.ShowMessage -> {
                     Toast.makeText(context, event.message.asString(context), Toast.LENGTH_SHORT).show()
+                    if (event.isError) {
+                        onHaptic(KBBIHapticType.Reject)
+                    }
                 }
             }
         }
@@ -231,8 +240,10 @@ fun HomeScreen(
             voiceRecognitionController?.cancel()
             viewModel.onAction(HomeAction.OnVoiceSearchFinished)
             viewModel.onAction(HomeAction.OnVoiceSearchCancelled)
+            onHaptic(KBBIHapticType.ToggleOff)
         },
         onAction = viewModel::onAction,
+        onHaptic = onHaptic,
         modifier = modifier,
     )
 }
@@ -240,6 +251,7 @@ fun HomeScreen(
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun HomeContent(
+    modifier: Modifier = Modifier,
     state: HomeState,
     focusSearchRequestKey: Long = 0L,
     onSearchFocusConsumed: () -> Unit = {},
@@ -248,7 +260,7 @@ fun HomeContent(
     onVoiceSearchClick: () -> Unit = {},
     onVoiceSearchCancel: () -> Unit = {},
     onAction: (HomeAction) -> Unit,
-    modifier: Modifier = Modifier,
+    onHaptic: (KBBIHapticType) -> Unit = {},
 ) {
     val focusManager = LocalFocusManager.current
     val searchFocusRequester = remember { FocusRequester() }
@@ -265,31 +277,44 @@ fun HomeContent(
 
     Box(
         modifier =
-            modifier.fillMaxSize().background(BluePrimary).statusBarsPadding().pointerInput(Unit) {
-                awaitPointerEventScope {
-                    while (true) {
-                        awaitFirstDown(requireUnconsumed = false)
-                        var totalDragY = 0f
-                        var isSwipeDetected = false
-                        do {
-                            val event = awaitPointerEvent()
-                            val dragChange = event.changes.firstOrNull()
-                            if (dragChange != null && dragChange.pressed) {
-                                val deltaY = dragChange.position.y - dragChange.previousPosition.y
-                                totalDragY += deltaY
-                                if (totalDragY < -150f) { // Swipe up threshold
-                                    isSwipeDetected = true
-                                    dragChange.consume()
+            modifier
+                .fillMaxSize()
+                .background(
+                    brush =
+                        Brush.verticalGradient(
+                            colors =
+                                listOf(
+                                    BluePrimary,
+                                    BlueSecondary,
+                                ),
+                        ),
+                ).statusBarsPadding()
+                .pointerInput(Unit) {
+                    awaitPointerEventScope {
+                        while (true) {
+                            awaitFirstDown(requireUnconsumed = false)
+                            var totalDragY = 0f
+                            var isSwipeDetected = false
+                            do {
+                                val event = awaitPointerEvent()
+                                val dragChange = event.changes.firstOrNull()
+                                if (dragChange != null && dragChange.pressed) {
+                                    val deltaY = dragChange.position.y - dragChange.previousPosition.y
+                                    totalDragY += deltaY
+                                    if (totalDragY < -150f) { // Swipe up threshold
+                                        isSwipeDetected = true
+                                        dragChange.consume()
+                                    }
                                 }
-                            }
-                        } while (event.changes.any { it.pressed } && !isSwipeDetected)
+                            } while (event.changes.any { it.pressed } && !isSwipeDetected)
 
-                        if (isSwipeDetected) {
-                            showBottomSheet = true
+                            if (isSwipeDetected) {
+                                onHaptic(KBBIHapticType.GestureThreshold)
+                                showBottomSheet = true
+                            }
                         }
                     }
-                }
-            },
+                },
     ) {
         // Hero Image at Bottom-Right
         Image(

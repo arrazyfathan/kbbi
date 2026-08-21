@@ -2,11 +2,13 @@ package com.arrazyfathan.kbbi.feature.home.presentation.navigation
 
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import com.arrazyfathan.kbbi.core.presentation.designsystem.KBBIHapticType
 import com.arrazyfathan.kbbi.feature.home.domain.model.ListWordModel
 import com.arrazyfathan.kbbi.feature.home.presentation.home.HomeScreen
 
 @Composable
 fun HomeRoute(
+    onHaptic: (KBBIHapticType) -> Unit,
     modifier: Modifier = Modifier,
     onNavigateToDetail: (ListWordModel) -> Unit,
     onNavigateToProverb: () -> Unit,
@@ -19,6 +21,7 @@ fun HomeRoute(
     onShortcutConsumed: () -> Unit = {},
 ) {
     HomeScreen(
+        onHaptic = onHaptic,
         externalSearchQuery = externalSearchQuery,
         externalSearchRequestKey = externalSearchRequestKey,
         onExternalSearchConsumed = onExternalSearchConsumed,

@@ -1,5 +1,6 @@
 package com.arrazyfathan.kbbi.feature.home.presentation.home
 
+import androidx.compose.runtime.Immutable
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.arrazyfathan.kbbi.core.R
@@ -25,6 +26,7 @@ import kotlinx.coroutines.launch
 /**
  * Created by Ar Razy Fathan Rabbani on 19/01/23.
  */
+@Immutable
 data class HomeState(
     val searchQuery: String = "",
     val histories: List<HistoryModel> = emptyList(),
@@ -89,6 +91,7 @@ sealed interface HomeEvent {
 
     data class ShowMessage(
         val message: UiText,
+        val isError: Boolean = true,
     ) : HomeEvent
 }
 
@@ -115,19 +118,63 @@ class HomeViewModel(
                 observeHistories()
                 loadWordEntries()
             }
-            is HomeAction.OnSearchQueryChanged -> updateSearchQuery(action.query)
-            is HomeAction.OnSearchSubmitted -> search(action.word)
-            is HomeAction.OnSuggestionClick -> search(action.word)
-            HomeAction.OnRandomWordRequested -> searchRandomWord()
-            HomeAction.OnVoiceSearchStarted -> _state.update { it.copy(isVoiceListening = true, voicePartialText = "") }
-            HomeAction.OnVoiceSearchFinished -> _state.update { it.copy(isVoiceListening = false, voicePartialText = "") }
-            is HomeAction.OnVoiceSearchResult -> updateVoiceSearchQuery(action.recognizedTexts)
-            is HomeAction.OnVoiceSearchPartialResult -> updateVoicePartialResult(action.recognizedTexts)
-            is HomeAction.OnVoiceSearchError -> showVoiceSearchError(action.error)
-            HomeAction.OnVoiceSearchUnavailable -> showMessage(R.string.voice_search_unavailable)
-            HomeAction.OnVoiceSearchPermissionDenied -> showMessage(R.string.voice_search_permission_denied)
-            HomeAction.OnVoiceSearchCancelled -> showMessage(R.string.voice_search_cancelled)
-            HomeAction.OnVoiceSearchEmptyResult -> showMessage(R.string.voice_search_empty_result)
+
+            is HomeAction.OnSearchQueryChanged -> {
+                updateSearchQuery(action.query)
+            }
+
+            is HomeAction.OnSearchSubmitted -> {
+                search(action.word)
+            }
+
+            is HomeAction.OnSuggestionClick -> {
+                search(action.word)
+            }
+
+            HomeAction.OnRandomWordRequested -> {
+                searchRandomWord()
+            }
+
+            HomeAction.OnVoiceSearchStarted -> {
+                _state.update { it.copy(isVoiceListening = true, voicePartialText = "") }
+            }
+
+            HomeAction.OnVoiceSearchFinished -> {
+                _state.update {
+                    it.copy(
+                        isVoiceListening = false,
+                        voicePartialText = "",
+                    )
+                }
+            }
+
+            is HomeAction.OnVoiceSearchResult -> {
+                updateVoiceSearchQuery(action.recognizedTexts)
+            }
+
+            is HomeAction.OnVoiceSearchPartialResult -> {
+                updateVoicePartialResult(action.recognizedTexts)
+            }
+
+            is HomeAction.OnVoiceSearchError -> {
+                showVoiceSearchError(action.error)
+            }
+
+            HomeAction.OnVoiceSearchUnavailable -> {
+                showMessage(R.string.voice_search_unavailable)
+            }
+
+            HomeAction.OnVoiceSearchPermissionDenied -> {
+                showMessage(R.string.voice_search_permission_denied)
+            }
+
+            HomeAction.OnVoiceSearchCancelled -> {
+                showMessage(R.string.voice_search_cancelled, isError = false)
+            }
+
+            HomeAction.OnVoiceSearchEmptyResult -> {
+                showMessage(R.string.voice_search_empty_result)
+            }
         }
     }
 
@@ -190,8 +237,11 @@ class HomeViewModel(
                 VoiceRecognitionError.NoMatch,
                 VoiceRecognitionError.NoSpeech,
                 -> R.string.voice_search_empty_result
+
                 VoiceRecognitionError.PermissionDenied -> R.string.voice_search_permission_denied
+
                 VoiceRecognitionError.RecognizerBusy -> R.string.voice_search_busy
+
                 VoiceRecognitionError.Network,
                 VoiceRecognitionError.NetworkTimeout,
                 VoiceRecognitionError.Server,
@@ -203,9 +253,17 @@ class HomeViewModel(
         showMessage(messageResId)
     }
 
-    private fun showMessage(messageResId: Int) {
+    private fun showMessage(
+        messageResId: Int,
+        isError: Boolean = true,
+    ) {
         viewModelScope.launch {
-            _events.send(HomeEvent.ShowMessage(UiText.StringResource(messageResId)))
+            _events.send(
+                HomeEvent.ShowMessage(
+                    message = UiText.StringResource(messageResId),
+                    isError = isError,
+                ),
+            )
         }
     }
 

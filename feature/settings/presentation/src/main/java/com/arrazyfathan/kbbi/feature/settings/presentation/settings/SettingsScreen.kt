@@ -30,11 +30,12 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.selection.selectable
 import androidx.compose.foundation.selection.selectableGroup
+import androidx.compose.foundation.selection.toggleable
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.AssistChip
 import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.AssistChip
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -64,6 +65,7 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
@@ -83,17 +85,20 @@ import com.arrazyfathan.kbbi.core.presentation.designsystem.BlueBg
 import com.arrazyfathan.kbbi.core.presentation.designsystem.BluePrimary
 import com.arrazyfathan.kbbi.core.presentation.designsystem.BlueSecondary
 import com.arrazyfathan.kbbi.core.presentation.designsystem.InterFontFamily
+import com.arrazyfathan.kbbi.core.presentation.designsystem.KBBIHapticType
 import com.arrazyfathan.kbbi.core.presentation.designsystem.KBBITheme
 import com.arrazyfathan.kbbi.core.presentation.designsystem.MetropolisFontFamily
 import com.arrazyfathan.kbbi.core.presentation.designsystem.TextH1
 import com.arrazyfathan.kbbi.core.presentation.designsystem.TextP
 import com.arrazyfathan.kbbi.core.presentation.designsystem.components.KBBITimePickerBottomSheet
+import com.arrazyfathan.kbbi.core.presentation.designsystem.perform
 import com.arrazyfathan.kbbi.feature.settings.domain.model.ReminderTime
 import com.arrazyfathan.kbbi.feature.settings.domain.model.ReminderType
 import org.koin.androidx.compose.koinViewModel
 
 @Composable
 fun SettingsRoute(
+    onHaptic: (KBBIHapticType) -> Unit,
     onNavigateBack: () -> Unit,
     onOpenPrivacyPolicy: () -> Unit,
     onOpenTermsConditions: () -> Unit,
@@ -101,6 +106,7 @@ fun SettingsRoute(
 ) {
     val viewModel: SettingsViewModel = koinViewModel()
     val context = LocalContext.current
+    val platformHapticFeedback = LocalHapticFeedback.current
     val shareAppText = stringResource(R.string.share_app_text)
     val state by viewModel.state.collectAsStateWithLifecycle()
     var permissionType by remember { mutableStateOf<ReminderType?>(null) }
@@ -116,6 +122,7 @@ fun SettingsRoute(
         viewModel.events.collect { event ->
             when (event) {
                 is SettingsEvent.ApplyLanguage -> {
+                    onHaptic(KBBIHapticType.Selection)
                     AppCompatDelegate.setApplicationLocales(
                         LocaleListCompat.forLanguageTags(event.language.languageTag),
                     )
@@ -132,10 +139,30 @@ fun SettingsRoute(
 
                 SettingsEvent.PermissionDenied -> {
                     permissionDenied = true
+                    onHaptic(KBBIHapticType.Reject)
                 }
 
                 is SettingsEvent.ShowMessage -> {
                     Toast.makeText(context, event.message.asString(context), Toast.LENGTH_SHORT).show()
+                    onHaptic(
+                        if (event.isError) KBBIHapticType.Reject else KBBIHapticType.Confirm,
+                    )
+                }
+
+                is SettingsEvent.ReminderChanged -> {
+                    onHaptic(
+                        if (event.enabled) KBBIHapticType.ToggleOn else KBBIHapticType.ToggleOff,
+                    )
+                }
+
+                is SettingsEvent.HapticsChanged -> {
+                    platformHapticFeedback.perform(
+                        if (event.enabled) KBBIHapticType.ToggleOn else KBBIHapticType.ToggleOff,
+                    )
+                }
+
+                SettingsEvent.SelectionChanged -> {
+                    onHaptic(KBBIHapticType.Selection)
                 }
             }
         }
@@ -171,6 +198,7 @@ fun SettingsRoute(
                     )
                 }
             context.startActivity(Intent.createChooser(shareIntent, null))
+            onHaptic(KBBIHapticType.ContextClick)
         },
         onOpenUri = { uri ->
             context.startActivity(Intent(Intent.ACTION_VIEW, uri.toUri()))
@@ -229,6 +257,10 @@ fun SettingsScreen(
                 state = state,
                 onAction = onAction,
                 onTimeClick = { timePickerType = it },
+            )
+            InteractionSection(
+                hapticsEnabled = state.hapticsEnabled,
+                onHapticsChanged = { onAction(SettingsAction.OnHapticsToggled(it)) },
             )
             LanguageSection(
                 selectedLanguage = state.selectedLanguage,
@@ -296,6 +328,53 @@ fun SettingsScreen(
                 }
             },
         )
+    }
+}
+
+@Composable
+private fun InteractionSection(
+    hapticsEnabled: Boolean,
+    onHapticsChanged: (Boolean) -> Unit,
+) {
+    SettingsSectionCard(title = stringResource(R.string.interaction_section_title)) {
+        Row(
+            modifier =
+                Modifier
+                    .fillMaxWidth()
+                    .toggleable(
+                        value = hapticsEnabled,
+                        role = Role.Switch,
+                        onValueChange = onHapticsChanged,
+                    ).padding(horizontal = 18.dp, vertical = 16.dp),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Icon(
+                painter = painterResource(R.drawable.ic_vibration),
+                contentDescription = null,
+                tint = BluePrimary,
+                modifier = Modifier.size(22.dp),
+            )
+            Spacer(Modifier.width(14.dp))
+            Column(modifier = Modifier.weight(1f)) {
+                Text(
+                    text = stringResource(R.string.haptic_feedback_title),
+                    style = MaterialTheme.typography.titleSmall,
+                    color = TextH1,
+                )
+                Spacer(Modifier.height(2.dp))
+                Text(
+                    text = stringResource(R.string.haptic_feedback_description),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = TextP,
+                )
+            }
+            Spacer(Modifier.width(8.dp))
+            Switch(
+                modifier = Modifier.scale(0.7f),
+                checked = hapticsEnabled,
+                onCheckedChange = null,
+            )
+        }
     }
 }
 
@@ -377,10 +456,17 @@ private fun AboutSection(
 ) {
     val updateSubtitle =
         when {
-            state.isCheckingUpdate -> stringResource(R.string.update_checking)
-            state.availableUpdate != null ->
+            state.isCheckingUpdate -> {
+                stringResource(R.string.update_checking)
+            }
+
+            state.availableUpdate != null -> {
                 stringResource(R.string.app_update_available, state.availableUpdate.latestVersion)
-            else -> stringResource(R.string.app_update_up_to_date)
+            }
+
+            else -> {
+                stringResource(R.string.app_update_up_to_date)
+            }
         }
 
     SettingsSectionCard(title = stringResource(R.string.about_section_title)) {

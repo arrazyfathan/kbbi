@@ -133,7 +133,7 @@ class DetailViewModelTest {
         expectedResId: Int,
         event: DetailEvent,
     ) {
-        val message = (event as DetailEvent.ShowMessage).messageResId
+        val message = (event as DetailEvent.ShowError).messageResId
         assertEquals(expectedResId, message)
     }
 }

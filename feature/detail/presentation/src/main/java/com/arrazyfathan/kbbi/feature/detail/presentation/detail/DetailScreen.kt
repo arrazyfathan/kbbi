@@ -66,6 +66,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.arrazyfathan.kbbi.core.R
 import com.arrazyfathan.kbbi.core.presentation.designsystem.BlueBg
 import com.arrazyfathan.kbbi.core.presentation.designsystem.InterFontFamily
+import com.arrazyfathan.kbbi.core.presentation.designsystem.KBBIHapticType
 import com.arrazyfathan.kbbi.core.presentation.designsystem.KBBITheme
 import com.arrazyfathan.kbbi.core.presentation.designsystem.TextH1
 import com.arrazyfathan.kbbi.core.presentation.designsystem.TextP
@@ -88,8 +89,8 @@ private const val DETAIL_ALERT_DURATION_MILLIS = 2_200L
 @Composable
 fun DetailScreen(
     listWordModel: ListWordModel,
+    onHaptic: (KBBIHapticType) -> Unit,
 ) {
-
     val viewModel: DetailViewModel = koinViewModel()
     val state by viewModel.state.collectAsStateWithLifecycle()
     var alertState by remember { mutableStateOf<AppAlertState?>(null) }
@@ -110,8 +111,25 @@ fun DetailScreen(
     LaunchedEffect(Unit) {
         viewModel.events.collect { event ->
             when (event) {
-                is DetailEvent.ShowMessage -> {
+                is DetailEvent.BookmarkChanged -> {
                     showAlert(UiText.StringResource(event.messageResId))
+                    onHaptic(
+                        if (event.isSaved) KBBIHapticType.ToggleOn else KBBIHapticType.ToggleOff,
+                    )
+                }
+
+                is DetailEvent.TranslationChanged -> {
+                    onHaptic(
+                        if (event.enabled) KBBIHapticType.ToggleOn else KBBIHapticType.ToggleOff,
+                    )
+                }
+
+                is DetailEvent.ShowError -> {
+                    showAlert(
+                        message = UiText.StringResource(event.messageResId),
+                        type = AppAlertType.Failed,
+                    )
+                    onHaptic(KBBIHapticType.Reject)
                 }
             }
         }
@@ -130,6 +148,7 @@ fun DetailScreen(
         onAction = viewModel::onAction,
         onShowAlert = { message, type -> showAlert(message, type) },
         alertState = alertState,
+        onHaptic = onHaptic,
     )
 }
 
@@ -140,6 +159,7 @@ fun DetailContent(
     onAction: (DetailAction) -> Unit,
     onShowAlert: (UiText, AppAlertType) -> Unit,
     alertState: AppAlertState?,
+    onHaptic: (KBBIHapticType) -> Unit = {},
 ) {
     val context = LocalContext.current
     val sharedFromKbbi = stringResource(R.string.shared_from_kbbi)
@@ -239,6 +259,7 @@ fun DetailContent(
                         val clip = ClipData.newPlainText("meaning", wordModel.toDefinitionCopyText())
                         clipboardManager.setPrimaryClip(clip)
                         onShowAlert(UiText.StringResource(R.string.copy_success), AppAlertType.Success)
+                        onHaptic(KBBIHapticType.Confirm)
                     },
                     onShareClick = {
                         context.sharePlainText(
@@ -248,6 +269,7 @@ fun DetailContent(
                                     sourceLabel = sharedFromKbbi,
                                 ),
                         )
+                        onHaptic(KBBIHapticType.ContextClick)
                     },
                 )
             }

@@ -143,6 +143,9 @@
     <string name="clear_history_confirm_text">Tindakan ini tidak dapat dibatalkan.</string>
     <string name="clear_history_confirmed">Riwayat pencarian dihapus</string>
     <string name="data_section_title">Data</string>
+    <string name="interaction_section_title">Interaksi</string>
+    <string name="haptic_feedback_title">Umpan balik haptik</string>
+    <string name="haptic_feedback_description">Gunakan getaran halus untuk tindakan dan hasil</string>
     <string name="coming_soon">Segera hadir</string>
     <string name="update_checking">Memeriksa…</string>
     <string name="update_check_failed">Gagal memeriksa pembaruan</string>
