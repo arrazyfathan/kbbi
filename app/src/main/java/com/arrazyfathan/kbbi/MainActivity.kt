@@ -24,6 +24,8 @@ import com.arrazyfathan.kbbi.intent.extractNotificationLaunchRequest
 import com.arrazyfathan.kbbi.navigation.AppShortcutRequest
 import com.arrazyfathan.kbbi.navigation.MainApp
 import com.arrazyfathan.kbbi.navigation.MainAppLaunchRequests
+import com.arrazyfathan.kbbi.widgets.WidgetLaunchRequest
+import com.arrazyfathan.kbbi.widgets.extractWidgetLaunchRequest
 
 class MainActivity : AppCompatActivity() {
     private var externalSearchQuery by mutableStateOf<String?>(null)
@@ -32,6 +34,8 @@ class MainActivity : AppCompatActivity() {
     private var shortcutRequestKey by mutableLongStateOf(0L)
     private var notificationRequest by mutableStateOf<NotificationLaunchRequest?>(null)
     private var notificationRequestKey by mutableLongStateOf(0L)
+    private var widgetRequest by mutableStateOf<WidgetLaunchRequest?>(null)
+    private var widgetRequestKey by mutableLongStateOf(0L)
 
     override fun onCreate(savedInstanceState: Bundle?) {
         enableEdgeToEdge(
@@ -48,11 +52,11 @@ class MainActivity : AppCompatActivity() {
         setContent {
             KBBITheme {
                 var isSplashVisible by rememberSaveable {
-                    mutableStateOf(externalSearchQuery == null && shortcutRequest == null)
+                    mutableStateOf(externalSearchQuery == null && shortcutRequest == null && widgetRequest == null)
                 }
 
-                LaunchedEffect(externalSearchQuery, shortcutRequest) {
-                    if (externalSearchQuery != null || shortcutRequest != null) {
+                LaunchedEffect(externalSearchQuery, shortcutRequest, widgetRequest) {
+                    if (externalSearchQuery != null || shortcutRequest != null || widgetRequest != null) {
                         isSplashVisible = false
                     }
                 }
@@ -73,6 +77,8 @@ class MainActivity : AppCompatActivity() {
                                 shortcutRequestKey = shortcutRequestKey,
                                 notificationRequest = notificationRequest,
                                 notificationRequestKey = notificationRequestKey,
+                                widgetRequest = widgetRequest,
+                                widgetRequestKey = widgetRequestKey,
                             ),
                         onExternalSearchConsumed = {
                             externalSearchQuery = null
@@ -81,6 +87,7 @@ class MainActivity : AppCompatActivity() {
                             shortcutRequest = null
                         },
                         onNotificationRequestConsumed = { notificationRequest = null },
+                        onWidgetRequestConsumed = { widgetRequest = null },
                     )
                 }
             }
@@ -97,10 +104,12 @@ class MainActivity : AppCompatActivity() {
         val query = intent.extractExternalSearchQuery()
         val notification = intent.extractNotificationLaunchRequest()
         val shortcut = AppShortcutRequest.fromAction(intent.action)
+        val widget = intent.extractWidgetLaunchRequest()
         when {
             query != null -> {
                 notificationRequest = null
                 shortcutRequest = null
+                widgetRequest = null
                 externalSearchQuery = query
                 externalSearchRequestKey += 1
             }
@@ -108,14 +117,24 @@ class MainActivity : AppCompatActivity() {
             notification != null -> {
                 externalSearchQuery = null
                 shortcutRequest = null
+                widgetRequest = null
                 notificationRequest = notification
                 notificationRequestKey += 1
             }
 
             shortcut != null -> {
                 externalSearchQuery = null
+                widgetRequest = null
                 shortcutRequest = shortcut
                 shortcutRequestKey += 1
+            }
+
+            widget != null -> {
+                externalSearchQuery = null
+                notificationRequest = null
+                shortcutRequest = null
+                widgetRequest = widget
+                widgetRequestKey += 1
             }
         }
     }

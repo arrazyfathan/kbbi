@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="widget_word_of_day_label">Word of the Day</string>
+    <string name="widget_word_of_day_description">A new Indonesian word each day</string>
+    <string name="widget_quick_search_label">Quick Search</string>
+    <string name="widget_quick_search_description">Open KBBI and start searching</string>
+    <string name="widget_saved_word_label">Saved Word</string>
+    <string name="widget_saved_word_description">Review one of your saved words each day</string>
+    <string name="widget_word_of_day_heading">TODAY’S WORD</string>
+    <string name="widget_saved_word_heading">SAVED FOR TODAY</string>
+    <string name="widget_quick_search_heading">Search KBBI</string>
+    <string name="widget_search_prompt">FIND A WORD</string>
+    <string name="widget_no_saved_words">No saved words</string>
+    <string name="widget_save_word_prompt">OPEN BOOKMARKS</string>
+    <string name="widget_catalog_unavailable">Words unavailable</string>
+    <string name="widget_search_fallback">OPEN TO SEARCH</string>
+    <string name="widget_loading">KBBI</string>
+</resources>

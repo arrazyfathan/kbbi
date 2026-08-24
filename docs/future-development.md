@@ -20,6 +20,9 @@ This roadmap reflects the current multi-module application as of August 2026. It
 - [x] In-app GitHub release update checks
 - [x] Privacy policy, terms and conditions, and open-source licenses
 - [x] Optional word translation in the detail screen
+- [x] Quick-search home-screen widget with direct search focus
+- [x] Word-of-the-day home-screen widget backed by the shared daily word selector
+- [x] Saved-word home-screen widget with deterministic daily bookmark rotation
 
 ## Recommended next investments
 
@@ -37,20 +40,14 @@ This roadmap reflects the current multi-module application as of August 2026. It
 - Highlight matching text consistently across word and proverb results.
 - Improve multi-word query handling without weakening exact KBBI lookups.
 
-### 3. Add home-screen entry points
-
-- Quick-search widget.
-- Word-of-the-day widget backed by the existing reminder content flow.
-- Bookmark or proverb widget with deep-link navigation.
-
-### 4. Expand personalization
+### 3. Expand personalization
 
 - System, light, and dark theme choices.
 - Material You dynamic color where supported.
 - Reminder-day selection and quiet-hour controls.
 - Configurable search-history retention.
 
-### 5. Protect and move user data
+### 4. Protect and move user data
 
 - Android Auto Backup validation for bookmarks and preferences.
 - Manual bookmark/history export and import using a documented JSON format.
@@ -69,6 +66,10 @@ Camera or image OCR could extract Indonesian text and route selected words into 
 ### Pronunciation
 
 Text-to-speech or licensed pronunciation audio could complement definitions. This would require language-quality evaluation, accessibility controls, and media lifecycle handling.
+
+### Saved proverb widget
+
+A saved-proverb widget remains follow-up work. The app currently caches proverb content but has no proverb bookmark model or persistence APIs, and navigation cannot yet open a specific proverb meaning directly from its slug. Those foundations should be added before exposing saved proverbs on the home screen.
 
 ## Lower priority
 

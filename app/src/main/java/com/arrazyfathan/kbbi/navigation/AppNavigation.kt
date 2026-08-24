@@ -85,6 +85,7 @@ import com.arrazyfathan.kbbi.feature.settings.presentation.settings.SettingsRout
 import com.arrazyfathan.kbbi.feature.words.presentation.navigation.WordsRoute
 import com.arrazyfathan.kbbi.intent.NotificationLaunchRequest
 import com.arrazyfathan.kbbi.ui.AppUiViewModel
+import com.arrazyfathan.kbbi.widgets.WidgetLaunchRequest
 import com.github.skydoves.navgraph.annotations.NavGraphRoot
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
@@ -157,21 +158,24 @@ data object PrivacyPolicyRoute : NavKey
 data object TermsConditionsRoute : NavKey
 
 @Immutable
-data class MainAppLaunchRequests(
+internal data class MainAppLaunchRequests(
     val externalSearchQuery: String? = null,
     val externalSearchRequestKey: Long = 0L,
     val shortcutRequest: AppShortcutRequest? = null,
     val shortcutRequestKey: Long = 0L,
     val notificationRequest: NotificationLaunchRequest? = null,
     val notificationRequestKey: Long = 0L,
+    val widgetRequest: WidgetLaunchRequest? = null,
+    val widgetRequestKey: Long = 0L,
 )
 
 @Composable
-fun MainApp(
+internal fun MainApp(
     launchRequests: MainAppLaunchRequests = MainAppLaunchRequests(),
     onExternalSearchConsumed: () -> Unit = {},
     onShortcutConsumed: () -> Unit = {},
     onNotificationRequestConsumed: () -> Unit = {},
+    onWidgetRequestConsumed: () -> Unit = {},
 ) {
     val appUpdateViewModel: AppUpdateViewModel = koinViewModel()
     val appUiViewModel: AppUiViewModel = koinViewModel()
@@ -181,6 +185,19 @@ fun MainApp(
     val shortcutRequestKey = launchRequests.shortcutRequestKey
     val notificationRequest = launchRequests.notificationRequest
     val notificationRequestKey = launchRequests.notificationRequestKey
+    val widgetRequest = launchRequests.widgetRequest
+    val widgetRequestKey = launchRequests.widgetRequestKey
+    val widgetSearchQuery =
+        when (widgetRequest) {
+            is WidgetLaunchRequest.WordOfDay -> widgetRequest.word
+            is WidgetLaunchRequest.SavedWord -> widgetRequest.word
+            WidgetLaunchRequest.QuickSearch,
+            null,
+            -> null
+        }
+    val effectiveExternalSearchQuery = externalSearchQuery ?: widgetSearchQuery
+    val effectiveExternalSearchRequestKey =
+        if (externalSearchQuery != null) externalSearchRequestKey else widgetRequestKey
     val context = LocalContext.current
     val platformHapticFeedback = LocalHapticFeedback.current
     val screens =
@@ -219,9 +236,28 @@ fun MainApp(
             }
         }
 
-    LaunchedEffect(externalSearchRequestKey) {
-        if (externalSearchQuery != null) {
+    LaunchedEffect(effectiveExternalSearchRequestKey) {
+        if (effectiveExternalSearchQuery != null) {
             navigator.navigateToRoot(Screen.Home)
+        }
+    }
+
+    LaunchedEffect(widgetRequestKey) {
+        when (widgetRequest) {
+            WidgetLaunchRequest.QuickSearch -> navigator.navigateToRoot(Screen.Home)
+            is WidgetLaunchRequest.WordOfDay -> {
+                navigator.navigateToRoot(Screen.Home)
+                if (widgetRequest.word == null) onWidgetRequestConsumed()
+            }
+            is WidgetLaunchRequest.SavedWord -> {
+                if (widgetRequest.word == null) {
+                    navigator.navigateToRoot(Screen.Bookmarks)
+                    onWidgetRequestConsumed()
+                } else {
+                    navigator.navigateToRoot(Screen.Home)
+                }
+            }
+            null -> {}
         }
     }
 
@@ -261,9 +297,7 @@ fun MainApp(
                 onNotificationRequestConsumed()
             }
 
-            null -> {
-                Unit
-            }
+            null -> return@LaunchedEffect
         }
     }
 
@@ -291,14 +325,16 @@ fun MainApp(
                 entry<Screen.Home> {
                     HomeRoute(
                         onHaptic = performHaptic,
-                        externalSearchQuery = externalSearchQuery,
-                        externalSearchRequestKey = externalSearchRequestKey,
-                        onExternalSearchConsumed = onExternalSearchConsumed,
+                        externalSearchQuery = effectiveExternalSearchQuery,
+                        externalSearchRequestKey = effectiveExternalSearchRequestKey,
+                        onExternalSearchConsumed = {
+                            if (widgetSearchQuery != null) onWidgetRequestConsumed() else onExternalSearchConsumed()
+                        },
                         focusSearchRequestKey =
-                            if (shortcutRequest == AppShortcutRequest.Search) {
-                                shortcutRequestKey
-                            } else {
-                                0L
+                            when {
+                                widgetRequest == WidgetLaunchRequest.QuickSearch -> widgetRequestKey
+                                shortcutRequest == AppShortcutRequest.Search -> shortcutRequestKey
+                                else -> 0L
                             },
                         randomWordRequestKey =
                             if (shortcutRequest == AppShortcutRequest.RandomWord) {
@@ -306,7 +342,13 @@ fun MainApp(
                             } else {
                                 0L
                             },
-                        onShortcutConsumed = onShortcutConsumed,
+                        onShortcutConsumed = {
+                            if (widgetRequest == WidgetLaunchRequest.QuickSearch) {
+                                onWidgetRequestConsumed()
+                            } else {
+                                onShortcutConsumed()
+                            }
+                        },
                         onNavigateToDetail = { word ->
                             navigator.navigate(DetailNavRoute(routeJson.encodeToString(word)))
                         },

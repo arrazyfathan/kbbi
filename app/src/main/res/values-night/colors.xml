@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="widget_daily_background">#252F7D</color>
+    <color name="widget_daily_icon_background">#3A4698</color>
+    <color name="widget_daily_icon">#F1F2FF</color>
+    <color name="widget_daily_text_primary">#F8F8FF</color>
+    <color name="widget_daily_text_secondary">#CFD4FF</color>
+    <color name="widget_daily_action_background">#E8EAFF</color>
+    <color name="widget_daily_action">#252F7D</color>
+
+    <color name="widget_search_background">#1B1E2D</color>
+    <color name="widget_search_icon_background">#4655B5</color>
+    <color name="widget_search_icon">#F4F5FF</color>
+    <color name="widget_search_text_primary">#F4F5FF</color>
+    <color name="widget_search_text_secondary">#B9C1FF</color>
+    <color name="widget_search_action_background">#303A6B</color>
+    <color name="widget_search_action">#E6E9FF</color>
+
+    <color name="widget_saved_background">#352D17</color>
+    <color name="widget_saved_icon_background">#665221</color>
+    <color name="widget_saved_icon">#FFF0B5</color>
+    <color name="widget_saved_text_primary">#FFF3C8</color>
+    <color name="widget_saved_text_secondary">#E6CD77</color>
+    <color name="widget_saved_action_background">#665221</color>
+    <color name="widget_saved_action">#FFF0B5</color>
+</resources>

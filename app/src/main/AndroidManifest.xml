@@ -92,6 +92,42 @@
                 <data android:mimeType="text/plain" />
             </intent-filter>
         </activity-alias>
+
+        <receiver
+            android:name=".widgets.WordOfDayWidgetReceiver"
+            android:exported="true"
+            android:label="@string/widget_word_of_day_label">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+            </intent-filter>
+            <meta-data
+                android:name="android.appwidget.provider"
+                android:resource="@xml/widget_word_of_day_info" />
+        </receiver>
+
+        <receiver
+            android:name=".widgets.QuickSearchWidgetReceiver"
+            android:exported="true"
+            android:label="@string/widget_quick_search_label">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+            </intent-filter>
+            <meta-data
+                android:name="android.appwidget.provider"
+                android:resource="@xml/widget_quick_search_info" />
+        </receiver>
+
+        <receiver
+            android:name=".widgets.SavedWordWidgetReceiver"
+            android:exported="true"
+            android:label="@string/widget_saved_word_label">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+            </intent-filter>
+            <meta-data
+                android:name="android.appwidget.provider"
+                android:resource="@xml/widget_saved_word_info" />
+        </receiver>
     </application>
 
 </manifest>
