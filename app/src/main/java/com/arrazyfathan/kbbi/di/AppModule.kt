@@ -21,6 +21,7 @@ import com.arrazyfathan.kbbi.feature.proverb.domain.usecase.GetListProverbsUseCa
 import com.arrazyfathan.kbbi.feature.proverb.domain.usecase.GetProverbMeaningUseCase
 import com.arrazyfathan.kbbi.feature.proverb.presentation.proverb.ProverbViewModel
 import com.arrazyfathan.kbbi.feature.words.presentation.words.WordViewModel
+import com.arrazyfathan.kbbi.ui.AppUiViewModel
 import org.koin.core.module.dsl.factoryOf
 import org.koin.core.module.dsl.viewModelOf
 import org.koin.dsl.module
@@ -49,6 +50,7 @@ val useCaseModule =
 
 val viewModelModule =
     module {
+        viewModelOf(::AppUiViewModel)
         viewModelOf(::DetailViewModel)
         viewModelOf(::HomeViewModel)
         viewModelOf(::BookmarksViewModel)

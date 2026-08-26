@@ -47,7 +47,16 @@ sealed interface DetailAction {
 }
 
 sealed interface DetailEvent {
-    data class ShowMessage(
+    data class BookmarkChanged(
+        val isSaved: Boolean,
+        @param:StringRes val messageResId: Int,
+    ) : DetailEvent
+
+    data class TranslationChanged(
+        val enabled: Boolean,
+    ) : DetailEvent
+
+    data class ShowError(
         @param:StringRes val messageResId: Int,
     ) : DetailEvent
 }
@@ -93,11 +102,21 @@ class DetailViewModel(
         viewModelScope.launch {
             if (state.value.isSaved) {
                 deleteBookmark(word)
-                _events.send(DetailEvent.ShowMessage(R.string.word_deleted_success))
+                _events.send(
+                    DetailEvent.BookmarkChanged(
+                        isSaved = false,
+                        messageResId = R.string.word_deleted_success,
+                    ),
+                )
             } else {
                 val isSaved = saveBookmark(word, wordList, visitorCount)
                 if (isSaved) {
-                    _events.send(DetailEvent.ShowMessage(R.string.word_saved_success))
+                    _events.send(
+                        DetailEvent.BookmarkChanged(
+                            isSaved = true,
+                            messageResId = R.string.word_saved_success,
+                        ),
+                    )
                 }
             }
         }
@@ -111,6 +130,7 @@ class DetailViewModel(
             enableTranslation(word)
         } else {
             _state.update { it.copy(isTranslationEnabled = false) }
+            viewModelScope.launch { _events.send(DetailEvent.TranslationChanged(false)) }
         }
     }
 
@@ -118,6 +138,7 @@ class DetailViewModel(
         val cachedTranslation = state.value.translation
         if (cachedTranslation != null) {
             _state.update { it.copy(isTranslationEnabled = true) }
+            viewModelScope.launch { _events.send(DetailEvent.TranslationChanged(true)) }
             return
         }
 
@@ -134,9 +155,10 @@ class DetailViewModel(
                                 translation = translation,
                             )
                         }
+                        _events.send(DetailEvent.TranslationChanged(true))
                     }.onFailure {
                         _state.update { it.copy(isTranslationLoading = false) }
-                        _events.send(DetailEvent.ShowMessage(R.string.translate_failed))
+                        _events.send(DetailEvent.ShowError(R.string.translate_failed))
                     }
             }
     }

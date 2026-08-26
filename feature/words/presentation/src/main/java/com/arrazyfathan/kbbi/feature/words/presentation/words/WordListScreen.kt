@@ -36,6 +36,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.nestedscroll.NestedScrollConnection
 import androidx.compose.ui.input.nestedscroll.NestedScrollSource
@@ -55,7 +56,9 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.arrazyfathan.kbbi.core.R
 import com.arrazyfathan.kbbi.core.presentation.designsystem.BlueBg
 import com.arrazyfathan.kbbi.core.presentation.designsystem.BluePrimary
+import com.arrazyfathan.kbbi.core.presentation.designsystem.BlueSecondary
 import com.arrazyfathan.kbbi.core.presentation.designsystem.InterFontFamily
+import com.arrazyfathan.kbbi.core.presentation.designsystem.KBBIHapticType
 import com.arrazyfathan.kbbi.core.presentation.designsystem.KBBITheme
 import com.arrazyfathan.kbbi.core.presentation.designsystem.MetropolisFontFamily
 import com.arrazyfathan.kbbi.core.presentation.ui.LocalAppLoadingController
@@ -66,10 +69,11 @@ private const val WORD_LIST_SEARCH_LOADING_SOURCE = "word_list_search"
 
 @Composable
 fun WordListScreen(
+    onHaptic: (KBBIHapticType) -> Unit,
     modifier: Modifier = Modifier,
     onNavigateToDetail: (ListWordModel) -> Unit,
-    viewModel: WordViewModel = koinViewModel(),
 ) {
+    val viewModel: WordViewModel = koinViewModel()
     val context = LocalContext.current
     val loadingController = LocalAppLoadingController.current
     val state by viewModel.state.collectAsStateWithLifecycle()
@@ -82,11 +86,13 @@ fun WordListScreen(
         viewModel.events.collect { event ->
             when (event) {
                 is WordListEvent.NavigateToDetail -> {
+                    onHaptic(KBBIHapticType.Confirm)
                     onNavigateToDetail(event.word)
                 }
 
                 is WordListEvent.ShowMessage -> {
                     Toast.makeText(context, event.message.asString(context), Toast.LENGTH_SHORT).show()
+                    onHaptic(KBBIHapticType.Reject)
                 }
             }
         }
@@ -112,9 +118,9 @@ fun WordListScreen(
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun WordListScreenContent(
+    modifier: Modifier = Modifier,
     state: WordListState,
     onAction: (WordListAction) -> Unit,
-    modifier: Modifier = Modifier,
 ) {
     val focusManager = LocalFocusManager.current
     val density = LocalDensity.current
@@ -186,8 +192,16 @@ fun WordListScreenContent(
                         Modifier
                             .fillMaxWidth()
                             .height(headerHeight.value)
-                            .background(BluePrimary)
-                            .statusBarsPadding(),
+                            .background(
+                                brush =
+                                    Brush.verticalGradient(
+                                        colors =
+                                            listOf(
+                                                BluePrimary,
+                                                BlueSecondary,
+                                            ),
+                                    ),
+                            ).statusBarsPadding(),
                     contentAlignment = Alignment.CenterStart,
                 ) {
                     Text(
@@ -238,8 +252,8 @@ fun WordListScreenContent(
                     shape = RoundedCornerShape(0.dp),
                     colors =
                         TextFieldDefaults.colors(
-                            focusedContainerColor = BluePrimary,
-                            unfocusedContainerColor = BluePrimary,
+                            focusedContainerColor = BlueSecondary,
+                            unfocusedContainerColor = BlueSecondary,
                             focusedIndicatorColor = Color.Transparent,
                             unfocusedIndicatorColor = Color.Transparent,
                             focusedTextColor = Color.White,

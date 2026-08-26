@@ -14,7 +14,9 @@ import com.arrazyfathan.kbbi.feature.settings.domain.model.NotificationSettings
 import com.arrazyfathan.kbbi.feature.settings.domain.model.ReminderPreference
 import com.arrazyfathan.kbbi.feature.settings.domain.model.ReminderTime
 import com.arrazyfathan.kbbi.feature.settings.domain.model.ReminderType
+import com.arrazyfathan.kbbi.feature.settings.domain.model.UiPreferences
 import com.arrazyfathan.kbbi.feature.settings.domain.repository.NotificationSettingsRepository
+import com.arrazyfathan.kbbi.feature.settings.domain.repository.UiPreferencesRepository
 import com.arrazyfathan.kbbi.feature.settings.domain.service.ReminderScheduler
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
@@ -204,6 +206,17 @@ class SettingsViewModelTest {
     }
 
     @Test
+    fun `toggling haptics persists preference and emits result`() = runTest(dispatcher) {
+        val uiPreferencesRepository = FakeUiPreferencesRepository()
+        val viewModel = createViewModel(uiPreferencesRepository = uiPreferencesRepository)
+
+        viewModel.onAction(SettingsAction.OnHapticsToggled(false))
+
+        assertFalse(uiPreferencesRepository.preferences.first().hapticsEnabled)
+        assertEquals(SettingsEvent.HapticsChanged(false), viewModel.events.first())
+    }
+
+    @Test
     fun `clearing history calls usecase and emits message`() = runTest(dispatcher) {
         val historyRepository = FakeSearchHistoryRepository()
         val viewModel = createViewModel(historyRepository = historyRepository)
@@ -221,11 +234,13 @@ class SettingsViewModelTest {
         scheduler: FakeScheduler = FakeScheduler(),
         updateRepository: FakeAppUpdateRepository = FakeAppUpdateRepository(),
         historyRepository: FakeSearchHistoryRepository = FakeSearchHistoryRepository(),
+        uiPreferencesRepository: FakeUiPreferencesRepository = FakeUiPreferencesRepository(),
         appVersion: String = "1.0.0",
         isUpdateCheckEnabled: Boolean = false,
     ) =
         SettingsViewModel(
             repository = repository,
+            uiPreferencesRepository = uiPreferencesRepository,
             scheduler = scheduler,
             appUpdateRepository = updateRepository,
             appUpdateConfig = AppUpdateConfig(appVersion, isUpdateCheckEnabled),
@@ -238,6 +253,15 @@ class SettingsViewModelTest {
     ) {
         val message = (event as SettingsEvent.ShowMessage).message as UiText.StringResource
         assertEquals(expectedResId, message.id)
+    }
+}
+
+private class FakeUiPreferencesRepository : UiPreferencesRepository {
+    private val state = MutableStateFlow(UiPreferences())
+    override val preferences: Flow<UiPreferences> = state
+
+    override suspend fun setHapticsEnabled(enabled: Boolean) {
+        state.value = UiPreferences(hapticsEnabled = enabled)
     }
 }
 

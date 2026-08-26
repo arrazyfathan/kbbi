@@ -14,6 +14,7 @@ import com.arrazyfathan.kbbi.feature.settings.domain.model.NotificationSettings
 import com.arrazyfathan.kbbi.feature.settings.domain.model.ReminderTime
 import com.arrazyfathan.kbbi.feature.settings.domain.model.ReminderType
 import com.arrazyfathan.kbbi.feature.settings.domain.repository.NotificationSettingsRepository
+import com.arrazyfathan.kbbi.feature.settings.domain.repository.UiPreferencesRepository
 import com.arrazyfathan.kbbi.feature.settings.domain.service.ReminderScheduler
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -26,6 +27,7 @@ import kotlinx.coroutines.launch
 @Immutable
 data class SettingsState(
     val notifications: NotificationSettings = NotificationSettings(),
+    val hapticsEnabled: Boolean = true,
     val selectedLanguage: AppLanguage = AppLanguage.ENGLISH,
     val isLanguagePickerVisible: Boolean = false,
     val appVersion: String = "",
@@ -63,6 +65,10 @@ sealed interface SettingsAction {
         val enabled: Boolean,
     ) : SettingsAction
 
+    data class OnHapticsToggled(
+        val enabled: Boolean,
+    ) : SettingsAction
+
     data class OnReminderTimeChanged(
         val type: ReminderType,
         val time: ReminderTime,
@@ -85,13 +91,25 @@ sealed interface SettingsEvent {
 
     data object PermissionDenied : SettingsEvent
 
+    data class ReminderChanged(
+        val enabled: Boolean,
+    ) : SettingsEvent
+
+    data class HapticsChanged(
+        val enabled: Boolean,
+    ) : SettingsEvent
+
+    data object SelectionChanged : SettingsEvent
+
     data class ShowMessage(
         val message: UiText,
+        val isError: Boolean = false,
     ) : SettingsEvent
 }
 
 class SettingsViewModel(
     private val repository: NotificationSettingsRepository,
+    private val uiPreferencesRepository: UiPreferencesRepository,
     private val scheduler: ReminderScheduler,
     private val appUpdateRepository: AppUpdateRepository,
     private val appUpdateConfig: AppUpdateConfig,
@@ -107,6 +125,11 @@ class SettingsViewModel(
         viewModelScope.launch {
             repository.settings.collect { settings ->
                 _state.update { it.copy(notifications = settings) }
+            }
+        }
+        viewModelScope.launch {
+            uiPreferencesRepository.preferences.collect { preferences ->
+                _state.update { it.copy(hapticsEnabled = preferences.hapticsEnabled) }
             }
         }
     }
@@ -127,7 +150,9 @@ class SettingsViewModel(
                 _state.update { it.copy(isLanguagePickerVisible = false) }
             }
 
-            SettingsAction.OnCheckForUpdate -> checkForUpdate(force = true, showResult = true)
+            SettingsAction.OnCheckForUpdate -> {
+                checkForUpdate(force = true, showResult = true)
+            }
 
             SettingsAction.OnUpdatePromptDismissed -> {
                 _state.update { it.copy(isUpdatePromptVisible = false) }
@@ -137,7 +162,9 @@ class SettingsViewModel(
                 _state.update { it.copy(isClearHistoryDialogVisible = true) }
             }
 
-            SettingsAction.OnClearHistoryConfirmed -> clearSearchHistory()
+            SettingsAction.OnClearHistoryConfirmed -> {
+                clearSearchHistory()
+            }
 
             SettingsAction.OnClearHistoryDismissed -> {
                 _state.update { it.copy(isClearHistoryDialogVisible = false) }
@@ -149,6 +176,10 @@ class SettingsViewModel(
 
             is SettingsAction.OnReminderToggled -> {
                 toggle(action.type, action.enabled)
+            }
+
+            is SettingsAction.OnHapticsToggled -> {
+                setHapticsEnabled(action.enabled)
             }
 
             is SettingsAction.OnReminderTimeChanged -> {
@@ -189,7 +220,10 @@ class SettingsViewModel(
                     _state.update { it.copy(isCheckingUpdate = false) }
                     if (showResult) {
                         _events.send(
-                            SettingsEvent.ShowMessage(UiText.StringResource(R.string.update_check_failed)),
+                            SettingsEvent.ShowMessage(
+                                message = UiText.StringResource(R.string.update_check_failed),
+                                isError = true,
+                            ),
                         )
                     }
                 }
@@ -226,6 +260,13 @@ class SettingsViewModel(
         }
     }
 
+    private fun setHapticsEnabled(enabled: Boolean) {
+        viewModelScope.launch {
+            uiPreferencesRepository.setHapticsEnabled(enabled)
+            _events.send(SettingsEvent.HapticsChanged(enabled))
+        }
+    }
+
     private fun toggle(
         type: ReminderType,
         enabled: Boolean,
@@ -234,6 +275,7 @@ class SettingsViewModel(
             viewModelScope.launch {
                 repository.setEnabled(type, false)
                 scheduler.cancel(type)
+                _events.send(SettingsEvent.ReminderChanged(false))
             }
             return
         }
@@ -270,6 +312,7 @@ class SettingsViewModel(
                     .preference(type)
                     .time,
             )
+            _events.send(SettingsEvent.ReminderChanged(true))
         }
     }
 
@@ -285,6 +328,7 @@ class SettingsViewModel(
             ) {
                 scheduler.schedule(type, time)
             }
+            _events.send(SettingsEvent.SelectionChanged)
         }
     }
 

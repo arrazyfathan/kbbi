@@ -1,83 +1,74 @@
-# Architecture Fix Plan
+# Architecture evolution notes
 
-## Scope
+This document records the current architecture and the most useful follow-up improvements. The earlier single-module migration plan is complete and has been replaced by the multi-module structure described here.
 
-This plan executes the 1-7 review findings while keeping the project as a single `:app` module for now. The package boundaries are prepared so future Gradle modules can be introduced with less churn.
+## Current state
 
-## Completed Fixes
+- `:app` owns startup, root Navigation3 composition, external-intent routing, application-wide UI coordination, and Android platform adapters.
+- Shared concerns are separated into `:core:*` modules for domain primitives, networking, logging, dependency injection, app updates, presentation utilities, design system, and platform helpers.
+- Features are grouped by product capability and split into presentation, domain, and data modules where the capability owns meaningful business or persistence logic.
+- Presentation uses immutable state, actions, ViewModels, and one-shot events.
+- Domain modules expose focused repository interfaces and use cases.
+- Data modules contain Room, Ktor, DataStore, asset, DTO, and mapper implementations.
+- Koin modules are assembled by the application.
 
-- [x] Document current clean architecture scope and future modularization target.
-- [x] Replace broad `IWordRepository` with focused domain contracts:
-  - `WordSearchRepository`
-  - `BookmarkRepository`
-  - `SearchHistoryRepository`
-  - `WordCatalogRepository`
-- [x] Rename generic data source classes to source-specific names:
-  - `RoomWordLocalDataSource`
-  - `RetrofitWordRemoteDataSource`
-  - `AssetWordCatalogRepository`
-- [x] Move `entries.json` loading/parsing out of `WordListScreen` and into the data/domain flow.
-- [x] Move mapper logic from `core.utils.DataMapper` to data-layer extension mappers.
-- [x] Remove JSON route serialization from ViewModels; navigation owns route serialization.
-- [x] Update stale tests from removed `Resource` / `WordInteractor` APIs to current use case and `AppResult` APIs.
+## Dependency rules
 
-## Ktor + Kotlinx Serialization Migration Plan
-
-Scope: replace Retrofit + Gson API networking with Ktor Client + kotlinx.serialization while keeping the project as a single `:app` module.
-
-- [x] Add Ktor client dependencies to the version catalog:
-  - `ktor-client-core`
-  - `ktor-client-okhttp`
-  - `ktor-client-content-negotiation`
-  - `ktor-serialization-kotlinx-json`
-  - `ktor-client-logging`
-- [x] Replace Retrofit and Gson converter dependencies in `app/build.gradle.kts`.
-- [x] Convert remote DTOs to `@Serializable` models.
-- [x] Replace Retrofit `ApiService` with a Ktor-backed API service.
-- [x] Update `safeApiCall` to work with Ktor responses/exceptions.
-- [x] Configure `HttpClient` in DI using `BuildConfig.BASE_URL`, content negotiation, JSON settings, timeouts, and logging.
-- [x] Remove API-layer Gson usage.
-- [x] Migrate local asset parsing, Room converters, and navigation route serialization to kotlinx.serialization for a consistent JSON stack.
-- [ ] Verification intentionally skipped for this migration request.
-
-## Future Modularization Preparation
-
-When the app is ready for multi-module migration, split the current packages into:
-
-- `:core:domain`
-  - `core/domain/model`
-  - `core/domain/repository`
-  - `core/domain/usecase`
-- `:core:data`
-  - `core/data`
-  - `core/data/source`
-  - `core/data/mapper`
-  - Room, Retrofit, asset-backed repository implementations
-- `:core:presentation`
-  - `presentation/common`
-  - shared UI error mapping / loading controller
-- `:feature:home:presentation`
-- `:feature:words:presentation`
-- `:feature:bookmarks:presentation`
-- `:feature:detail:presentation`
-- `:app`
-  - `BaseApplication`
-  - `MainActivity`
-  - DI assembly
-  - top-level navigation
-
-Current single-module code should preserve these dependency directions:
-
-- `presentation` depends on domain use cases and presentation-common only.
-- `domain` depends on domain models/contracts only.
-- `data` depends on domain contracts/models and platform/data frameworks.
-- DI binds concrete data implementations to domain interfaces.
-
-## Verification
-
-Run after edits:
-
-```bash
-./gradlew --no-daemon testDevelopmentDebugUnitTest --console=plain
-./gradlew --no-daemon ktlintCheck --console=plain
+```text
+presentation -> own domain + core presentation/domain
+data         -> own domain + core data/domain/logging
+domain       -> core domain only
+app          -> feature and core modules for composition
 ```
+
+Feature modules should not depend directly on another feature's presentation or data implementation. Shared cross-feature concepts should move to an appropriate `:core` module when they have more than one owner.
+
+## Completed modernization
+
+- [x] Multi-module feature and core structure
+- [x] Focused word-search, bookmark, history, catalog, translation, and proverb contracts
+- [x] Ktor Client and kotlinx.serialization networking
+- [x] Shared typed `AppResult` and `DataError`
+- [x] Shared `UiText`, alert, loading, and design-system infrastructure
+- [x] Room-backed word and proverb caches
+- [x] DataStore settings and WorkManager reminders
+- [x] Navigation3 root graph with feature-owned routes
+- [x] External intent and deep-link routing at the app boundary
+- [x] App-update module backed by GitHub Releases
+- [x] Unit, Android UI, Room, remote-source, and architecture-adjacent tests
+
+## Recommended follow-up work
+
+### Move global preferences out of feature ownership
+
+`UiPreferences` currently lives under `:feature:settings:domain`, while the application shell consumes it to gate haptics across every feature. If more app-wide preferences are added, move the preference model and repository contract to `:core:domain` and the DataStore implementation to `:core:data`. Keep the app-shell ViewModel in `:app`.
+
+### Reduce app-level feature knowledge
+
+The app module currently registers several feature ViewModels and use cases. Prefer feature-owned Koin modules so `:app` only imports and combines module lists. This makes feature boundaries easier to test and limits composition-root churn.
+
+### Clarify shared word ownership
+
+Bookmark, detail, and words presentation reuse models and use cases currently owned by `:feature:home:domain`. If these workflows continue to grow independently, extract dictionary-wide contracts into a neutral domain module such as `:core:dictionary-domain` rather than introducing feature-to-feature dependencies.
+
+### Strengthen module enforcement
+
+- Add dependency-analysis checks to CI.
+- Add module-level Detekt/Ktlint coverage consistently.
+- Define convention plugins for Android library, Compose feature, pure Kotlin domain, Koin, Room, and serialization configuration.
+- Keep generated sources and build outputs excluded from standalone formatting tools.
+
+### Improve test layers
+
+- Add tests for app-wide haptic preference collection and gating.
+- Add WorkManager scheduler/worker integration tests.
+- Add deep-link tests for proverb and bookmark launch requests.
+- Add screenshot tests for key Compose screens and dark/theme variants when theming expands.
+
+## Decision guide
+
+- Keep code in a feature when that feature is its only owner.
+- Move code to `:core:domain` when multiple features share a business concept.
+- Move reusable UI behavior to `:core:presentation:ui` and visual primitives to the design system.
+- Keep Android entry-point parsing, root navigation, and platform adapter wiring in `:app`.
+- Avoid creating a new module for a single trivial class; use an existing cohesive module until the concern has a meaningful API surface.

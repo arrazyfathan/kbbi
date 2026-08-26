@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="widget_word_of_day_label">Kata Hari Ini</string>
+    <string name="widget_word_of_day_description">Satu kata bahasa Indonesia baru setiap hari</string>
+    <string name="widget_quick_search_label">Pencarian Cepat</string>
+    <string name="widget_quick_search_description">Buka KBBI dan langsung mulai mencari</string>
+    <string name="widget_saved_word_label">Kata Tersimpan</string>
+    <string name="widget_saved_word_description">Tinjau salah satu kata tersimpan setiap hari</string>
+    <string name="widget_word_of_day_heading">KATA HARI INI</string>
+    <string name="widget_saved_word_heading">TERSIMPAN HARI INI</string>
+    <string name="widget_quick_search_heading">Cari di KBBI</string>
+    <string name="widget_search_prompt">TEMUKAN KATA</string>
+    <string name="widget_no_saved_words">Belum ada kata tersimpan</string>
+    <string name="widget_save_word_prompt">BUKA TERSIMPAN</string>
+    <string name="widget_catalog_unavailable">Daftar kata tidak tersedia</string>
+    <string name="widget_search_fallback">BUKA UNTUK MENCARI</string>
+    <string name="widget_loading">KBBI</string>
+</resources>

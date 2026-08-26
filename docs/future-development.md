@@ -1,110 +1,88 @@
-# Future Development
+# Future development roadmap
 
-This document lists Android platform features that match this KBBI dictionary app. The best candidates are features that improve quick lookup, offline access, learning reminders, and bookmark workflows.
+This roadmap reflects the current multi-module application as of August 2026. It separates shipped capabilities from potential work; it is not a release commitment.
 
-## Strong Match
+## Shipped platform capabilities
 
-1. **WorkManager**
-   - Sync or refresh cached popular words and proverbs in the background.
-   - Preload a daily word or proverb.
-   - Clean old search history and stale cache entries.
+- [x] Text-selection lookup through `ACTION_PROCESS_TEXT`
+- [x] Receive shared plain text through `ACTION_SEND`
+- [x] Share and copy dictionary definitions
+- [x] Launcher shortcuts for search, bookmarks, proverbs, and random word
+- [x] Voice search through Android speech recognition
+- [x] Local word suggestions and searchable bundled word index
+- [x] Word and proverb deep links
+- [x] Room-backed offline cache for opened words and proverb content
+- [x] Preferences DataStore for reminders and haptic feedback
+- [x] Daily word, daily proverb, and bookmark-review notifications
+- [x] WorkManager scheduling for configurable reminders
+- [x] English and Indonesian per-app language selection
+- [x] Semantic, user-configurable haptic feedback
+- [x] In-app GitHub release update checks
+- [x] Privacy policy, terms and conditions, and open-source licenses
+- [x] Optional word translation in the detail screen
+- [x] Quick-search home-screen widget with direct search focus
+- [x] Word-of-the-day home-screen widget backed by the shared daily word selector
+- [x] Saved-word home-screen widget with deterministic daily bookmark rotation
 
-2. **Notifications**
-   - Daily "Kata Hari Ini" reminder.
-   - Daily proverb reminder.
-   - Reminder to review saved bookmarks.
-   - Should be opt-in from a settings screen.
+## Recommended next investments
 
-3. **App Shortcuts** ✅
-   - Long-press launcher shortcuts for search, bookmarks, proverbs, and random word. ✅
-   - Useful because dictionary users often want fast entry points.
+### 1. Make offline state visible
 
-4. **Share Intent** ✅
-   - Share a word definition from the detail screen. ✅
-   - Receive shared text from other apps and search it in KBBI. ✅
+- Indicate whether a result came from the network or local cache.
+- Show an explicit “available offline” state for previously opened entries.
+- Let users pre-cache bookmarked meanings and explain storage usage.
+- Add a safe cache-management screen with size and last-updated information.
 
-5. **Home Screen Widgets**
-   - Word of the day widget.\
-   - Quick search widget.
-   - Saved word or proverb widget.
+### 2. Improve search quality
 
-6. **Text Selection / Process Text** ✅
-   - Add "Search in KBBI" to Android text selection actions. ✅
-   - This is one of the highest-value integrations for a dictionary app.
+- Add typo-tolerant and similar-word suggestions.
+- Rank local suggestions using history and bookmark signals.
+- Highlight matching text consistently across word and proverb results.
+- Improve multi-word query handling without weakening exact KBBI lookups.
 
-7. **Offline Mode Improvements**
-   - Show whether a result comes from cache or remote.
-   - Add an "available offline" indicator.
-   - Allow users to cache bookmarked meanings intentionally.
+### 3. Expand personalization
 
-8. **DataStore Settings**
-   - Notification preferences.
-   - Theme preference.
-   - Daily word notification time.
-   - Cache policy.
-   - Recent history limit.
+- System, light, and dark theme choices.
+- Material You dynamic color where supported.
+- Reminder-day selection and quiet-hour controls.
+- Configurable search-history retention.
 
-9. **Dynamic Theme / Material You**
-   - Add Android dynamic color support.
-   - Add light, dark, and system theme options.
-   - Fits the existing Compose and Material 3 stack.
+### 4. Protect and move user data
 
-10. **Search Enhancements**
-    - Voice search using Android speech recognition. ✅
-    - Search suggestions from the local `entries.json` word index. ✅
-    - Recent search chips.
-    - Similar-word or typo suggestions.  ✅
+- Android Auto Backup validation for bookmarks and preferences.
+- Manual bookmark/history export and import using a documented JSON format.
+- Conflict-safe restore behavior with migration tests.
 
-## Good Match, But Secondary
+## Larger opportunities
 
-1. **Biometric Protection**
-   - Only useful if the app later adds private notes or protected saved words.
-   - Not a priority for the current product.
+### Downloadable offline dictionary
 
-2. **Camera / OCR**
-   - Let users scan Indonesian text and tap words to search.
-   - High value, but larger scope than the core dictionary workflow.
+Full offline definitions would be highly valuable, but require an appropriate data source, clear licensing, versioned downloads, integrity checks, migrations, storage controls, and incremental updates. The current bundled asset contains word entries only.
 
-3. **Backup and Restore**
-   - Backup bookmarks and search history.
-   - Could use Android Auto Backup or manual JSON export/import.
+### OCR-assisted lookup
 
-4. **Deep Links** ✅
-   - Support links such as `kbbi://word/makan`. ✅
-   - Useful for shared definitions, widgets, notifications, and external integrations.
+Camera or image OCR could extract Indonesian text and route selected words into the existing search flow. This should be implemented only with clear permission, privacy, and on-device-processing behavior.
 
-5. **Predictive Back and Edge-to-Edge Polish**
-   - Improves platform feel.
-   - Worth doing as UI quality work after core features are stable.
+### Pronunciation
 
-6. **Downloadable Offline Dictionary**
-   - Very useful, but depends on dictionary data availability and licensing.
-   - The current bundled asset contains entries only, not definitions.
+Text-to-speech or licensed pronunciation audio could complement definitions. This would require language-quality evaluation, accessibility controls, and media lifecycle handling.
 
-## Weak Match / Probably Skip
+### Saved proverb widget
 
-- Location APIs
+A saved-proverb widget remains follow-up work. The app currently caches proverb content but has no proverb bookmark model or persistence APIs, and navigation cannot yet open a specific proverb meaning directly from its slug. Those foundations should be added before exposing saved proverbs on the home screen.
+
+## Lower priority
+
+These platform areas do not currently match the product's core dictionary workflows:
+
+- Location
 - Bluetooth
 - NFC
 - Health Connect
-- Sensors
-- Camera features unless they support OCR
-- Foreground services unless the app has a real long-running user-visible task
-- Media APIs unless pronunciation audio is added
+- General-purpose sensors
+- Foreground services without a user-visible long-running task
+- Biometrics unless private notes or protected collections are introduced
 
-## Recommended Roadmap
+## Product direction
 
-1. ✅ Text selection "Search in KBBI" (Done)
-2. ✅ Share definition and receive shared text (Done)
-3. ✅ App shortcuts for search, bookmarks, proverbs, and random word (Done)
-4. ✅ Voice search using Android speech recognition (Done)
-5. DataStore settings
-6. Daily word notification
-7. WorkManager cache refresh
-8. Home screen widget
-9. Dynamic theme
-10. ✅ Deep links (Done)
-11. OCR scan text
-12. Backup/export for bookmarks and history
-
-The strongest direction is to make KBBI better at quick lookup, offline cache, and daily learning. The most relevant Android feature set is Process Text, share intents, WorkManager, notifications, widgets, DataStore, and deep links.
+The strongest direction remains quick lookup, trustworthy offline behavior, and lightweight daily learning. New work should reuse the existing domain boundaries, remain optional where permissions are involved, and preserve the app's account-free local-first experience.

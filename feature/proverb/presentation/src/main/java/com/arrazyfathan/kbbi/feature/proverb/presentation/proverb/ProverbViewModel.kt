@@ -45,6 +45,8 @@ sealed interface ProverbAction {
 }
 
 sealed interface ProverbEvent {
+    data object MeaningLoaded : ProverbEvent
+
     data class ShowMessage(
         val message: UiText,
     ) : ProverbEvent
@@ -119,6 +121,7 @@ class ProverbViewModel(
                                 isMeaningLoading = false,
                             )
                         }
+                        _events.send(ProverbEvent.MeaningLoaded)
                     }
 
                     is AppResult.Error -> {

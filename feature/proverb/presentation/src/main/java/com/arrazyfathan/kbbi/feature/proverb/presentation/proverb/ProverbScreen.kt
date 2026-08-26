@@ -99,6 +99,7 @@ import com.arrazyfathan.kbbi.core.presentation.designsystem.BlueBg
 import com.arrazyfathan.kbbi.core.presentation.designsystem.BluePrimary
 import com.arrazyfathan.kbbi.core.presentation.designsystem.BlueSecondary
 import com.arrazyfathan.kbbi.core.presentation.designsystem.InterFontFamily
+import com.arrazyfathan.kbbi.core.presentation.designsystem.KBBIHapticType
 import com.arrazyfathan.kbbi.core.presentation.designsystem.KBBITheme
 import com.arrazyfathan.kbbi.core.presentation.designsystem.MetropolisFontFamily
 import com.arrazyfathan.kbbi.core.presentation.designsystem.TextH1
@@ -122,6 +123,7 @@ private val SEARCH_BAR_IDLE_SHOW_DELAY_MILLIS = 1_000L.milliseconds
 @Composable
 fun ProverbRoot(
     onNavigateBack: () -> Unit,
+    onHaptic: (KBBIHapticType) -> Unit,
     modifier: Modifier = Modifier,
     viewModel: ProverbViewModel = koinViewModel(),
 ) {
@@ -132,8 +134,13 @@ fun ProverbRoot(
     LaunchedEffect(Unit) {
         viewModel.events.collect { event ->
             when (event) {
+                ProverbEvent.MeaningLoaded -> {
+                    onHaptic(KBBIHapticType.Confirm)
+                }
+
                 is ProverbEvent.ShowMessage -> {
                     Toast.makeText(context, event.message.asString(context), Toast.LENGTH_SHORT).show()
+                    onHaptic(KBBIHapticType.Reject)
                 }
             }
         }

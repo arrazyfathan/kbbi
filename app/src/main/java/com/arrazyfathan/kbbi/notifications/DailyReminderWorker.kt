@@ -22,9 +22,9 @@ import com.arrazyfathan.kbbi.feature.home.domain.repository.WordCatalogRepositor
 import com.arrazyfathan.kbbi.feature.proverb.domain.repository.ProverbRepository
 import com.arrazyfathan.kbbi.feature.settings.domain.model.ReminderType
 import com.arrazyfathan.kbbi.feature.settings.domain.repository.NotificationSettingsRepository
+import com.arrazyfathan.kbbi.widgets.DailyItemSelector
 import kotlinx.coroutines.flow.first
 import org.koin.core.context.GlobalContext
-import java.util.Calendar
 
 class DailyReminderWorker(
     appContext: Context,
@@ -95,7 +95,7 @@ class DailyReminderWorker(
             .getWords()
             .filter { it.isNotBlank() }
             .takeIf { it.isNotEmpty() }
-            ?.let { words -> words[dailyIndex(words.size)] }
+            ?.let(DailyItemSelector::select)
             ?.let { word ->
                 NotificationContent(
                     title = localizedContext.getString(R.string.notification_daily_word_title),
@@ -112,7 +112,7 @@ class DailyReminderWorker(
             .getCachedProverbsForReminder()
             .filter { it.text.isNotBlank() && it.slug.isNotBlank() }
             .takeIf { it.isNotEmpty() }
-            ?.let { proverbs -> proverbs[dailyIndex(proverbs.size)] }
+            ?.let(DailyItemSelector::select)
             ?.let { proverb ->
                 NotificationContent(
                     title = localizedContext.getString(R.string.notification_daily_proverb_title),
@@ -132,11 +132,6 @@ class DailyReminderWorker(
             body = localizedContext.resources.getQuantityString(R.plurals.notification_bookmark_body, count, count),
             pendingIntent = pendingIntent("kbbi://bookmarks"),
         )
-    }
-
-    private fun dailyIndex(size: Int): Int {
-        val calendar = Calendar.getInstance()
-        return (calendar.get(Calendar.YEAR) * 366 + calendar.get(Calendar.DAY_OF_YEAR)).mod(size)
     }
 
     private fun pendingIntent(uri: String): PendingIntent =

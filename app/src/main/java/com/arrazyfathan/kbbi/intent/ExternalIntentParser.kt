@@ -1,4 +1,4 @@
-package com.arrazyfathan.kbbi
+package com.arrazyfathan.kbbi.intent
 
 import android.content.Intent
 import java.util.Locale
@@ -19,7 +19,10 @@ sealed interface NotificationLaunchRequest {
 internal fun Intent.extractExternalSearchQuery(): String? {
     val rawText =
         when (action) {
-            Intent.ACTION_PROCESS_TEXT -> getCharSequenceExtra(Intent.EXTRA_PROCESS_TEXT)?.toString()
+            Intent.ACTION_PROCESS_TEXT -> {
+                getCharSequenceExtra(Intent.EXTRA_PROCESS_TEXT)?.toString()
+            }
+
             Intent.ACTION_SEND -> {
                 if (type?.startsWith("text/plain") == true) {
                     getStringExtra(Intent.EXTRA_TEXT)
@@ -27,7 +30,8 @@ internal fun Intent.extractExternalSearchQuery(): String? {
                     null
                 }
             }
-            Intent.ACTION_VIEW ->
+
+            Intent.ACTION_VIEW -> {
                 data?.let { uri ->
                     extractWordDeepLinkQuery(
                         scheme = uri.scheme,
@@ -35,7 +39,11 @@ internal fun Intent.extractExternalSearchQuery(): String? {
                         pathSegments = uri.pathSegments,
                     )
                 }
-            else -> null
+            }
+
+            else -> {
+                null
+            }
         }
 
     return rawText?.toKbbiSearchQuery()

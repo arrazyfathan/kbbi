@@ -1,10 +1,10 @@
-package com.arrazyfathan.kbbi
+package com.arrazyfathan.kbbi.intent
 
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
 import org.junit.Test
 
-class ExternalSearchIntentParserTest {
+class ExternalIntentParserTest {
     @Test
     fun `search query normalization extracts first word`() {
         assertEquals("makan", "  (Makan!) nasi".toKbbiSearchQuery())
