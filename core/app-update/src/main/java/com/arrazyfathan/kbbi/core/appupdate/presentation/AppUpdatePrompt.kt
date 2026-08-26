@@ -26,6 +26,9 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -37,8 +40,14 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.net.toUri
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleEventObserver
+import androidx.lifecycle.compose.LocalLifecycleOwner
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.arrazyfathan.kbbi.core.R
 import com.arrazyfathan.kbbi.core.appupdate.domain.AppUpdate
+import com.arrazyfathan.kbbi.core.appupdate.domain.AppUpdateDownloadState
+import com.arrazyfathan.kbbi.core.appupdate.domain.AppUpdateInstallLauncher
 import com.arrazyfathan.kbbi.core.presentation.designsystem.BlueBg
 import com.arrazyfathan.kbbi.core.presentation.designsystem.BluePrimary
 import com.arrazyfathan.kbbi.core.presentation.designsystem.BlueSecondary
@@ -47,19 +56,59 @@ import com.arrazyfathan.kbbi.core.presentation.designsystem.KBBITheme
 import com.arrazyfathan.kbbi.core.presentation.designsystem.TextH1
 import com.arrazyfathan.kbbi.core.presentation.designsystem.TextP
 import com.arrazyfathan.kbbi.core.presentation.designsystem.TextPrimary
+import org.koin.androidx.compose.koinViewModel
+import org.koin.compose.koinInject
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AppUpdatePrompt(
+    modifier: Modifier = Modifier,
     update: AppUpdate,
     currentVersion: String,
     onDismiss: () -> Unit,
-    modifier: Modifier = Modifier,
 ) {
+    val installLauncher: AppUpdateInstallLauncher = koinInject()
+    val viewModel: AppUpdateDownloadViewModel = koinViewModel()
+    val context = LocalContext.current
+    val lifecycleOwner = LocalLifecycleOwner.current
+    val state by viewModel.state.collectAsStateWithLifecycle()
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+    val downloadState = state.downloadState.forVersion(update.latestVersion)
+    val isDownloading = downloadState is AppUpdateDownloadState.Downloading
+
+    LaunchedEffect(update) {
+        viewModel.onAction(AppUpdateDownloadAction.OnPromptShown(update))
+    }
+    LaunchedEffect(viewModel.events, context) {
+        viewModel.events.collect { event ->
+            when (event) {
+                is AppUpdateDownloadEvent.LaunchInstaller -> {
+                    installLauncher.launch(event.downloadId)
+                }
+            }
+        }
+    }
+    DisposableEffect(lifecycleOwner) {
+        val observer =
+            LifecycleEventObserver { _, event ->
+                when (event) {
+                    Lifecycle.Event.ON_RESUME -> viewModel.onAction(AppUpdateDownloadAction.OnHostResumed)
+                    Lifecycle.Event.ON_PAUSE -> viewModel.onAction(AppUpdateDownloadAction.OnHostPaused)
+                    else -> Unit
+                }
+            }
+        lifecycleOwner.lifecycle.addObserver(observer)
+        if (lifecycleOwner.lifecycle.currentState.isAtLeast(Lifecycle.State.RESUMED)) {
+            viewModel.onAction(AppUpdateDownloadAction.OnHostResumed)
+        }
+        onDispose {
+            viewModel.onAction(AppUpdateDownloadAction.OnHostPaused)
+            lifecycleOwner.lifecycle.removeObserver(observer)
+        }
+    }
 
     ModalBottomSheet(
-        onDismissRequest = onDismiss,
+        onDismissRequest = { if (!isDownloading) onDismiss() },
         sheetState = sheetState,
         containerColor = Color.White,
         shape = RoundedCornerShape(topStart = 18.dp, topEnd = 18.dp),
@@ -68,6 +117,12 @@ fun AppUpdatePrompt(
         AppUpdatePromptContent(
             update = update,
             currentVersion = currentVersion,
+            downloadState = downloadState,
+            onDownload = { viewModel.onAction(AppUpdateDownloadAction.OnDownloadClick) },
+            onOpenRelease = {
+                context.startActivity(Intent(Intent.ACTION_VIEW, update.releaseUrl.toUri()))
+                onDismiss()
+            },
             onDismiss = onDismiss,
         )
     }
@@ -75,13 +130,15 @@ fun AppUpdatePrompt(
 
 @Composable
 fun AppUpdatePromptContent(
+    modifier: Modifier = Modifier,
     update: AppUpdate,
     currentVersion: String,
+    downloadState: AppUpdateDownloadState,
+    onDownload: () -> Unit,
+    onOpenRelease: () -> Unit,
     onDismiss: () -> Unit,
-    modifier: Modifier = Modifier,
 ) {
-    val context = LocalContext.current
-    val downloadUrl = update.downloadUrl ?: update.releaseUrl
+    val isDownloading = downloadState is AppUpdateDownloadState.Downloading
 
     Column(
         modifier =
@@ -139,12 +196,8 @@ fun AppUpdatePromptContent(
             if (update.downloadUrl != null) {
                 OutlinedButton(
                     modifier = Modifier.weight(1f).height(44.dp),
-                    onClick = {
-                        context.startActivity(
-                            Intent(Intent.ACTION_VIEW, update.releaseUrl.toUri()),
-                        )
-                        onDismiss()
-                    },
+                    onClick = onOpenRelease,
+                    enabled = !isDownloading,
                     shape = RoundedCornerShape(12.dp),
                 ) {
                     Text(
@@ -159,6 +212,7 @@ fun AppUpdatePromptContent(
             TextButton(
                 modifier = Modifier.weight(1f).height(44.dp),
                 onClick = onDismiss,
+                enabled = !isDownloading,
                 shape = RoundedCornerShape(12.dp),
             ) {
                 Text(
@@ -174,12 +228,8 @@ fun AppUpdatePromptContent(
 
         Button(
             modifier = Modifier.fillMaxWidth().height(48.dp),
-            onClick = {
-                context.startActivity(
-                    Intent(Intent.ACTION_VIEW, downloadUrl.toUri()),
-                )
-                onDismiss()
-            },
+            onClick = if (update.downloadUrl == null) onOpenRelease else onDownload,
+            enabled = !isDownloading,
             shape = RoundedCornerShape(12.dp),
             colors =
                 ButtonDefaults.buttonColors(
@@ -190,12 +240,8 @@ fun AppUpdatePromptContent(
             Text(
                 text =
                     stringResource(
-                        id =
-                            if (update.downloadUrl != null) {
-                                R.string.update_download_action
-                            } else {
-                                R.string.update_open_release_action
-                            },
+                        id = downloadActionLabel(update, downloadState),
+                        downloadState.progressArgument(),
                     ),
                 fontFamily = InterFontFamily,
                 fontWeight = FontWeight.SemiBold,
@@ -204,6 +250,47 @@ fun AppUpdatePromptContent(
         }
     }
 }
+
+private fun AppUpdateDownloadState.forVersion(version: String): AppUpdateDownloadState =
+    when (this) {
+        is AppUpdateDownloadState.Downloading -> if (this.version == version) this else AppUpdateDownloadState.Idle
+        is AppUpdateDownloadState.Ready -> if (this.version == version) this else AppUpdateDownloadState.Idle
+        is AppUpdateDownloadState.Failed -> if (this.version == version) this else AppUpdateDownloadState.Idle
+        AppUpdateDownloadState.Idle -> this
+    }
+
+private fun downloadActionLabel(
+    update: AppUpdate,
+    state: AppUpdateDownloadState,
+): Int =
+    when {
+        update.downloadUrl == null -> {
+            R.string.update_open_release_action
+        }
+
+        state is AppUpdateDownloadState.Downloading && state.progressPercent != null -> {
+            R.string.update_downloading_progress_action
+        }
+
+        state is AppUpdateDownloadState.Downloading -> {
+            R.string.update_downloading_action
+        }
+
+        state is AppUpdateDownloadState.Ready -> {
+            R.string.update_install_action
+        }
+
+        state is AppUpdateDownloadState.Failed -> {
+            R.string.update_retry_action
+        }
+
+        else -> {
+            R.string.update_download_action
+        }
+    }
+
+private fun AppUpdateDownloadState.progressArgument(): Any =
+    (this as? AppUpdateDownloadState.Downloading)?.progressPercent ?: ""
 
 @Composable
 private fun UpdateBadge(modifier: Modifier = Modifier) {
@@ -226,9 +313,9 @@ private fun UpdateBadge(modifier: Modifier = Modifier) {
 
 @Composable
 private fun VersionComparison(
+    modifier: Modifier = Modifier,
     currentVersion: String,
     latestVersion: String,
-    modifier: Modifier = Modifier,
 ) {
     Surface(
         modifier = modifier.fillMaxWidth(),
@@ -264,9 +351,9 @@ private fun VersionComparison(
 
 @Composable
 private fun VersionPill(
+    modifier: Modifier = Modifier,
     label: String,
     version: String,
-    modifier: Modifier = Modifier,
     emphasized: Boolean = false,
 ) {
     val containerColor = if (emphasized) BluePrimary else Color.White
@@ -372,6 +459,9 @@ fun AppUpdatePromptContentPreview() {
                     releaseNotes = "• Added new features\n• Fixed bugs\n• Improved performance",
                 ),
             currentVersion = "1.0.0",
+            downloadState = AppUpdateDownloadState.Idle,
+            onDownload = {},
+            onOpenRelease = {},
             onDismiss = {},
         )
     }
@@ -379,9 +469,9 @@ fun AppUpdatePromptContentPreview() {
 
 @Preview(showBackground = true)
 @Composable
-fun AppUpdatePromptPreview() {
+fun AppUpdateDownloadingPromptContentPreview() {
     KBBITheme {
-        AppUpdatePrompt(
+        AppUpdatePromptContent(
             update =
                 AppUpdate(
                     latestVersion = "1.1.0",
@@ -390,6 +480,9 @@ fun AppUpdatePromptPreview() {
                     releaseNotes = "• Added new features\n• Fixed bugs\n• Improved performance",
                 ),
             currentVersion = "1.0.0",
+            downloadState = AppUpdateDownloadState.Downloading(42L, "1.1.0", 48),
+            onDownload = {},
+            onOpenRelease = {},
             onDismiss = {},
         )
     }
