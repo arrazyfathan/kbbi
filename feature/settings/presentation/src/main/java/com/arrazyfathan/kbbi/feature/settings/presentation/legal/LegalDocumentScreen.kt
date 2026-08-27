@@ -30,9 +30,6 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.arrazyfathan.kbbi.core.R
-import com.arrazyfathan.kbbi.core.presentation.designsystem.BlueBg
-import com.arrazyfathan.kbbi.core.presentation.designsystem.BluePrimary
-import com.arrazyfathan.kbbi.core.presentation.designsystem.BlueSecondary
 import com.arrazyfathan.kbbi.core.presentation.designsystem.KBBITheme
 import com.arrazyfathan.kbbi.core.presentation.designsystem.MetropolisFontFamily
 import com.arrazyfathan.kbbi.core.presentation.designsystem.TextH1
@@ -76,20 +73,20 @@ private fun LegalDocumentScreen(
         containerColor = Color.White,
         topBar = {
             TopAppBar(
-                modifier = Modifier.background(Brush.verticalGradient(listOf(BlueSecondary, BluePrimary))),
+                modifier = Modifier.background(Brush.verticalGradient(listOf(MaterialTheme.colorScheme.secondary, MaterialTheme.colorScheme.primary))),
                 navigationIcon = {
                     IconButton(onClick = onNavigateBack) {
                         Icon(
                             painter = painterResource(R.drawable.ic_arrow_back),
                             contentDescription = stringResource(R.string.navigate_back),
-                            tint = Color.White,
+                            tint = MaterialTheme.colorScheme.onPrimary,
                         )
                     }
                 },
                 title = {
                     Text(
                         text = stringResource(titleRes),
-                        color = Color.White,
+                        color = MaterialTheme.colorScheme.onPrimary,
                         fontSize = 18.sp,
                         fontFamily = MetropolisFontFamily,
                         fontWeight = FontWeight.Normal,
@@ -100,7 +97,7 @@ private fun LegalDocumentScreen(
                 colors = TopAppBarDefaults.topAppBarColors(
                     containerColor = Color.Transparent,
                     scrolledContainerColor = Color.Transparent,
-                    titleContentColor = Color.White,
+                    titleContentColor = MaterialTheme.colorScheme.onPrimary,
                 ),
             )
         },

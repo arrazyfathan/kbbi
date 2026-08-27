@@ -26,6 +26,7 @@ import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Card
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -56,8 +57,6 @@ import com.airbnb.lottie.compose.LottieCompositionSpec
 import com.airbnb.lottie.compose.LottieConstants
 import com.airbnb.lottie.compose.rememberLottieComposition
 import com.arrazyfathan.kbbi.core.R
-import com.arrazyfathan.kbbi.core.presentation.designsystem.BluePrimary
-import com.arrazyfathan.kbbi.core.presentation.designsystem.BlueSecondary
 import com.arrazyfathan.kbbi.core.presentation.designsystem.Grey
 import com.arrazyfathan.kbbi.core.presentation.designsystem.InterFontFamily
 import com.arrazyfathan.kbbi.core.presentation.designsystem.KBBIHapticType
@@ -115,8 +114,8 @@ fun BookmarksScreenContent(
                         Brush.verticalGradient(
                             colors =
                                 listOf(
-                                    BluePrimary,
-                                    BlueSecondary,
+                                    MaterialTheme.colorScheme.primary,
+                                    MaterialTheme.colorScheme.secondary,
                                 ),
                         ),
                 ).statusBarsPadding(),
@@ -148,7 +147,7 @@ fun BookmarksScreenContent(
 
                 Text(
                     text = stringResource(id = R.string.empty_bookmarks_message),
-                    color = Color.White,
+                    color = MaterialTheme.colorScheme.onPrimary,
                     fontSize = 14.sp,
                     fontFamily = InterFontFamily,
                     fontWeight = FontWeight.Medium,
@@ -165,7 +164,7 @@ fun BookmarksScreenContent(
 
             Text(
                 text = stringResource(id = R.string.bookmarks_title),
-                color = Color.White,
+                color = MaterialTheme.colorScheme.onPrimary,
                 fontSize = 24.sp,
                 fontFamily = MetropolisFontFamily,
                 fontWeight = FontWeight.ExtraBold,
@@ -176,7 +175,7 @@ fun BookmarksScreenContent(
 
             Text(
                 text = stringResource(id = R.string.bookmarks_screen_subtitle),
-                color = Color.White,
+                color = MaterialTheme.colorScheme.onPrimary,
                 fontSize = 16.sp,
                 fontFamily = SpaceGroteskFontFamily,
                 fontWeight = FontWeight.Normal,
@@ -397,14 +396,14 @@ fun DeleteConfirmationDialog(
                             Modifier
                                 .weight(1f)
                                 .clip(RoundedCornerShape(64.dp))
-                                .background(BluePrimary)
+                                .background(MaterialTheme.colorScheme.primary)
                                 .clickable { onConfirm() }
                                 .padding(vertical = 12.dp),
                         contentAlignment = Alignment.Center,
                     ) {
                         Text(
                             text = okTitle,
-                            color = Color.White,
+                            color = MaterialTheme.colorScheme.onPrimary,
                             fontFamily = InterFontFamily,
                             fontWeight = FontWeight.Normal,
                             fontSize = 14.sp,

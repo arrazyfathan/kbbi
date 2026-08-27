@@ -10,6 +10,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.assertIsNotEnabled
+import androidx.compose.ui.test.assertIsSelected
 import androidx.compose.ui.test.click
 import androidx.compose.ui.test.junit4.v2.createComposeRule
 import androidx.compose.ui.test.onNodeWithTag
@@ -18,6 +19,7 @@ import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performScrollTo
 import androidx.compose.ui.test.performTouchInput
 import com.arrazyfathan.kbbi.core.presentation.designsystem.KBBITheme
+import com.arrazyfathan.kbbi.core.domain.model.AppTheme
 import org.junit.Rule
 import org.junit.Test
 
@@ -133,6 +135,36 @@ class SettingsScreenTest {
             "Clear search history",
         ).forEach { text ->
             composeTestRule.onNodeWithText(text).performScrollTo().assertIsDisplayed()
+        }
+    }
+
+    @Test
+    fun appearancePicker_showsThemesAndDispatchesSelection() {
+        var selectedTheme: AppTheme? = null
+        composeTestRule.setContent {
+            KBBITheme {
+                SettingsScreen(
+                    state = SettingsState(selectedTheme = AppTheme.ROYAL_OCEAN),
+                    onNavigateBack = {},
+                    onAction = { action ->
+                        if (action is SettingsAction.OnThemeSelected) selectedTheme = action.theme
+                    },
+                )
+            }
+        }
+
+        listOf(
+            "Royal Ocean",
+            "Golden Sunset",
+            "Golden Coral Energy",
+            "Deep Forest Energy",
+        ).forEach { name ->
+            composeTestRule.onNodeWithText(name).performScrollTo().assertIsDisplayed()
+        }
+        composeTestRule.onNodeWithText("Royal Ocean").assertIsSelected()
+        composeTestRule.onNodeWithText("Deep Forest Energy").performClick()
+        composeTestRule.runOnIdle {
+            assert(selectedTheme == AppTheme.DEEP_FOREST_ENERGY)
         }
     }
     @Test

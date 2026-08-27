@@ -17,6 +17,7 @@ import androidx.compose.animation.fadeOut
 import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.background
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -93,9 +94,7 @@ import androidx.core.os.LocaleListCompat
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.arrazyfathan.kbbi.core.R
 import com.arrazyfathan.kbbi.core.appupdate.presentation.AppUpdatePrompt
-import com.arrazyfathan.kbbi.core.presentation.designsystem.BlueBg
-import com.arrazyfathan.kbbi.core.presentation.designsystem.BluePrimary
-import com.arrazyfathan.kbbi.core.presentation.designsystem.BlueSecondary
+import com.arrazyfathan.kbbi.core.domain.model.AppTheme
 import com.arrazyfathan.kbbi.core.presentation.designsystem.InterFontFamily
 import com.arrazyfathan.kbbi.core.presentation.designsystem.KBBIHapticType
 import com.arrazyfathan.kbbi.core.presentation.designsystem.KBBITheme
@@ -104,6 +103,7 @@ import com.arrazyfathan.kbbi.core.presentation.designsystem.TextH1
 import com.arrazyfathan.kbbi.core.presentation.designsystem.TextP
 import com.arrazyfathan.kbbi.core.presentation.designsystem.components.KBBITimePickerBottomSheet
 import com.arrazyfathan.kbbi.core.presentation.designsystem.perform
+import com.arrazyfathan.kbbi.core.presentation.designsystem.palette
 import com.arrazyfathan.kbbi.feature.settings.domain.model.ReminderTime
 import com.arrazyfathan.kbbi.feature.settings.domain.model.ReminderType
 import kotlinx.coroutines.CancellationException
@@ -314,7 +314,7 @@ fun SettingsScreen(
             Modifier
                 .fillMaxSize()
                 .nestedScroll(scrollBehavior.nestedScrollConnection),
-        containerColor = BlueBg,
+        containerColor = MaterialTheme.colorScheme.background,
         topBar = {
             SettingsTopAppBar(
                 scrollBehavior = scrollBehavior,
@@ -344,6 +344,10 @@ fun SettingsScreen(
                 state = state,
                 onAction = onAction,
                 onTimeClick = { timePickerType = it },
+            )
+            AppearanceSection(
+                selectedTheme = state.selectedTheme,
+                onThemeSelected = { onAction(SettingsAction.OnThemeSelected(it)) },
             )
             InteractionSection(
                 hapticsEnabled = state.hapticsEnabled,
@@ -439,6 +443,139 @@ fun SettingsScreen(
 }
 
 @Composable
+private fun AppearanceSection(
+    selectedTheme: AppTheme,
+    onThemeSelected: (AppTheme) -> Unit,
+) {
+    SettingsSectionCard(title = stringResource(R.string.appearance_section_title)) {
+        Column(
+            modifier =
+                Modifier
+                    .fillMaxWidth()
+                    .selectableGroup()
+                    .padding(14.dp),
+            verticalArrangement = Arrangement.spacedBy(12.dp),
+        ) {
+            Text(
+                text = stringResource(R.string.theme_picker_description),
+                style = MaterialTheme.typography.bodySmall,
+                color = TextP,
+                modifier = Modifier.padding(horizontal = 4.dp),
+            )
+            AppTheme.entries.chunked(2).forEach { themes ->
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(12.dp),
+                ) {
+                    themes.forEach { theme ->
+                        ThemeOption(
+                            theme = theme,
+                            selected = theme == selectedTheme,
+                            onClick = { onThemeSelected(theme) },
+                            modifier = Modifier.weight(1f),
+                        )
+                    }
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun ThemeOption(
+    theme: AppTheme,
+    selected: Boolean,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    val palette = theme.palette
+    Card(
+        modifier =
+            modifier.selectable(
+                selected = selected,
+                onClick = onClick,
+                role = Role.RadioButton,
+            ),
+        shape = RoundedCornerShape(18.dp),
+        colors =
+            CardDefaults.cardColors(
+                containerColor =
+                    if (selected) {
+                        MaterialTheme.colorScheme.primary.copy(alpha = 0.08f)
+                    } else {
+                        MaterialTheme.colorScheme.surface
+                    },
+            ),
+        border =
+            BorderStroke(
+                width = if (selected) 2.dp else 1.dp,
+                color =
+                    if (selected) {
+                        MaterialTheme.colorScheme.primary
+                    } else {
+                        MaterialTheme.colorScheme.outlineVariant
+                    },
+            ),
+    ) {
+        Column(
+            modifier = Modifier.fillMaxWidth().padding(12.dp),
+            verticalArrangement = Arrangement.spacedBy(10.dp),
+        ) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                Row(modifier = Modifier.weight(1f)) {
+                    Box(
+                        modifier =
+                            Modifier
+                                .size(28.dp)
+                                .background(palette.primary, CircleShape),
+                    )
+                    Box(
+                        modifier =
+                            Modifier
+                                .size(28.dp)
+                                .background(palette.secondary, CircleShape),
+                    )
+                }
+                if (selected) {
+                    Box(
+                        modifier =
+                            Modifier
+                                .size(24.dp)
+                                .background(MaterialTheme.colorScheme.primary, CircleShape),
+                        contentAlignment = Alignment.Center,
+                    ) {
+                        Text(
+                            text = "✓",
+                            color = MaterialTheme.colorScheme.onPrimary,
+                            style = MaterialTheme.typography.labelMedium,
+                            fontWeight = FontWeight.Bold,
+                        )
+                    }
+                }
+            }
+            Text(
+                text = stringResource(theme.labelResId),
+                style = MaterialTheme.typography.labelLarge,
+                color = MaterialTheme.colorScheme.onSurface,
+                minLines = 2,
+            )
+        }
+    }
+}
+
+private val AppTheme.labelResId: Int
+    get() =
+        when (this) {
+            AppTheme.ROYAL_OCEAN -> R.string.theme_royal_ocean
+            AppTheme.GOLDEN_SUNSET -> R.string.theme_golden_sunset
+            AppTheme.GOLDEN_CORAL_ENERGY -> R.string.theme_golden_coral_energy
+            AppTheme.DEEP_FOREST_ENERGY -> R.string.theme_deep_forest_energy
+        }
+
+@Composable
 private fun InteractionSection(
     hapticsEnabled: Boolean,
     onHapticsChanged: (Boolean) -> Unit,
@@ -458,7 +595,7 @@ private fun InteractionSection(
             Icon(
                 painter = painterResource(R.drawable.ic_vibration),
                 contentDescription = null,
-                tint = BluePrimary,
+                tint = MaterialTheme.colorScheme.primary,
                 modifier = Modifier.size(22.dp),
             )
             Spacer(Modifier.width(14.dp))
@@ -519,14 +656,14 @@ private fun SettingsTopAppBar(
     MediumTopAppBar(
         modifier =
             Modifier.background(
-                brush = Brush.verticalGradient(listOf(BlueSecondary, BluePrimary)),
+                brush = Brush.verticalGradient(listOf(MaterialTheme.colorScheme.secondary, MaterialTheme.colorScheme.primary)),
             ),
         navigationIcon = {
             IconButton(onClick = onNavigateBack) {
                 Icon(
                     painter = painterResource(R.drawable.ic_arrow_back),
                     contentDescription = stringResource(R.string.navigate_back),
-                    tint = Color.White,
+                    tint = MaterialTheme.colorScheme.onPrimary,
                 )
             }
         },
@@ -536,7 +673,7 @@ private fun SettingsTopAppBar(
                     text = stringResource(R.string.settings_title),
                     fontFamily = MetropolisFontFamily,
                     fontWeight = FontWeight.ExtraBold,
-                    color = Color.White,
+                    color = MaterialTheme.colorScheme.onPrimary,
                     fontSize = if (isCollapsed) 20.sp else 24.sp,
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis,
@@ -546,7 +683,7 @@ private fun SettingsTopAppBar(
                         text = stringResource(R.string.settings_menu_subtitle),
                         fontFamily = InterFontFamily,
                         fontWeight = FontWeight.Normal,
-                        color = Color.White.copy(alpha = 0.82f),
+                        color = MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.82f),
                         fontSize = 13.sp,
                         lineHeight = 18.sp,
                         maxLines = 2,
@@ -560,7 +697,7 @@ private fun SettingsTopAppBar(
             TopAppBarDefaults.topAppBarColors(
                 containerColor = Color.Transparent,
                 scrolledContainerColor = Color.Transparent,
-                titleContentColor = Color.White,
+                titleContentColor = MaterialTheme.colorScheme.onPrimary,
             ),
         scrollBehavior = scrollBehavior,
     )
@@ -693,7 +830,7 @@ private fun SettingsMenuRow(
             Icon(
                 painter = painterResource(icon),
                 contentDescription = null,
-                tint = BluePrimary,
+                tint = MaterialTheme.colorScheme.primary,
                 modifier = Modifier.size(20.dp),
             )
             Spacer(Modifier.width(14.dp))
@@ -717,11 +854,11 @@ private fun SettingsMenuRow(
             Text(
                 text = stringResource(R.string.new_badge),
                 style = MaterialTheme.typography.labelSmall,
-                color = Color.White,
+                color = MaterialTheme.colorScheme.onPrimary,
                 fontWeight = FontWeight.Bold,
                 modifier =
                     Modifier
-                        .background(BluePrimary, RoundedCornerShape(50))
+                        .background(MaterialTheme.colorScheme.primary, RoundedCornerShape(50))
                         .padding(horizontal = 8.dp, vertical = 4.dp),
             )
             Spacer(Modifier.width(10.dp))
@@ -736,7 +873,7 @@ private fun SettingsMenuRow(
             Text(
                 text = "›",
                 style = MaterialTheme.typography.headlineSmall,
-                color = BluePrimary,
+                color = MaterialTheme.colorScheme.primary,
                 modifier = Modifier.clearAndSetSemantics { },
             )
         }
@@ -745,7 +882,7 @@ private fun SettingsMenuRow(
 
 @Composable
 private fun SettingsDivider() {
-    HorizontalDivider(modifier = Modifier.padding(horizontal = 18.dp), color = BlueBg)
+    HorizontalDivider(modifier = Modifier.padding(horizontal = 18.dp), color = MaterialTheme.colorScheme.background)
 }
 
 @Composable
@@ -765,7 +902,7 @@ private fun LanguageSection(
                 color = TextH1,
                 modifier = Modifier.padding(horizontal = 16.dp, vertical = 14.dp),
             )
-            HorizontalDivider(modifier = Modifier.padding(horizontal = 18.dp), color = BlueBg)
+            HorizontalDivider(modifier = Modifier.padding(horizontal = 18.dp), color = MaterialTheme.colorScheme.background)
             Row(
                 modifier =
                     Modifier
@@ -792,7 +929,7 @@ private fun LanguageSection(
                 Text(
                     text = "›",
                     style = MaterialTheme.typography.headlineSmall,
-                    color = BluePrimary,
+                    color = MaterialTheme.colorScheme.primary,
                     modifier = Modifier.clearAndSetSemantics { },
                 )
             }
@@ -881,7 +1018,7 @@ private fun LanguageBadge(language: AppLanguage) {
             Modifier
                 .size(40.dp)
                 .background(
-                    brush = Brush.verticalGradient(listOf(BlueSecondary, BluePrimary)),
+                    brush = Brush.verticalGradient(listOf(MaterialTheme.colorScheme.secondary, MaterialTheme.colorScheme.primary)),
                     CircleShape,
                 ).clearAndSetSemantics { },
         contentAlignment = Alignment.Center,
@@ -889,7 +1026,7 @@ private fun LanguageBadge(language: AppLanguage) {
         Text(
             text = language.badgeLabel,
             style = MaterialTheme.typography.labelMedium,
-            color = Color.White,
+            color = MaterialTheme.colorScheme.onPrimary,
             fontWeight = FontWeight.Bold,
         )
     }
@@ -927,7 +1064,7 @@ private fun ReminderSection(
                 color = TextH1,
                 modifier = Modifier.padding(horizontal = 16.dp, vertical = 14.dp),
             )
-            HorizontalDivider(modifier = Modifier.padding(horizontal = 18.dp), color = BlueBg)
+            HorizontalDivider(modifier = Modifier.padding(horizontal = 18.dp), color = MaterialTheme.colorScheme.background)
             ReminderRow(
                 icon = R.drawable.word,
                 title = stringResource(R.string.notification_daily_word),
@@ -941,7 +1078,7 @@ private fun ReminderSection(
                 onToggle = { onAction(SettingsAction.OnReminderToggled(ReminderType.DAILY_WORD, it)) },
                 onTimeClick = { onTimeClick(ReminderType.DAILY_WORD) },
             )
-            HorizontalDivider(modifier = Modifier.padding(horizontal = 18.dp), color = BlueBg)
+            HorizontalDivider(modifier = Modifier.padding(horizontal = 18.dp), color = MaterialTheme.colorScheme.background)
             ReminderRow(
                 icon = R.drawable.ic_proverb,
                 title = stringResource(R.string.notification_daily_proverb),
@@ -955,7 +1092,7 @@ private fun ReminderSection(
                 onToggle = { onAction(SettingsAction.OnReminderToggled(ReminderType.DAILY_PROVERB, it)) },
                 onTimeClick = { onTimeClick(ReminderType.DAILY_PROVERB) },
             )
-            HorizontalDivider(modifier = Modifier.padding(horizontal = 18.dp), color = BlueBg)
+            HorizontalDivider(modifier = Modifier.padding(horizontal = 18.dp), color = MaterialTheme.colorScheme.background)
             ReminderRow(
                 icon = R.drawable.saved,
                 title = stringResource(R.string.notification_bookmark_review),
@@ -996,7 +1133,7 @@ private fun ReminderRow(
         Icon(
             painter = painterResource(icon),
             contentDescription = null,
-            tint = BluePrimary.copy(alpha = if (enabled) 1f else 0.45f),
+            tint = MaterialTheme.colorScheme.primary.copy(alpha = if (enabled) 1f else 0.45f),
             modifier = Modifier.size(18.dp),
         )
 
@@ -1069,7 +1206,13 @@ private fun PermissionBanner(onOpenSystemSettings: () -> Unit) {
 @Preview
 @Composable
 private fun SettingsPreview() {
-    KBBITheme { SettingsScreen(SettingsState(), onNavigateBack = {}, onAction = {}) }
+    KBBITheme(theme = AppTheme.GOLDEN_SUNSET) {
+        SettingsScreen(
+            state = SettingsState(selectedTheme = AppTheme.GOLDEN_SUNSET),
+            onNavigateBack = {},
+            onAction = {},
+        )
+    }
 }
 
 private const val REPORT_BUG_URL = "https://github.com/arrazyfathan/kbbi/issues"

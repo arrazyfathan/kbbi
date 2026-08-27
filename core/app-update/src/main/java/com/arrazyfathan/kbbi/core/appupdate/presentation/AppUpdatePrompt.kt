@@ -17,6 +17,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ModalBottomSheet
@@ -48,9 +49,6 @@ import com.arrazyfathan.kbbi.core.R
 import com.arrazyfathan.kbbi.core.appupdate.domain.AppUpdate
 import com.arrazyfathan.kbbi.core.appupdate.domain.AppUpdateDownloadState
 import com.arrazyfathan.kbbi.core.appupdate.domain.AppUpdateInstallLauncher
-import com.arrazyfathan.kbbi.core.presentation.designsystem.BlueBg
-import com.arrazyfathan.kbbi.core.presentation.designsystem.BluePrimary
-import com.arrazyfathan.kbbi.core.presentation.designsystem.BlueSecondary
 import com.arrazyfathan.kbbi.core.presentation.designsystem.InterFontFamily
 import com.arrazyfathan.kbbi.core.presentation.designsystem.KBBITheme
 import com.arrazyfathan.kbbi.core.presentation.designsystem.TextH1
@@ -204,7 +202,7 @@ fun AppUpdatePromptContent(
                         text = stringResource(id = R.string.update_open_release_action),
                         fontFamily = InterFontFamily,
                         fontWeight = FontWeight.Medium,
-                        color = BluePrimary,
+                        color = MaterialTheme.colorScheme.primary,
                     )
                 }
             }
@@ -233,8 +231,8 @@ fun AppUpdatePromptContent(
             shape = RoundedCornerShape(12.dp),
             colors =
                 ButtonDefaults.buttonColors(
-                    containerColor = BluePrimary,
-                    contentColor = Color.White,
+                    containerColor = MaterialTheme.colorScheme.primary,
+                    contentColor = MaterialTheme.colorScheme.onPrimary,
                 ),
         ) {
             Text(
@@ -297,12 +295,12 @@ private fun UpdateBadge(modifier: Modifier = Modifier) {
     Surface(
         modifier = modifier.size(48.dp),
         shape = CircleShape,
-        color = BlueBg,
+        color = MaterialTheme.colorScheme.background,
     ) {
         Box(contentAlignment = Alignment.Center) {
             Text(
                 text = stringResource(id = R.string.update_badge_text),
-                color = BluePrimary,
+                color = MaterialTheme.colorScheme.primary,
                 fontFamily = InterFontFamily,
                 fontWeight = FontWeight.ExtraBold,
                 fontSize = 18.sp,
@@ -320,7 +318,7 @@ private fun VersionComparison(
     Surface(
         modifier = modifier.fillMaxWidth(),
         shape = RoundedCornerShape(14.dp),
-        color = BlueBg,
+        color = MaterialTheme.colorScheme.background,
     ) {
         Row(
             modifier = Modifier.fillMaxWidth().padding(14.dp),
@@ -334,7 +332,7 @@ private fun VersionComparison(
             )
             Text(
                 text = stringResource(id = R.string.update_version_arrow),
-                color = BlueSecondary,
+                color = MaterialTheme.colorScheme.secondary,
                 fontFamily = InterFontFamily,
                 fontWeight = FontWeight.Bold,
                 fontSize = 18.sp,
@@ -356,7 +354,7 @@ private fun VersionPill(
     version: String,
     emphasized: Boolean = false,
 ) {
-    val containerColor = if (emphasized) BluePrimary else Color.White
+    val containerColor = if (emphasized) MaterialTheme.colorScheme.primary else Color.White
 
     Column(
         modifier =
@@ -366,7 +364,7 @@ private fun VersionPill(
     ) {
         Text(
             text = label,
-            color = if (emphasized) Color.White.copy(alpha = 0.78f) else TextP,
+            color = if (emphasized) MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.78f) else TextP,
             fontFamily = InterFontFamily,
             fontWeight = FontWeight.Medium,
             fontSize = 11.sp,
@@ -376,7 +374,7 @@ private fun VersionPill(
         Spacer(modifier = Modifier.height(3.dp))
         Text(
             text = version,
-            color = if (emphasized) Color.White else TextPrimary,
+            color = if (emphasized) MaterialTheme.colorScheme.onPrimary else TextPrimary,
             fontFamily = InterFontFamily,
             fontWeight = FontWeight.Bold,
             fontSize = 15.sp,

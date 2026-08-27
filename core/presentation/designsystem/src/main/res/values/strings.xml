@@ -162,6 +162,12 @@
     <string name="clear_history_confirmed">Search history cleared</string>
     <string name="data_section_title">Data</string>
     <string name="interaction_section_title">Interaction</string>
+    <string name="appearance_section_title">Appearance</string>
+    <string name="theme_picker_description">Choose the app color theme.</string>
+    <string name="theme_royal_ocean" translatable="false">Royal Ocean</string>
+    <string name="theme_golden_sunset" translatable="false">Golden Sunset</string>
+    <string name="theme_golden_coral_energy" translatable="false">Golden Coral Energy</string>
+    <string name="theme_deep_forest_energy" translatable="false">Deep Forest Energy</string>
     <string name="haptic_feedback_title">Haptic feedback</string>
     <string name="haptic_feedback_description">Use subtle vibrations for actions and results</string>
     <string name="coming_soon">Coming soon</string>

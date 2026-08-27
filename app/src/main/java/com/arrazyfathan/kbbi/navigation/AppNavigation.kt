@@ -24,6 +24,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ripple
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
@@ -42,13 +43,14 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
-import androidx.core.content.ContextCompat
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.navigation3.rememberViewModelStoreNavEntryDecorator
 import androidx.navigation3.runtime.NavBackStack
@@ -227,6 +229,8 @@ internal fun MainApp(
     }
     val appUpdateState by appUpdateViewModel.state.collectAsStateWithLifecycle()
     val appUiState by appUiViewModel.state.collectAsStateWithLifecycle()
+    val primarySystemBarColor = MaterialTheme.colorScheme.primary.toArgb()
+    val backgroundSystemBarColor = MaterialTheme.colorScheme.background.toArgb()
     val performHaptic: (KBBIHapticType) -> Unit =
         remember(appUiState.hapticsEnabled, platformHapticFeedback) {
             { type ->
@@ -301,17 +305,17 @@ internal fun MainApp(
         }
     }
 
-    LaunchedEffect(currentRoute) {
+    LaunchedEffect(currentRoute, primarySystemBarColor, backgroundSystemBarColor) {
         val activity = context.findActivity() ?: return@LaunchedEffect
-        val colorResId =
+        val statusBarColor =
             if (isDetailVisible) {
-                R.color.blue_bg
+                backgroundSystemBarColor
             } else {
-                R.color.blue_primary
+                primarySystemBarColor
             }
         activity.updateSystemBarStyle(
-            ContextCompat.getColor(activity, colorResId),
-            ContextCompat.getColor(activity, android.R.color.white),
+            statusBarColor,
+            backgroundSystemBarColor,
         )
     }
 
@@ -452,7 +456,7 @@ internal fun MainApp(
                             .fillMaxWidth()
                             .height(70.dp)
                             .shadow(elevation = 16.dp)
-                            .background(Color.White),
+                            .background(MaterialTheme.colorScheme.surface),
                     verticalAlignment = Alignment.CenterVertically,
                 ) {
                     screens.forEach { screen ->
@@ -461,7 +465,12 @@ internal fun MainApp(
                             modifier =
                                 Modifier.weight(1f).fillMaxHeight().clickable(
                                     interactionSource = remember { MutableInteractionSource() },
-                                    indication = ripple(bounded = false, radius = 24.dp),
+                                    indication =
+                                        ripple(
+                                            bounded = false,
+                                            radius = 24.dp,
+                                            color = MaterialTheme.colorScheme.primary,
+                                        ),
                                 ) {
                                     if (!isUiBlocked && !isSelected) {
                                         navigator.navigate(screen)
@@ -475,8 +484,13 @@ internal fun MainApp(
                                     painterResource(
                                         id = if (isSelected) screen.iconSelectedResId else screen.iconResId,
                                     ),
-                                contentDescription = null,
-                                tint = Color.Unspecified,
+                                contentDescription = stringResource(screen.titleResId),
+                                tint =
+                                    if (isSelected) {
+                                        MaterialTheme.colorScheme.primary
+                                    } else {
+                                        MaterialTheme.colorScheme.primary.copy(alpha = 0.55f)
+                                    },
                             )
                         }
                     }

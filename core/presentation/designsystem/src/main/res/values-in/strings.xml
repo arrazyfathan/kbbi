@@ -159,6 +159,8 @@
     <string name="clear_history_confirmed">Riwayat pencarian dihapus</string>
     <string name="data_section_title">Data</string>
     <string name="interaction_section_title">Interaksi</string>
+    <string name="appearance_section_title">Tampilan</string>
+    <string name="theme_picker_description">Pilih tema warna aplikasi.</string>
     <string name="haptic_feedback_title">Umpan balik haptik</string>
     <string name="haptic_feedback_description">Gunakan getaran halus untuk tindakan dan hasil</string>
     <string name="coming_soon">Segera hadir</string>

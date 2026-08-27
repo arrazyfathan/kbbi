@@ -47,8 +47,6 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.arrazyfathan.kbbi.core.R
-import com.arrazyfathan.kbbi.core.presentation.designsystem.BluePrimary
-import com.arrazyfathan.kbbi.core.presentation.designsystem.BlueSecondary
 import com.arrazyfathan.kbbi.core.presentation.designsystem.KBBITheme
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.filterNotNull
@@ -92,8 +90,8 @@ fun KBBIWheelTimePicker(
                             Brush.verticalGradient(
                                 colors =
                                     listOf(
-                                        BlueSecondary,
-                                        BluePrimary,
+                                        MaterialTheme.colorScheme.secondary,
+                                        MaterialTheme.colorScheme.primary,
                                     ),
                             ),
                     ),
@@ -116,7 +114,7 @@ fun KBBIWheelTimePicker(
                 text = ":",
                 style = MaterialTheme.typography.headlineSmall,
                 fontWeight = FontWeight.Bold,
-                color = Color.White,
+                color = MaterialTheme.colorScheme.onPrimary,
                 modifier = Modifier.padding(horizontal = 12.dp),
             )
             WheelColumn(
@@ -184,7 +182,12 @@ private fun WheelColumn(
                     text = "%02d".format(value),
                     style = MaterialTheme.typography.titleLarge,
                     fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal,
-                    color = if (isSelected) Color.White else MaterialTheme.colorScheme.onSurface,
+                    color =
+                        if (isSelected) {
+                            MaterialTheme.colorScheme.onPrimary
+                        } else {
+                            MaterialTheme.colorScheme.onSurface
+                        },
                     fontSize = if (isSelected) 22.sp else 18.sp,
                     modifier = Modifier.alpha(if (isSelected) 1f else 0.38f),
                 )
