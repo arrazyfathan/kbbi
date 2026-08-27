@@ -46,6 +46,10 @@ sealed interface SettingsAction {
 
     data object OnLanguagePickerDismissed : SettingsAction
 
+    data class OnLanguageConfigurationChanged(
+        val language: AppLanguage,
+    ) : SettingsAction
+
     data object OnCheckForUpdate : SettingsAction
 
     data object OnUpdatePromptDismissed : SettingsAction
@@ -148,6 +152,10 @@ class SettingsViewModel(
 
             SettingsAction.OnLanguagePickerDismissed -> {
                 _state.update { it.copy(isLanguagePickerVisible = false) }
+            }
+
+            is SettingsAction.OnLanguageConfigurationChanged -> {
+                _state.update { it.copy(selectedLanguage = action.language) }
             }
 
             SettingsAction.OnCheckForUpdate -> {

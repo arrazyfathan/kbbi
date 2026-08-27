@@ -1,7 +1,6 @@
 package com.arrazyfathan.kbbi.feature.settings.presentation.settings
 
 import android.Manifest
-import android.content.Context
 import android.content.Intent
 import android.os.Build
 import android.provider.Settings
@@ -10,6 +9,9 @@ import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatDelegate
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.Animatable
+import androidx.compose.animation.core.CubicBezierEasing
+import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.slideInVertically
@@ -47,25 +49,35 @@ import androidx.compose.material3.MediumTopAppBar
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SheetState
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.TopAppBarScrollBehavior
+import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.nestedscroll.nestedScroll
+import androidx.compose.ui.input.pointer.PointerEventPass
+import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalHapticFeedback
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
@@ -75,8 +87,8 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.core.app.LocaleManagerCompat
 import androidx.core.net.toUri
+import androidx.core.os.ConfigurationCompat
 import androidx.core.os.LocaleListCompat
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.arrazyfathan.kbbi.core.R
@@ -94,7 +106,21 @@ import com.arrazyfathan.kbbi.core.presentation.designsystem.components.KBBITimeP
 import com.arrazyfathan.kbbi.core.presentation.designsystem.perform
 import com.arrazyfathan.kbbi.feature.settings.domain.model.ReminderTime
 import com.arrazyfathan.kbbi.feature.settings.domain.model.ReminderType
+import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.NonCancellable
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+import kotlinx.coroutines.withTimeoutOrNull
 import org.koin.androidx.compose.koinViewModel
+import kotlin.time.Duration.Companion.milliseconds
+
+private const val LANGUAGE_FADE_OUT_DURATION_MILLIS = 100
+private const val LANGUAGE_FADE_IN_DURATION_MILLIS = 180
+private const val LANGUAGE_CONFIGURATION_TIMEOUT_MILLIS = 1_000L
+internal const val LANGUAGE_TRANSITION_OVERLAY_TEST_TAG = "language_transition_overlay"
+private val languageTransitionEasing = CubicBezierEasing(0.23f, 1f, 0.32f, 1f)
 
 @Composable
 fun SettingsRoute(
@@ -106,9 +132,19 @@ fun SettingsRoute(
 ) {
     val viewModel: SettingsViewModel = koinViewModel()
     val context = LocalContext.current
+    val configuration = LocalConfiguration.current
     val platformHapticFeedback = LocalHapticFeedback.current
     val shareAppText = stringResource(R.string.share_app_text)
     val state by viewModel.state.collectAsStateWithLifecycle()
+    val configurationLanguage =
+        resolveAppLanguage(
+            applicationLanguageTags = ConfigurationCompat.getLocales(configuration).asLanguageTags(),
+            systemLanguageTags = emptyList(),
+        )
+    val currentConfigurationLanguage by rememberUpdatedState(configurationLanguage)
+    val currentOnHaptic by rememberUpdatedState(onHaptic)
+    val languageOverlayAlpha = remember { Animatable(0f) }
+    var isLanguageTransitionActive by remember { mutableStateOf(false) }
     var permissionType by remember { mutableStateOf<ReminderType?>(null) }
     var permissionDenied by remember { mutableStateOf(false) }
     val permissionLauncher =
@@ -117,15 +153,47 @@ fun SettingsRoute(
             permissionType = null
         }
 
-    LaunchedEffect(Unit) {
-        viewModel.onAction(SettingsAction.OnStarted(resolveCurrentAppLanguage(context)))
+    LaunchedEffect(viewModel) {
+        viewModel.onAction(SettingsAction.OnStarted(configurationLanguage))
         viewModel.events.collect { event ->
             when (event) {
                 is SettingsEvent.ApplyLanguage -> {
-                    onHaptic(KBBIHapticType.Selection)
-                    AppCompatDelegate.setApplicationLocales(
-                        LocaleListCompat.forLanguageTags(event.language.languageTag),
-                    )
+                    currentOnHaptic(KBBIHapticType.Selection)
+                    isLanguageTransitionActive = true
+                    try {
+                        languageOverlayAlpha.animateTo(
+                            targetValue = 1f,
+                            animationSpec =
+                                tween(
+                                    durationMillis = LANGUAGE_FADE_OUT_DURATION_MILLIS,
+                                    easing = languageTransitionEasing,
+                                ),
+                        )
+                        withContext(Dispatchers.Main.immediate) {
+                            AppCompatDelegate.setApplicationLocales(
+                                LocaleListCompat.forLanguageTags(event.language.languageTag),
+                            )
+                        }
+                        withTimeoutOrNull(LANGUAGE_CONFIGURATION_TIMEOUT_MILLIS.milliseconds) {
+                            snapshotFlow { currentConfigurationLanguage }
+                                .first { it == event.language }
+                        }
+                        languageOverlayAlpha.animateTo(
+                            targetValue = 0f,
+                            animationSpec =
+                                tween(
+                                    durationMillis = LANGUAGE_FADE_IN_DURATION_MILLIS,
+                                    easing = languageTransitionEasing,
+                                ),
+                        )
+                    } catch (cancellation: CancellationException) {
+                        throw cancellation
+                    } catch (_: Exception) {
+                        // The finally block restores the screen if locale application fails.
+                    } finally {
+                        withContext(NonCancellable) { languageOverlayAlpha.snapTo(0f) }
+                        isLanguageTransitionActive = false
+                    }
                 }
 
                 is SettingsEvent.RequestNotificationPermission -> {
@@ -168,43 +236,56 @@ fun SettingsRoute(
         }
     }
 
-    SettingsScreen(
-        state = state,
-        permissionDenied = permissionDenied,
-        onNavigateBack = onNavigateBack,
-        onOpenPrivacyPolicy = onOpenPrivacyPolicy,
-        onOpenTermsConditions = onOpenTermsConditions,
-        onAction = viewModel::onAction,
-        onOpenSystemSettings = {
-            val intent =
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                    Intent(Settings.ACTION_APP_NOTIFICATION_SETTINGS).apply {
-                        putExtra(Settings.EXTRA_APP_PACKAGE, context.packageName)
+    LaunchedEffect(configurationLanguage) {
+        viewModel.onAction(SettingsAction.OnLanguageConfigurationChanged(configurationLanguage))
+    }
+
+    Box(modifier = Modifier.fillMaxSize()) {
+        SettingsScreen(
+            state = state,
+            permissionDenied = permissionDenied,
+            onNavigateBack = onNavigateBack,
+            onOpenPrivacyPolicy = onOpenPrivacyPolicy,
+            onOpenTermsConditions = onOpenTermsConditions,
+            onAction = viewModel::onAction,
+            onOpenSystemSettings = {
+                val intent =
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                        Intent(Settings.ACTION_APP_NOTIFICATION_SETTINGS).apply {
+                            putExtra(Settings.EXTRA_APP_PACKAGE, context.packageName)
+                        }
+                    } else {
+                        Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS).apply {
+                            data = "package:${context.packageName}".toUri()
+                        }
                     }
-                } else {
-                    Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS).apply {
-                        data = "package:${context.packageName}".toUri()
+                context.startActivity(intent)
+            },
+            onShareApp = {
+                val shareIntent =
+                    Intent(Intent.ACTION_SEND).apply {
+                        type = "text/plain"
+                        putExtra(
+                            Intent.EXTRA_TEXT,
+                            "$shareAppText\nhttps://github.com/arrazyfathan/kbbi",
+                        )
                     }
-                }
-            context.startActivity(intent)
-        },
-        onShareApp = {
-            val shareIntent =
-                Intent(Intent.ACTION_SEND).apply {
-                    type = "text/plain"
-                    putExtra(
-                        Intent.EXTRA_TEXT,
-                        "$shareAppText\nhttps://github.com/arrazyfathan/kbbi",
-                    )
-                }
-            context.startActivity(Intent.createChooser(shareIntent, null))
-            onHaptic(KBBIHapticType.ContextClick)
-        },
-        onOpenUri = { uri ->
-            context.startActivity(Intent(Intent.ACTION_VIEW, uri.toUri()))
-        },
-        onOpenSourceLicenses = onOpenSourceLicenses,
-    )
+                context.startActivity(Intent.createChooser(shareIntent, null))
+                onHaptic(KBBIHapticType.ContextClick)
+            },
+            onOpenUri = { uri ->
+                context.startActivity(Intent(Intent.ACTION_VIEW, uri.toUri()))
+            },
+            onOpenSourceLicenses = onOpenSourceLicenses,
+        )
+
+        if (isLanguageTransitionActive) {
+            LanguageTransitionOverlay(
+                alpha = { languageOverlayAlpha.value },
+                modifier = Modifier.matchParentSize(),
+            )
+        }
+    }
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -222,11 +303,17 @@ fun SettingsScreen(
     onOpenSourceLicenses: () -> Unit = {},
 ) {
     var timePickerType by remember { mutableStateOf<ReminderType?>(null) }
+    var isLanguageSelectionInProgress by remember { mutableStateOf(false) }
     val selectedPreference = timePickerType?.let { state.notifications.preference(it) }
     val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
+    val languagePickerSheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+    val coroutineScope = rememberCoroutineScope()
 
     Scaffold(
-        modifier = Modifier.fillMaxSize().nestedScroll(scrollBehavior.nestedScrollConnection),
+        modifier =
+            Modifier
+                .fillMaxSize()
+                .nestedScroll(scrollBehavior.nestedScrollConnection),
         containerColor = BlueBg,
         topBar = {
             SettingsTopAppBar(
@@ -298,9 +385,29 @@ fun SettingsScreen(
 
     if (state.isLanguagePickerVisible) {
         LanguagePickerBottomSheet(
+            sheetState = languagePickerSheetState,
             selectedLanguage = state.selectedLanguage,
-            onLanguageSelected = { onAction(SettingsAction.OnLanguageSelected(it)) },
-            onDismissRequest = { onAction(SettingsAction.OnLanguagePickerDismissed) },
+            isSelectionInProgress = isLanguageSelectionInProgress,
+            onLanguageSelected = { language ->
+                if (!isLanguageSelectionInProgress) {
+                    isLanguageSelectionInProgress = true
+                    coroutineScope.launch {
+                        try {
+                            languagePickerSheetState.hide()
+                            if (!languagePickerSheetState.isVisible) {
+                                onAction(SettingsAction.OnLanguageSelected(language))
+                            }
+                        } finally {
+                            isLanguageSelectionInProgress = false
+                        }
+                    }
+                }
+            },
+            onDismissRequest = {
+                if (!isLanguageSelectionInProgress) {
+                    onAction(SettingsAction.OnLanguagePickerDismissed)
+                }
+            },
         )
     }
 
@@ -378,13 +485,28 @@ private fun InteractionSection(
     }
 }
 
-private fun resolveCurrentAppLanguage(context: Context): AppLanguage =
-    resolveAppLanguage(
-        applicationLanguageTags = LocaleManagerCompat.getApplicationLocales(context).asLanguageTags(),
-        systemLanguageTags = LocaleManagerCompat.getSystemLocales(context).asLanguageTags(),
-    )
-
 private fun LocaleListCompat.asLanguageTags(): List<String> = toLanguageTags().split(',').filter(String::isNotBlank)
+
+@Composable
+internal fun LanguageTransitionOverlay(
+    alpha: () -> Float,
+    modifier: Modifier = Modifier,
+) {
+    Box(
+        modifier =
+            modifier
+                .graphicsLayer { this.alpha = alpha() }
+                .background(MaterialTheme.colorScheme.background)
+                .testTag(LANGUAGE_TRANSITION_OVERLAY_TEST_TAG)
+                .pointerInput(Unit) {
+                    awaitPointerEventScope {
+                        while (true) {
+                            awaitPointerEvent(PointerEventPass.Initial).changes.forEach { it.consume() }
+                        }
+                    }
+                },
+    )
+}
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -681,16 +803,23 @@ private fun LanguageSection(
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun LanguagePickerBottomSheet(
+    sheetState: SheetState,
     selectedLanguage: AppLanguage,
+    isSelectionInProgress: Boolean,
     onLanguageSelected: (AppLanguage) -> Unit,
     onDismissRequest: () -> Unit,
 ) {
     ModalBottomSheet(
+        sheetState = sheetState,
         onDismissRequest = onDismissRequest,
         containerColor = Color.White,
     ) {
         Column(
-            modifier = Modifier.fillMaxWidth().selectableGroup().padding(bottom = 24.dp),
+            modifier =
+                Modifier
+                    .fillMaxWidth()
+                    .selectableGroup()
+                    .padding(bottom = 24.dp),
         ) {
             Text(
                 text = stringResource(R.string.choose_language_title),
@@ -702,6 +831,7 @@ private fun LanguagePickerBottomSheet(
                 LanguageOptionRow(
                     language = language,
                     selected = language == selectedLanguage,
+                    enabled = !isSelectionInProgress,
                     onClick = { onLanguageSelected(language) },
                 )
             }
@@ -713,6 +843,7 @@ private fun LanguagePickerBottomSheet(
 private fun LanguageOptionRow(
     language: AppLanguage,
     selected: Boolean,
+    enabled: Boolean,
     onClick: () -> Unit,
 ) {
     Row(
@@ -721,6 +852,7 @@ private fun LanguageOptionRow(
                 .fillMaxWidth()
                 .selectable(
                     selected = selected,
+                    enabled = enabled,
                     onClick = onClick,
                     role = Role.RadioButton,
                 ).padding(horizontal = 24.dp, vertical = 14.dp),
@@ -734,7 +866,11 @@ private fun LanguageOptionRow(
             color = TextH1,
             modifier = Modifier.weight(1f),
         )
-        RadioButton(selected = selected, onClick = null)
+        RadioButton(
+            selected = selected,
+            enabled = enabled,
+            onClick = null,
+        )
     }
 }
 
@@ -852,7 +988,10 @@ private fun ReminderRow(
 
     Row(
         verticalAlignment = Alignment.Top,
-        modifier = Modifier.fillMaxWidth().padding(horizontal = 18.dp, vertical = 18.dp),
+        modifier =
+            Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 18.dp, vertical = 18.dp),
     ) {
         Icon(
             painter = painterResource(icon),
@@ -903,7 +1042,12 @@ private fun PermissionBanner(onOpenSystemSettings: () -> Unit) {
         shape = RoundedCornerShape(20.dp),
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.errorContainer),
     ) {
-        Column(modifier = Modifier.fillMaxWidth().padding(16.dp)) {
+        Column(
+            modifier =
+                Modifier
+                    .fillMaxWidth()
+                    .padding(16.dp),
+        ) {
             Text(
                 text = stringResource(R.string.notification_permission_title),
                 style = MaterialTheme.typography.titleMedium,

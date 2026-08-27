@@ -22,6 +22,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.withTimeoutOrNull
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
 import kotlinx.coroutines.test.resetMain
 import kotlinx.coroutines.test.runTest
@@ -111,6 +112,29 @@ class SettingsViewModelTest {
             SettingsEvent.ApplyLanguage(AppLanguage.INDONESIAN),
             viewModel.events.first(),
         )
+    }
+
+    @Test
+    fun `configuration language change synchronizes state without applying locale`() = runTest(dispatcher) {
+        val viewModel = createViewModel()
+        viewModel.onAction(SettingsAction.OnStarted(AppLanguage.ENGLISH))
+
+        viewModel.onAction(SettingsAction.OnLanguageConfigurationChanged(AppLanguage.INDONESIAN))
+
+        assertEquals(AppLanguage.INDONESIAN, viewModel.state.value.selectedLanguage)
+        assertEquals(null, withTimeoutOrNull(1) { viewModel.events.first() })
+    }
+
+    @Test
+    fun `selecting current language closes picker without applying locale`() = runTest(dispatcher) {
+        val viewModel = createViewModel()
+        viewModel.onAction(SettingsAction.OnStarted(AppLanguage.ENGLISH))
+        viewModel.onAction(SettingsAction.OnLanguageClick)
+
+        viewModel.onAction(SettingsAction.OnLanguageSelected(AppLanguage.ENGLISH))
+
+        assertFalse(viewModel.state.value.isLanguagePickerVisible)
+        assertEquals(null, withTimeoutOrNull(1) { viewModel.events.first() })
     }
 
     @Test
