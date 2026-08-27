@@ -32,6 +32,7 @@ kotlin {
 }
 
 dependencies {
+    api(project(":core:domain"))
     api(libs.androidx.core.ktx)
     api(libs.material)
     api(platform(libs.androidx.compose.bom))

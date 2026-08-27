@@ -7,14 +7,15 @@ import androidx.activity.SystemBarStyle
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableLongStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
-import androidx.core.content.ContextCompat
-import com.arrazyfathan.kbbi.core.R
+import androidx.compose.ui.graphics.toArgb
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.arrazyfathan.kbbi.core.presentation.designsystem.KBBITheme
 import com.arrazyfathan.kbbi.core.utils.updateSystemBarStyle
 import com.arrazyfathan.kbbi.feature.splash.presentation.navigation.SplashRoute
@@ -24,8 +25,10 @@ import com.arrazyfathan.kbbi.intent.extractNotificationLaunchRequest
 import com.arrazyfathan.kbbi.navigation.AppShortcutRequest
 import com.arrazyfathan.kbbi.navigation.MainApp
 import com.arrazyfathan.kbbi.navigation.MainAppLaunchRequests
+import com.arrazyfathan.kbbi.ui.AppUiViewModel
 import com.arrazyfathan.kbbi.widgets.WidgetLaunchRequest
 import com.arrazyfathan.kbbi.widgets.extractWidgetLaunchRequest
+import org.koin.androidx.compose.koinViewModel
 
 class MainActivity : AppCompatActivity() {
     private var externalSearchQuery by mutableStateOf<String?>(null)
@@ -44,13 +47,17 @@ class MainActivity : AppCompatActivity() {
         )
         super.onCreate(savedInstanceState)
         handleLaunchIntent(intent)
-        updateSystemBarStyle(
-            ContextCompat.getColor(this, R.color.blue_primary),
-            ContextCompat.getColor(this, android.R.color.white),
-        )
-
         setContent {
-            KBBITheme {
+            val appUiViewModel: AppUiViewModel = koinViewModel()
+            val appUiState by appUiViewModel.state.collectAsStateWithLifecycle()
+
+            KBBITheme(theme = appUiState.theme) {
+                val primary = MaterialTheme.colorScheme.primary.toArgb()
+                val background = MaterialTheme.colorScheme.background.toArgb()
+                LaunchedEffect(primary, background) {
+                    updateSystemBarStyle(primary, background)
+                }
+
                 var isSplashVisible by rememberSaveable {
                     mutableStateOf(externalSearchQuery == null && shortcutRequest == null && widgetRequest == null)
                 }

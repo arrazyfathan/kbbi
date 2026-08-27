@@ -19,6 +19,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.Card
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Scaffold
@@ -54,9 +55,6 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.arrazyfathan.kbbi.core.R
-import com.arrazyfathan.kbbi.core.presentation.designsystem.BlueBg
-import com.arrazyfathan.kbbi.core.presentation.designsystem.BluePrimary
-import com.arrazyfathan.kbbi.core.presentation.designsystem.BlueSecondary
 import com.arrazyfathan.kbbi.core.presentation.designsystem.InterFontFamily
 import com.arrazyfathan.kbbi.core.presentation.designsystem.KBBIHapticType
 import com.arrazyfathan.kbbi.core.presentation.designsystem.KBBITheme
@@ -177,8 +175,8 @@ fun WordListScreenContent(
         }
 
     Scaffold(
-        modifier = modifier.fillMaxSize().background(BlueBg),
-        containerColor = BlueBg,
+        modifier = modifier.fillMaxSize().background(MaterialTheme.colorScheme.background),
+        containerColor = MaterialTheme.colorScheme.background,
     ) { innerPadding ->
         Box(
             modifier = Modifier.fillMaxSize().padding(bottom = innerPadding.calculateBottomPadding()),
@@ -197,8 +195,8 @@ fun WordListScreenContent(
                                     Brush.verticalGradient(
                                         colors =
                                             listOf(
-                                                BluePrimary,
-                                                BlueSecondary,
+                                                MaterialTheme.colorScheme.primary,
+                                                MaterialTheme.colorScheme.secondary,
                                             ),
                                     ),
                             ).statusBarsPadding(),
@@ -208,7 +206,7 @@ fun WordListScreenContent(
                         text = stringResource(id = R.string.word_list_title),
                         fontFamily = MetropolisFontFamily,
                         fontWeight = FontWeight.ExtraBold,
-                        color = Color.White,
+                        color = MaterialTheme.colorScheme.onPrimary,
                         fontSize = 24.sp,
                         modifier = Modifier.padding(start = 16.dp),
                     )
@@ -227,7 +225,7 @@ fun WordListScreenContent(
                             fontFamily = InterFontFamily,
                             fontWeight = FontWeight.Medium,
                             fontSize = 14.sp,
-                            color = Color.White,
+                            color = MaterialTheme.colorScheme.onSecondary,
                         )
                     },
                     textStyle =
@@ -235,7 +233,7 @@ fun WordListScreenContent(
                             fontFamily = InterFontFamily,
                             fontWeight = FontWeight.Medium,
                             fontSize = 14.sp,
-                            color = Color.White,
+                            color = MaterialTheme.colorScheme.onSecondary,
                         ),
                     keyboardOptions =
                         KeyboardOptions(
@@ -252,13 +250,13 @@ fun WordListScreenContent(
                     shape = RoundedCornerShape(0.dp),
                     colors =
                         TextFieldDefaults.colors(
-                            focusedContainerColor = BlueSecondary,
-                            unfocusedContainerColor = BlueSecondary,
+                            focusedContainerColor = MaterialTheme.colorScheme.secondary,
+                            unfocusedContainerColor = MaterialTheme.colorScheme.secondary,
                             focusedIndicatorColor = Color.Transparent,
                             unfocusedIndicatorColor = Color.Transparent,
-                            focusedTextColor = Color.White,
-                            unfocusedTextColor = Color.White,
-                            cursorColor = Color.White,
+                            focusedTextColor = MaterialTheme.colorScheme.onSecondary,
+                            unfocusedTextColor = MaterialTheme.colorScheme.onSecondary,
+                            cursorColor = MaterialTheme.colorScheme.onSecondary,
                         ),
                 )
 

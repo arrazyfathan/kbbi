@@ -1,6 +1,7 @@
 package com.arrazyfathan.kbbi.core.presentation.designsystem
 
 import androidx.compose.ui.graphics.Color
+import com.arrazyfathan.kbbi.core.domain.model.AppTheme
 
 val BluePrimary = Color(0xFF303E9F)
 val BlueSecondary = Color(0xFF5763B1)
@@ -11,3 +12,29 @@ val TextP = Color(0xFF7C8796)
 val Red = Color(0xFFF3254F)
 val MoreRed = Color(0xFFA60B2B)
 val Grey = Color(0xFFD6D6D6)
+
+val RoyalOceanPrimary = Color(0xFF303E9F)
+val RoyalOceanSecondary = Color(0xFF5763B1)
+
+val GoldenSunsetPrimary = Color(0xFFD5972A)
+val GoldenSunsetSecondary = Color(0xFFE5C173)
+
+val GoldenCoralEnergyPrimary = Color(0xFFC93939)
+val GoldenCoralEnergySecondary = Color(0xFFEF6464)
+
+val DeepForestEnergyPrimary = Color(0xFF2E494C)
+val DeepForestEnergySecondary = Color(0xFF507E83)
+
+data class ThemePalette(
+    val primary: Color,
+    val secondary: Color,
+)
+
+val AppTheme.palette: ThemePalette
+    get() =
+        when (this) {
+            AppTheme.ROYAL_OCEAN -> ThemePalette(RoyalOceanPrimary, RoyalOceanSecondary)
+            AppTheme.GOLDEN_SUNSET -> ThemePalette(GoldenSunsetPrimary, GoldenSunsetSecondary)
+            AppTheme.GOLDEN_CORAL_ENERGY -> ThemePalette(GoldenCoralEnergyPrimary, GoldenCoralEnergySecondary)
+            AppTheme.DEEP_FOREST_ENERGY -> ThemePalette(DeepForestEnergyPrimary, DeepForestEnergySecondary)
+        }

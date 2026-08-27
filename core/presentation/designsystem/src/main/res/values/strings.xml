@@ -98,8 +98,23 @@
     <string name="update_version_arrow">→</string>
     <string name="update_release_notes_title">Release notes</string>
     <string name="update_download_action">Download</string>
+    <string name="update_downloading_action">Downloading…</string>
+    <string name="update_downloading_progress_action">Downloading %1$d%%</string>
+    <string name="update_install_action">Install</string>
+    <string name="update_retry_action">Retry download</string>
     <string name="update_open_release_action">Open release</string>
     <string name="update_later_action">Later</string>
+    <string name="update_download_notification_title">Downloading KBBI %1$s</string>
+    <string name="update_download_notification_description">The update will be ready to install when the download finishes.</string>
+    <string name="update_ready_notification_title">KBBI update ready</string>
+    <string name="update_ready_notification_description">Tap to review and install the downloaded update.</string>
+    <string name="update_notification_channel">App updates</string>
+    <string name="update_install_permission_denied">Allow KBBI to install unknown apps to continue the update.</string>
+    <string name="update_install_wrong_package">The downloaded APK belongs to a different app.</string>
+    <string name="update_install_old_version">The downloaded APK is not newer than this version.</string>
+    <string name="update_install_signer_mismatch">The downloaded APK was signed by a different publisher.</string>
+    <string name="update_install_invalid_apk">The downloaded update is missing or invalid.</string>
+    <string name="update_install_unavailable">No system package installer is available.</string>
     <string name="settings_title">Settings</string>
     <string name="settings_menu_title">Settings</string>
     <string name="settings_menu_subtitle">Personalize your experience</string>
@@ -147,6 +162,12 @@
     <string name="clear_history_confirmed">Search history cleared</string>
     <string name="data_section_title">Data</string>
     <string name="interaction_section_title">Interaction</string>
+    <string name="appearance_section_title">Appearance</string>
+    <string name="theme_picker_description">Choose the app color theme.</string>
+    <string name="theme_royal_ocean" translatable="false">Royal Ocean</string>
+    <string name="theme_golden_sunset" translatable="false">Golden Sunset</string>
+    <string name="theme_golden_coral_energy" translatable="false">Golden Coral Energy</string>
+    <string name="theme_deep_forest_energy" translatable="false">Deep Forest Energy</string>
     <string name="haptic_feedback_title">Haptic feedback</string>
     <string name="haptic_feedback_description">Use subtle vibrations for actions and results</string>
     <string name="coming_soon">Coming soon</string>

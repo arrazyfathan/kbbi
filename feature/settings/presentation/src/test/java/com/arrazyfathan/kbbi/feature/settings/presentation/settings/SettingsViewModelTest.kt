@@ -5,6 +5,7 @@ import com.arrazyfathan.kbbi.core.appupdate.domain.AppUpdate
 import com.arrazyfathan.kbbi.core.appupdate.domain.AppUpdateConfig
 import com.arrazyfathan.kbbi.core.appupdate.domain.AppUpdateRepository
 import com.arrazyfathan.kbbi.core.domain.model.AppResult
+import com.arrazyfathan.kbbi.core.domain.model.AppTheme
 import com.arrazyfathan.kbbi.core.domain.model.DataError
 import com.arrazyfathan.kbbi.core.presentation.ui.UiText
 import com.arrazyfathan.kbbi.feature.home.domain.model.HistoryModel
@@ -22,6 +23,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.withTimeoutOrNull
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
 import kotlinx.coroutines.test.resetMain
 import kotlinx.coroutines.test.runTest
@@ -111,6 +113,29 @@ class SettingsViewModelTest {
             SettingsEvent.ApplyLanguage(AppLanguage.INDONESIAN),
             viewModel.events.first(),
         )
+    }
+
+    @Test
+    fun `configuration language change synchronizes state without applying locale`() = runTest(dispatcher) {
+        val viewModel = createViewModel()
+        viewModel.onAction(SettingsAction.OnStarted(AppLanguage.ENGLISH))
+
+        viewModel.onAction(SettingsAction.OnLanguageConfigurationChanged(AppLanguage.INDONESIAN))
+
+        assertEquals(AppLanguage.INDONESIAN, viewModel.state.value.selectedLanguage)
+        assertEquals(null, withTimeoutOrNull(1) { viewModel.events.first() })
+    }
+
+    @Test
+    fun `selecting current language closes picker without applying locale`() = runTest(dispatcher) {
+        val viewModel = createViewModel()
+        viewModel.onAction(SettingsAction.OnStarted(AppLanguage.ENGLISH))
+        viewModel.onAction(SettingsAction.OnLanguageClick)
+
+        viewModel.onAction(SettingsAction.OnLanguageSelected(AppLanguage.ENGLISH))
+
+        assertFalse(viewModel.state.value.isLanguagePickerVisible)
+        assertEquals(null, withTimeoutOrNull(1) { viewModel.events.first() })
     }
 
     @Test
@@ -217,6 +242,29 @@ class SettingsViewModelTest {
     }
 
     @Test
+    fun `selecting another theme persists it and emits selection feedback`() = runTest(dispatcher) {
+        val uiPreferencesRepository = FakeUiPreferencesRepository()
+        val viewModel = createViewModel(uiPreferencesRepository = uiPreferencesRepository)
+
+        viewModel.onAction(SettingsAction.OnThemeSelected(AppTheme.DEEP_FOREST_ENERGY))
+
+        assertEquals(AppTheme.DEEP_FOREST_ENERGY, viewModel.state.value.selectedTheme)
+        assertEquals(1, uiPreferencesRepository.themeWrites)
+        assertEquals(SettingsEvent.SelectionChanged, viewModel.events.first())
+    }
+
+    @Test
+    fun `selecting current theme does not persist or emit feedback`() = runTest(dispatcher) {
+        val uiPreferencesRepository = FakeUiPreferencesRepository()
+        val viewModel = createViewModel(uiPreferencesRepository = uiPreferencesRepository)
+
+        viewModel.onAction(SettingsAction.OnThemeSelected(AppTheme.ROYAL_OCEAN))
+
+        assertEquals(0, uiPreferencesRepository.themeWrites)
+        assertEquals(null, withTimeoutOrNull(100) { viewModel.events.first() })
+    }
+
+    @Test
     fun `clearing history calls usecase and emits message`() = runTest(dispatcher) {
         val historyRepository = FakeSearchHistoryRepository()
         val viewModel = createViewModel(historyRepository = historyRepository)
@@ -259,9 +307,15 @@ class SettingsViewModelTest {
 private class FakeUiPreferencesRepository : UiPreferencesRepository {
     private val state = MutableStateFlow(UiPreferences())
     override val preferences: Flow<UiPreferences> = state
+    var themeWrites = 0
 
     override suspend fun setHapticsEnabled(enabled: Boolean) {
-        state.value = UiPreferences(hapticsEnabled = enabled)
+        state.value = state.value.copy(hapticsEnabled = enabled)
+    }
+
+    override suspend fun setTheme(theme: AppTheme) {
+        themeWrites++
+        state.value = state.value.copy(theme = theme)
     }
 }
 

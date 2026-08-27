@@ -1,7 +1,6 @@
 package com.arrazyfathan.kbbi.feature.settings.presentation.settings
 
 import android.Manifest
-import android.content.Context
 import android.content.Intent
 import android.os.Build
 import android.provider.Settings
@@ -10,11 +9,15 @@ import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatDelegate
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.Animatable
+import androidx.compose.animation.core.CubicBezierEasing
+import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.background
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -47,25 +50,35 @@ import androidx.compose.material3.MediumTopAppBar
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SheetState
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.TopAppBarScrollBehavior
+import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.nestedscroll.nestedScroll
+import androidx.compose.ui.input.pointer.PointerEventPass
+import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalHapticFeedback
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
@@ -75,15 +88,13 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.core.app.LocaleManagerCompat
 import androidx.core.net.toUri
+import androidx.core.os.ConfigurationCompat
 import androidx.core.os.LocaleListCompat
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.arrazyfathan.kbbi.core.R
 import com.arrazyfathan.kbbi.core.appupdate.presentation.AppUpdatePrompt
-import com.arrazyfathan.kbbi.core.presentation.designsystem.BlueBg
-import com.arrazyfathan.kbbi.core.presentation.designsystem.BluePrimary
-import com.arrazyfathan.kbbi.core.presentation.designsystem.BlueSecondary
+import com.arrazyfathan.kbbi.core.domain.model.AppTheme
 import com.arrazyfathan.kbbi.core.presentation.designsystem.InterFontFamily
 import com.arrazyfathan.kbbi.core.presentation.designsystem.KBBIHapticType
 import com.arrazyfathan.kbbi.core.presentation.designsystem.KBBITheme
@@ -92,9 +103,24 @@ import com.arrazyfathan.kbbi.core.presentation.designsystem.TextH1
 import com.arrazyfathan.kbbi.core.presentation.designsystem.TextP
 import com.arrazyfathan.kbbi.core.presentation.designsystem.components.KBBITimePickerBottomSheet
 import com.arrazyfathan.kbbi.core.presentation.designsystem.perform
+import com.arrazyfathan.kbbi.core.presentation.designsystem.palette
 import com.arrazyfathan.kbbi.feature.settings.domain.model.ReminderTime
 import com.arrazyfathan.kbbi.feature.settings.domain.model.ReminderType
+import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.NonCancellable
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+import kotlinx.coroutines.withTimeoutOrNull
 import org.koin.androidx.compose.koinViewModel
+import kotlin.time.Duration.Companion.milliseconds
+
+private const val LANGUAGE_FADE_OUT_DURATION_MILLIS = 100
+private const val LANGUAGE_FADE_IN_DURATION_MILLIS = 180
+private const val LANGUAGE_CONFIGURATION_TIMEOUT_MILLIS = 1_000L
+internal const val LANGUAGE_TRANSITION_OVERLAY_TEST_TAG = "language_transition_overlay"
+private val languageTransitionEasing = CubicBezierEasing(0.23f, 1f, 0.32f, 1f)
 
 @Composable
 fun SettingsRoute(
@@ -106,9 +132,19 @@ fun SettingsRoute(
 ) {
     val viewModel: SettingsViewModel = koinViewModel()
     val context = LocalContext.current
+    val configuration = LocalConfiguration.current
     val platformHapticFeedback = LocalHapticFeedback.current
     val shareAppText = stringResource(R.string.share_app_text)
     val state by viewModel.state.collectAsStateWithLifecycle()
+    val configurationLanguage =
+        resolveAppLanguage(
+            applicationLanguageTags = ConfigurationCompat.getLocales(configuration).asLanguageTags(),
+            systemLanguageTags = emptyList(),
+        )
+    val currentConfigurationLanguage by rememberUpdatedState(configurationLanguage)
+    val currentOnHaptic by rememberUpdatedState(onHaptic)
+    val languageOverlayAlpha = remember { Animatable(0f) }
+    var isLanguageTransitionActive by remember { mutableStateOf(false) }
     var permissionType by remember { mutableStateOf<ReminderType?>(null) }
     var permissionDenied by remember { mutableStateOf(false) }
     val permissionLauncher =
@@ -117,15 +153,47 @@ fun SettingsRoute(
             permissionType = null
         }
 
-    LaunchedEffect(Unit) {
-        viewModel.onAction(SettingsAction.OnStarted(resolveCurrentAppLanguage(context)))
+    LaunchedEffect(viewModel) {
+        viewModel.onAction(SettingsAction.OnStarted(configurationLanguage))
         viewModel.events.collect { event ->
             when (event) {
                 is SettingsEvent.ApplyLanguage -> {
-                    onHaptic(KBBIHapticType.Selection)
-                    AppCompatDelegate.setApplicationLocales(
-                        LocaleListCompat.forLanguageTags(event.language.languageTag),
-                    )
+                    currentOnHaptic(KBBIHapticType.Selection)
+                    isLanguageTransitionActive = true
+                    try {
+                        languageOverlayAlpha.animateTo(
+                            targetValue = 1f,
+                            animationSpec =
+                                tween(
+                                    durationMillis = LANGUAGE_FADE_OUT_DURATION_MILLIS,
+                                    easing = languageTransitionEasing,
+                                ),
+                        )
+                        withContext(Dispatchers.Main.immediate) {
+                            AppCompatDelegate.setApplicationLocales(
+                                LocaleListCompat.forLanguageTags(event.language.languageTag),
+                            )
+                        }
+                        withTimeoutOrNull(LANGUAGE_CONFIGURATION_TIMEOUT_MILLIS.milliseconds) {
+                            snapshotFlow { currentConfigurationLanguage }
+                                .first { it == event.language }
+                        }
+                        languageOverlayAlpha.animateTo(
+                            targetValue = 0f,
+                            animationSpec =
+                                tween(
+                                    durationMillis = LANGUAGE_FADE_IN_DURATION_MILLIS,
+                                    easing = languageTransitionEasing,
+                                ),
+                        )
+                    } catch (cancellation: CancellationException) {
+                        throw cancellation
+                    } catch (_: Exception) {
+                        // The finally block restores the screen if locale application fails.
+                    } finally {
+                        withContext(NonCancellable) { languageOverlayAlpha.snapTo(0f) }
+                        isLanguageTransitionActive = false
+                    }
                 }
 
                 is SettingsEvent.RequestNotificationPermission -> {
@@ -168,43 +236,56 @@ fun SettingsRoute(
         }
     }
 
-    SettingsScreen(
-        state = state,
-        permissionDenied = permissionDenied,
-        onNavigateBack = onNavigateBack,
-        onOpenPrivacyPolicy = onOpenPrivacyPolicy,
-        onOpenTermsConditions = onOpenTermsConditions,
-        onAction = viewModel::onAction,
-        onOpenSystemSettings = {
-            val intent =
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                    Intent(Settings.ACTION_APP_NOTIFICATION_SETTINGS).apply {
-                        putExtra(Settings.EXTRA_APP_PACKAGE, context.packageName)
+    LaunchedEffect(configurationLanguage) {
+        viewModel.onAction(SettingsAction.OnLanguageConfigurationChanged(configurationLanguage))
+    }
+
+    Box(modifier = Modifier.fillMaxSize()) {
+        SettingsScreen(
+            state = state,
+            permissionDenied = permissionDenied,
+            onNavigateBack = onNavigateBack,
+            onOpenPrivacyPolicy = onOpenPrivacyPolicy,
+            onOpenTermsConditions = onOpenTermsConditions,
+            onAction = viewModel::onAction,
+            onOpenSystemSettings = {
+                val intent =
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                        Intent(Settings.ACTION_APP_NOTIFICATION_SETTINGS).apply {
+                            putExtra(Settings.EXTRA_APP_PACKAGE, context.packageName)
+                        }
+                    } else {
+                        Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS).apply {
+                            data = "package:${context.packageName}".toUri()
+                        }
                     }
-                } else {
-                    Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS).apply {
-                        data = "package:${context.packageName}".toUri()
+                context.startActivity(intent)
+            },
+            onShareApp = {
+                val shareIntent =
+                    Intent(Intent.ACTION_SEND).apply {
+                        type = "text/plain"
+                        putExtra(
+                            Intent.EXTRA_TEXT,
+                            "$shareAppText\nhttps://github.com/arrazyfathan/kbbi",
+                        )
                     }
-                }
-            context.startActivity(intent)
-        },
-        onShareApp = {
-            val shareIntent =
-                Intent(Intent.ACTION_SEND).apply {
-                    type = "text/plain"
-                    putExtra(
-                        Intent.EXTRA_TEXT,
-                        "$shareAppText\nhttps://github.com/arrazyfathan/kbbi",
-                    )
-                }
-            context.startActivity(Intent.createChooser(shareIntent, null))
-            onHaptic(KBBIHapticType.ContextClick)
-        },
-        onOpenUri = { uri ->
-            context.startActivity(Intent(Intent.ACTION_VIEW, uri.toUri()))
-        },
-        onOpenSourceLicenses = onOpenSourceLicenses,
-    )
+                context.startActivity(Intent.createChooser(shareIntent, null))
+                onHaptic(KBBIHapticType.ContextClick)
+            },
+            onOpenUri = { uri ->
+                context.startActivity(Intent(Intent.ACTION_VIEW, uri.toUri()))
+            },
+            onOpenSourceLicenses = onOpenSourceLicenses,
+        )
+
+        if (isLanguageTransitionActive) {
+            LanguageTransitionOverlay(
+                alpha = { languageOverlayAlpha.value },
+                modifier = Modifier.matchParentSize(),
+            )
+        }
+    }
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -222,12 +303,18 @@ fun SettingsScreen(
     onOpenSourceLicenses: () -> Unit = {},
 ) {
     var timePickerType by remember { mutableStateOf<ReminderType?>(null) }
+    var isLanguageSelectionInProgress by remember { mutableStateOf(false) }
     val selectedPreference = timePickerType?.let { state.notifications.preference(it) }
     val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
+    val languagePickerSheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+    val coroutineScope = rememberCoroutineScope()
 
     Scaffold(
-        modifier = Modifier.fillMaxSize().nestedScroll(scrollBehavior.nestedScrollConnection),
-        containerColor = BlueBg,
+        modifier =
+            Modifier
+                .fillMaxSize()
+                .nestedScroll(scrollBehavior.nestedScrollConnection),
+        containerColor = MaterialTheme.colorScheme.background,
         topBar = {
             SettingsTopAppBar(
                 scrollBehavior = scrollBehavior,
@@ -257,6 +344,10 @@ fun SettingsScreen(
                 state = state,
                 onAction = onAction,
                 onTimeClick = { timePickerType = it },
+            )
+            AppearanceSection(
+                selectedTheme = state.selectedTheme,
+                onThemeSelected = { onAction(SettingsAction.OnThemeSelected(it)) },
             )
             InteractionSection(
                 hapticsEnabled = state.hapticsEnabled,
@@ -298,9 +389,29 @@ fun SettingsScreen(
 
     if (state.isLanguagePickerVisible) {
         LanguagePickerBottomSheet(
+            sheetState = languagePickerSheetState,
             selectedLanguage = state.selectedLanguage,
-            onLanguageSelected = { onAction(SettingsAction.OnLanguageSelected(it)) },
-            onDismissRequest = { onAction(SettingsAction.OnLanguagePickerDismissed) },
+            isSelectionInProgress = isLanguageSelectionInProgress,
+            onLanguageSelected = { language ->
+                if (!isLanguageSelectionInProgress) {
+                    isLanguageSelectionInProgress = true
+                    coroutineScope.launch {
+                        try {
+                            languagePickerSheetState.hide()
+                            if (!languagePickerSheetState.isVisible) {
+                                onAction(SettingsAction.OnLanguageSelected(language))
+                            }
+                        } finally {
+                            isLanguageSelectionInProgress = false
+                        }
+                    }
+                }
+            },
+            onDismissRequest = {
+                if (!isLanguageSelectionInProgress) {
+                    onAction(SettingsAction.OnLanguagePickerDismissed)
+                }
+            },
         )
     }
 
@@ -332,6 +443,139 @@ fun SettingsScreen(
 }
 
 @Composable
+private fun AppearanceSection(
+    selectedTheme: AppTheme,
+    onThemeSelected: (AppTheme) -> Unit,
+) {
+    SettingsSectionCard(title = stringResource(R.string.appearance_section_title)) {
+        Column(
+            modifier =
+                Modifier
+                    .fillMaxWidth()
+                    .selectableGroup()
+                    .padding(14.dp),
+            verticalArrangement = Arrangement.spacedBy(12.dp),
+        ) {
+            Text(
+                text = stringResource(R.string.theme_picker_description),
+                style = MaterialTheme.typography.bodySmall,
+                color = TextP,
+                modifier = Modifier.padding(horizontal = 4.dp),
+            )
+            AppTheme.entries.chunked(2).forEach { themes ->
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(12.dp),
+                ) {
+                    themes.forEach { theme ->
+                        ThemeOption(
+                            theme = theme,
+                            selected = theme == selectedTheme,
+                            onClick = { onThemeSelected(theme) },
+                            modifier = Modifier.weight(1f),
+                        )
+                    }
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun ThemeOption(
+    theme: AppTheme,
+    selected: Boolean,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    val palette = theme.palette
+    Card(
+        modifier =
+            modifier.selectable(
+                selected = selected,
+                onClick = onClick,
+                role = Role.RadioButton,
+            ),
+        shape = RoundedCornerShape(18.dp),
+        colors =
+            CardDefaults.cardColors(
+                containerColor =
+                    if (selected) {
+                        MaterialTheme.colorScheme.primary.copy(alpha = 0.08f)
+                    } else {
+                        MaterialTheme.colorScheme.surface
+                    },
+            ),
+        border =
+            BorderStroke(
+                width = if (selected) 2.dp else 1.dp,
+                color =
+                    if (selected) {
+                        MaterialTheme.colorScheme.primary
+                    } else {
+                        MaterialTheme.colorScheme.outlineVariant
+                    },
+            ),
+    ) {
+        Column(
+            modifier = Modifier.fillMaxWidth().padding(12.dp),
+            verticalArrangement = Arrangement.spacedBy(10.dp),
+        ) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                Row(modifier = Modifier.weight(1f)) {
+                    Box(
+                        modifier =
+                            Modifier
+                                .size(28.dp)
+                                .background(palette.primary, CircleShape),
+                    )
+                    Box(
+                        modifier =
+                            Modifier
+                                .size(28.dp)
+                                .background(palette.secondary, CircleShape),
+                    )
+                }
+                if (selected) {
+                    Box(
+                        modifier =
+                            Modifier
+                                .size(24.dp)
+                                .background(MaterialTheme.colorScheme.primary, CircleShape),
+                        contentAlignment = Alignment.Center,
+                    ) {
+                        Text(
+                            text = "✓",
+                            color = MaterialTheme.colorScheme.onPrimary,
+                            style = MaterialTheme.typography.labelMedium,
+                            fontWeight = FontWeight.Bold,
+                        )
+                    }
+                }
+            }
+            Text(
+                text = stringResource(theme.labelResId),
+                style = MaterialTheme.typography.labelLarge,
+                color = MaterialTheme.colorScheme.onSurface,
+                minLines = 2,
+            )
+        }
+    }
+}
+
+private val AppTheme.labelResId: Int
+    get() =
+        when (this) {
+            AppTheme.ROYAL_OCEAN -> R.string.theme_royal_ocean
+            AppTheme.GOLDEN_SUNSET -> R.string.theme_golden_sunset
+            AppTheme.GOLDEN_CORAL_ENERGY -> R.string.theme_golden_coral_energy
+            AppTheme.DEEP_FOREST_ENERGY -> R.string.theme_deep_forest_energy
+        }
+
+@Composable
 private fun InteractionSection(
     hapticsEnabled: Boolean,
     onHapticsChanged: (Boolean) -> Unit,
@@ -351,7 +595,7 @@ private fun InteractionSection(
             Icon(
                 painter = painterResource(R.drawable.ic_vibration),
                 contentDescription = null,
-                tint = BluePrimary,
+                tint = MaterialTheme.colorScheme.primary,
                 modifier = Modifier.size(22.dp),
             )
             Spacer(Modifier.width(14.dp))
@@ -378,13 +622,28 @@ private fun InteractionSection(
     }
 }
 
-private fun resolveCurrentAppLanguage(context: Context): AppLanguage =
-    resolveAppLanguage(
-        applicationLanguageTags = LocaleManagerCompat.getApplicationLocales(context).asLanguageTags(),
-        systemLanguageTags = LocaleManagerCompat.getSystemLocales(context).asLanguageTags(),
-    )
-
 private fun LocaleListCompat.asLanguageTags(): List<String> = toLanguageTags().split(',').filter(String::isNotBlank)
+
+@Composable
+internal fun LanguageTransitionOverlay(
+    alpha: () -> Float,
+    modifier: Modifier = Modifier,
+) {
+    Box(
+        modifier =
+            modifier
+                .graphicsLayer { this.alpha = alpha() }
+                .background(MaterialTheme.colorScheme.background)
+                .testTag(LANGUAGE_TRANSITION_OVERLAY_TEST_TAG)
+                .pointerInput(Unit) {
+                    awaitPointerEventScope {
+                        while (true) {
+                            awaitPointerEvent(PointerEventPass.Initial).changes.forEach { it.consume() }
+                        }
+                    }
+                },
+    )
+}
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -397,14 +656,14 @@ private fun SettingsTopAppBar(
     MediumTopAppBar(
         modifier =
             Modifier.background(
-                brush = Brush.verticalGradient(listOf(BlueSecondary, BluePrimary)),
+                brush = Brush.verticalGradient(listOf(MaterialTheme.colorScheme.secondary, MaterialTheme.colorScheme.primary)),
             ),
         navigationIcon = {
             IconButton(onClick = onNavigateBack) {
                 Icon(
                     painter = painterResource(R.drawable.ic_arrow_back),
                     contentDescription = stringResource(R.string.navigate_back),
-                    tint = Color.White,
+                    tint = MaterialTheme.colorScheme.onPrimary,
                 )
             }
         },
@@ -414,7 +673,7 @@ private fun SettingsTopAppBar(
                     text = stringResource(R.string.settings_title),
                     fontFamily = MetropolisFontFamily,
                     fontWeight = FontWeight.ExtraBold,
-                    color = Color.White,
+                    color = MaterialTheme.colorScheme.onPrimary,
                     fontSize = if (isCollapsed) 20.sp else 24.sp,
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis,
@@ -424,7 +683,7 @@ private fun SettingsTopAppBar(
                         text = stringResource(R.string.settings_menu_subtitle),
                         fontFamily = InterFontFamily,
                         fontWeight = FontWeight.Normal,
-                        color = Color.White.copy(alpha = 0.82f),
+                        color = MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.82f),
                         fontSize = 13.sp,
                         lineHeight = 18.sp,
                         maxLines = 2,
@@ -438,7 +697,7 @@ private fun SettingsTopAppBar(
             TopAppBarDefaults.topAppBarColors(
                 containerColor = Color.Transparent,
                 scrolledContainerColor = Color.Transparent,
-                titleContentColor = Color.White,
+                titleContentColor = MaterialTheme.colorScheme.onPrimary,
             ),
         scrollBehavior = scrollBehavior,
     )
@@ -571,7 +830,7 @@ private fun SettingsMenuRow(
             Icon(
                 painter = painterResource(icon),
                 contentDescription = null,
-                tint = BluePrimary,
+                tint = MaterialTheme.colorScheme.primary,
                 modifier = Modifier.size(20.dp),
             )
             Spacer(Modifier.width(14.dp))
@@ -595,11 +854,11 @@ private fun SettingsMenuRow(
             Text(
                 text = stringResource(R.string.new_badge),
                 style = MaterialTheme.typography.labelSmall,
-                color = Color.White,
+                color = MaterialTheme.colorScheme.onPrimary,
                 fontWeight = FontWeight.Bold,
                 modifier =
                     Modifier
-                        .background(BluePrimary, RoundedCornerShape(50))
+                        .background(MaterialTheme.colorScheme.primary, RoundedCornerShape(50))
                         .padding(horizontal = 8.dp, vertical = 4.dp),
             )
             Spacer(Modifier.width(10.dp))
@@ -614,7 +873,7 @@ private fun SettingsMenuRow(
             Text(
                 text = "›",
                 style = MaterialTheme.typography.headlineSmall,
-                color = BluePrimary,
+                color = MaterialTheme.colorScheme.primary,
                 modifier = Modifier.clearAndSetSemantics { },
             )
         }
@@ -623,7 +882,7 @@ private fun SettingsMenuRow(
 
 @Composable
 private fun SettingsDivider() {
-    HorizontalDivider(modifier = Modifier.padding(horizontal = 18.dp), color = BlueBg)
+    HorizontalDivider(modifier = Modifier.padding(horizontal = 18.dp), color = MaterialTheme.colorScheme.background)
 }
 
 @Composable
@@ -643,7 +902,7 @@ private fun LanguageSection(
                 color = TextH1,
                 modifier = Modifier.padding(horizontal = 16.dp, vertical = 14.dp),
             )
-            HorizontalDivider(modifier = Modifier.padding(horizontal = 18.dp), color = BlueBg)
+            HorizontalDivider(modifier = Modifier.padding(horizontal = 18.dp), color = MaterialTheme.colorScheme.background)
             Row(
                 modifier =
                     Modifier
@@ -670,7 +929,7 @@ private fun LanguageSection(
                 Text(
                     text = "›",
                     style = MaterialTheme.typography.headlineSmall,
-                    color = BluePrimary,
+                    color = MaterialTheme.colorScheme.primary,
                     modifier = Modifier.clearAndSetSemantics { },
                 )
             }
@@ -681,16 +940,23 @@ private fun LanguageSection(
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun LanguagePickerBottomSheet(
+    sheetState: SheetState,
     selectedLanguage: AppLanguage,
+    isSelectionInProgress: Boolean,
     onLanguageSelected: (AppLanguage) -> Unit,
     onDismissRequest: () -> Unit,
 ) {
     ModalBottomSheet(
+        sheetState = sheetState,
         onDismissRequest = onDismissRequest,
         containerColor = Color.White,
     ) {
         Column(
-            modifier = Modifier.fillMaxWidth().selectableGroup().padding(bottom = 24.dp),
+            modifier =
+                Modifier
+                    .fillMaxWidth()
+                    .selectableGroup()
+                    .padding(bottom = 24.dp),
         ) {
             Text(
                 text = stringResource(R.string.choose_language_title),
@@ -702,6 +968,7 @@ private fun LanguagePickerBottomSheet(
                 LanguageOptionRow(
                     language = language,
                     selected = language == selectedLanguage,
+                    enabled = !isSelectionInProgress,
                     onClick = { onLanguageSelected(language) },
                 )
             }
@@ -713,6 +980,7 @@ private fun LanguagePickerBottomSheet(
 private fun LanguageOptionRow(
     language: AppLanguage,
     selected: Boolean,
+    enabled: Boolean,
     onClick: () -> Unit,
 ) {
     Row(
@@ -721,6 +989,7 @@ private fun LanguageOptionRow(
                 .fillMaxWidth()
                 .selectable(
                     selected = selected,
+                    enabled = enabled,
                     onClick = onClick,
                     role = Role.RadioButton,
                 ).padding(horizontal = 24.dp, vertical = 14.dp),
@@ -734,7 +1003,11 @@ private fun LanguageOptionRow(
             color = TextH1,
             modifier = Modifier.weight(1f),
         )
-        RadioButton(selected = selected, onClick = null)
+        RadioButton(
+            selected = selected,
+            enabled = enabled,
+            onClick = null,
+        )
     }
 }
 
@@ -745,7 +1018,7 @@ private fun LanguageBadge(language: AppLanguage) {
             Modifier
                 .size(40.dp)
                 .background(
-                    brush = Brush.verticalGradient(listOf(BlueSecondary, BluePrimary)),
+                    brush = Brush.verticalGradient(listOf(MaterialTheme.colorScheme.secondary, MaterialTheme.colorScheme.primary)),
                     CircleShape,
                 ).clearAndSetSemantics { },
         contentAlignment = Alignment.Center,
@@ -753,7 +1026,7 @@ private fun LanguageBadge(language: AppLanguage) {
         Text(
             text = language.badgeLabel,
             style = MaterialTheme.typography.labelMedium,
-            color = Color.White,
+            color = MaterialTheme.colorScheme.onPrimary,
             fontWeight = FontWeight.Bold,
         )
     }
@@ -791,7 +1064,7 @@ private fun ReminderSection(
                 color = TextH1,
                 modifier = Modifier.padding(horizontal = 16.dp, vertical = 14.dp),
             )
-            HorizontalDivider(modifier = Modifier.padding(horizontal = 18.dp), color = BlueBg)
+            HorizontalDivider(modifier = Modifier.padding(horizontal = 18.dp), color = MaterialTheme.colorScheme.background)
             ReminderRow(
                 icon = R.drawable.word,
                 title = stringResource(R.string.notification_daily_word),
@@ -805,7 +1078,7 @@ private fun ReminderSection(
                 onToggle = { onAction(SettingsAction.OnReminderToggled(ReminderType.DAILY_WORD, it)) },
                 onTimeClick = { onTimeClick(ReminderType.DAILY_WORD) },
             )
-            HorizontalDivider(modifier = Modifier.padding(horizontal = 18.dp), color = BlueBg)
+            HorizontalDivider(modifier = Modifier.padding(horizontal = 18.dp), color = MaterialTheme.colorScheme.background)
             ReminderRow(
                 icon = R.drawable.ic_proverb,
                 title = stringResource(R.string.notification_daily_proverb),
@@ -819,7 +1092,7 @@ private fun ReminderSection(
                 onToggle = { onAction(SettingsAction.OnReminderToggled(ReminderType.DAILY_PROVERB, it)) },
                 onTimeClick = { onTimeClick(ReminderType.DAILY_PROVERB) },
             )
-            HorizontalDivider(modifier = Modifier.padding(horizontal = 18.dp), color = BlueBg)
+            HorizontalDivider(modifier = Modifier.padding(horizontal = 18.dp), color = MaterialTheme.colorScheme.background)
             ReminderRow(
                 icon = R.drawable.saved,
                 title = stringResource(R.string.notification_bookmark_review),
@@ -852,12 +1125,15 @@ private fun ReminderRow(
 
     Row(
         verticalAlignment = Alignment.Top,
-        modifier = Modifier.fillMaxWidth().padding(horizontal = 18.dp, vertical = 18.dp),
+        modifier =
+            Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 18.dp, vertical = 18.dp),
     ) {
         Icon(
             painter = painterResource(icon),
             contentDescription = null,
-            tint = BluePrimary.copy(alpha = if (enabled) 1f else 0.45f),
+            tint = MaterialTheme.colorScheme.primary.copy(alpha = if (enabled) 1f else 0.45f),
             modifier = Modifier.size(18.dp),
         )
 
@@ -903,7 +1179,12 @@ private fun PermissionBanner(onOpenSystemSettings: () -> Unit) {
         shape = RoundedCornerShape(20.dp),
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.errorContainer),
     ) {
-        Column(modifier = Modifier.fillMaxWidth().padding(16.dp)) {
+        Column(
+            modifier =
+                Modifier
+                    .fillMaxWidth()
+                    .padding(16.dp),
+        ) {
             Text(
                 text = stringResource(R.string.notification_permission_title),
                 style = MaterialTheme.typography.titleMedium,
@@ -925,7 +1206,13 @@ private fun PermissionBanner(onOpenSystemSettings: () -> Unit) {
 @Preview
 @Composable
 private fun SettingsPreview() {
-    KBBITheme { SettingsScreen(SettingsState(), onNavigateBack = {}, onAction = {}) }
+    KBBITheme(theme = AppTheme.GOLDEN_SUNSET) {
+        SettingsScreen(
+            state = SettingsState(selectedTheme = AppTheme.GOLDEN_SUNSET),
+            onNavigateBack = {},
+            onAction = {},
+        )
+    }
 }
 
 private const val REPORT_BUG_URL = "https://github.com/arrazyfathan/kbbi/issues"

@@ -40,6 +40,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.Card
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
@@ -83,9 +84,6 @@ import com.airbnb.lottie.compose.LottieCompositionSpec
 import com.airbnb.lottie.compose.LottieConstants
 import com.airbnb.lottie.compose.rememberLottieComposition
 import com.arrazyfathan.kbbi.core.R
-import com.arrazyfathan.kbbi.core.presentation.designsystem.BlueBg
-import com.arrazyfathan.kbbi.core.presentation.designsystem.BluePrimary
-import com.arrazyfathan.kbbi.core.presentation.designsystem.BlueSecondary
 import com.arrazyfathan.kbbi.core.presentation.designsystem.InterFontFamily
 import com.arrazyfathan.kbbi.core.presentation.designsystem.KBBIHapticType
 import com.arrazyfathan.kbbi.core.presentation.designsystem.KBBITheme
@@ -284,8 +282,8 @@ fun HomeContent(
                         Brush.verticalGradient(
                             colors =
                                 listOf(
-                                    BluePrimary,
-                                    BlueSecondary,
+                                    MaterialTheme.colorScheme.primary,
+                                    MaterialTheme.colorScheme.secondary,
                                 ),
                         ),
                 ).statusBarsPadding()
@@ -333,7 +331,7 @@ fun HomeContent(
             // Welcome Text
             Text(
                 text = stringResource(id = R.string.welcome_text),
-                color = Color.White,
+                color = MaterialTheme.colorScheme.onPrimary,
                 fontSize = 28.sp,
                 fontFamily = MetropolisFontFamily,
                 fontWeight = FontWeight.ExtraBold,
@@ -345,7 +343,7 @@ fun HomeContent(
             // Subtitle
             Text(
                 text = stringResource(id = R.string.subtitle_text),
-                color = Color.White,
+                color = MaterialTheme.colorScheme.onPrimary,
                 fontSize = 14.sp,
                 fontFamily = SpaceGroteskFontFamily,
                 fontWeight = FontWeight.Normal,
@@ -409,7 +407,7 @@ fun HomeContent(
                                 unfocusedIndicatorColor = Color.Transparent,
                                 focusedTextColor = TextH1,
                                 unfocusedTextColor = TextH1,
-                                cursorColor = BluePrimary,
+                                cursorColor = MaterialTheme.colorScheme.primary,
                             ),
                     )
 
@@ -428,7 +426,7 @@ fun HomeContent(
                             },
                             modifier = Modifier.size(55.dp),
                             shape = RoundedCornerShape(10.dp),
-                            color = BlueSecondary,
+                            color = MaterialTheme.colorScheme.secondary,
                         ) {
                             Box(
                                 modifier = Modifier.fillMaxSize(),
@@ -437,7 +435,7 @@ fun HomeContent(
                                 Icon(
                                     painter = painterResource(id = R.drawable.ic_search),
                                     contentDescription = stringResource(id = R.string.button_search),
-                                    tint = Color.White,
+                                    tint = MaterialTheme.colorScheme.onSecondary,
                                     modifier = Modifier.size(24.dp),
                                 )
                             }
@@ -452,7 +450,7 @@ fun HomeContent(
                     },
                     modifier = Modifier.size(55.dp),
                     shape = RoundedCornerShape(10.dp),
-                    color = if (state.isVoiceListening) BlueSecondary else Color.White,
+                    color = if (state.isVoiceListening) MaterialTheme.colorScheme.secondary else Color.White,
                 ) {
                     Box(
                         modifier = Modifier.fillMaxSize(),
@@ -461,7 +459,12 @@ fun HomeContent(
                         Icon(
                             painter = painterResource(id = R.drawable.ic_microphone),
                             contentDescription = stringResource(id = R.string.button_voice_search),
-                            tint = if (state.isVoiceListening) Color.White else BluePrimary,
+                            tint =
+                                if (state.isVoiceListening) {
+                                    MaterialTheme.colorScheme.onSecondary
+                                } else {
+                                    MaterialTheme.colorScheme.primary
+                                },
                             modifier = Modifier.size(24.dp),
                         )
                     }
@@ -490,7 +493,7 @@ fun HomeContent(
             if (state.histories.isNotEmpty()) {
                 Text(
                     text = stringResource(id = R.string.history_label),
-                    color = Color.White,
+                    color = MaterialTheme.colorScheme.onPrimary,
                     fontSize = 14.sp,
                     fontFamily = InterFontFamily,
                     fontWeight = FontWeight.Medium,
@@ -512,7 +515,7 @@ fun HomeContent(
                                 },
                             shape = RoundedCornerShape(32.dp),
                             colors = CardDefaults.cardColors(containerColor = Color.Transparent),
-                            border = BorderStroke(1.dp, Color.White),
+                            border = BorderStroke(1.dp, MaterialTheme.colorScheme.onPrimary),
                             elevation = CardDefaults.cardElevation(0.dp),
                         ) {
                             Row(
@@ -523,13 +526,13 @@ fun HomeContent(
                                 Icon(
                                     painter = painterResource(id = R.drawable.ic_history),
                                     contentDescription = null,
-                                    tint = Color.White,
+                                    tint = MaterialTheme.colorScheme.onPrimary,
                                     modifier = Modifier.size(18.dp),
                                 )
                                 Spacer(modifier = Modifier.width(8.dp))
                                 Text(
                                     text = history.word,
-                                    color = Color.White,
+                                    color = MaterialTheme.colorScheme.onPrimary,
                                     fontFamily = InterFontFamily,
                                     fontWeight = FontWeight.Medium,
                                     fontSize = 14.sp,
@@ -560,7 +563,7 @@ fun HomeContent(
 
             Text(
                 text = stringResource(id = R.string.swipe_label),
-                color = Color.White,
+                color = MaterialTheme.colorScheme.onPrimary,
                 fontSize = 12.sp,
                 fontFamily = InterFontFamily,
                 fontWeight = FontWeight.Normal,
@@ -687,7 +690,7 @@ private fun VoiceSearchBottomSheetContent(
         Surface(
             modifier = Modifier.fillMaxWidth(),
             shape = RoundedCornerShape(12.dp),
-            color = BlueBg,
+            color = MaterialTheme.colorScheme.background,
         ) {
             Column(modifier = Modifier.fillMaxWidth().padding(16.dp)) {
                 Text(
@@ -716,7 +719,7 @@ private fun VoiceSearchBottomSheetContent(
             onClick = onCancel,
             modifier = Modifier.fillMaxWidth().height(48.dp),
             shape = RoundedCornerShape(10.dp),
-            color = BlueSecondary,
+            color = MaterialTheme.colorScheme.secondary,
         ) {
             Box(
                 modifier = Modifier.fillMaxSize(),
@@ -724,7 +727,7 @@ private fun VoiceSearchBottomSheetContent(
             ) {
                 Text(
                     text = stringResource(id = R.string.cancel),
-                    color = Color.White,
+                    color = MaterialTheme.colorScheme.onSecondary,
                     fontSize = 14.sp,
                     fontFamily = InterFontFamily,
                     fontWeight = FontWeight.Bold,
@@ -780,7 +783,7 @@ private fun VoiceListeningAnimation(modifier: Modifier = Modifier) {
                         scaleX = outerPulseScale
                         scaleY = outerPulseScale
                         alpha = outerPulseAlpha
-                    }.background(BluePrimary, RoundedCornerShape(999.dp)),
+                    }.background(MaterialTheme.colorScheme.primary, RoundedCornerShape(999.dp)),
         )
 
         Box(
@@ -790,7 +793,7 @@ private fun VoiceListeningAnimation(modifier: Modifier = Modifier) {
                     .graphicsLayer {
                         scaleX = innerPulseScale
                         scaleY = innerPulseScale
-                    }.background(BlueBg, RoundedCornerShape(999.dp)),
+                    }.background(MaterialTheme.colorScheme.background, RoundedCornerShape(999.dp)),
         )
 
         Surface(
@@ -805,7 +808,7 @@ private fun VoiceListeningAnimation(modifier: Modifier = Modifier) {
                 Icon(
                     painter = painterResource(id = R.drawable.ic_microphone),
                     contentDescription = null,
-                    tint = BluePrimary,
+                    tint = MaterialTheme.colorScheme.primary,
                     modifier = Modifier.size(30.dp),
                 )
             }
@@ -824,7 +827,7 @@ private fun HomeMenuCard(
     Card(
         modifier = modifier.height(120.dp).clickable(onClick = onClick),
         shape = RoundedCornerShape(10.dp),
-        colors = CardDefaults.cardColors(containerColor = BlueBg),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.background),
         elevation = CardDefaults.cardElevation(0.dp),
     ) {
         Column(
@@ -843,7 +846,7 @@ private fun HomeMenuCard(
                     Icon(
                         painter = painterResource(id = icon),
                         contentDescription = null,
-                        tint = BluePrimary,
+                        tint = MaterialTheme.colorScheme.primary,
                         modifier = Modifier.size(20.dp),
                     )
                 }
@@ -879,7 +882,7 @@ private fun HomeMenuPlaceholderCard(modifier: Modifier = Modifier) {
     Card(
         modifier = modifier.height(120.dp),
         shape = RoundedCornerShape(10.dp),
-        colors = CardDefaults.cardColors(containerColor = BlueBg),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.background),
         elevation = CardDefaults.cardElevation(0.dp),
     ) {}
 }

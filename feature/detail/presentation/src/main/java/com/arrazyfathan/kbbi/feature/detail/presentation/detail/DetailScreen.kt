@@ -28,6 +28,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
@@ -64,7 +65,6 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.arrazyfathan.kbbi.core.R
-import com.arrazyfathan.kbbi.core.presentation.designsystem.BlueBg
 import com.arrazyfathan.kbbi.core.presentation.designsystem.InterFontFamily
 import com.arrazyfathan.kbbi.core.presentation.designsystem.KBBIHapticType
 import com.arrazyfathan.kbbi.core.presentation.designsystem.KBBITheme
@@ -203,7 +203,7 @@ fun DetailContent(
     }
 
     Box(
-        modifier = Modifier.fillMaxSize().background(BlueBg),
+        modifier = Modifier.fillMaxSize().background(MaterialTheme.colorScheme.background),
     ) {
         LazyColumn(
             state = lazyListState,
@@ -281,7 +281,7 @@ fun DetailContent(
                 Modifier
                     .fillMaxWidth()
                     .shadow(elevation = if (collapsedTitleAlpha > 0f) 8.dp else 0.dp)
-                    .background(BlueBg)
+                    .background(MaterialTheme.colorScheme.background)
                     .statusBarsPadding()
                     .height(72.dp),
             contentAlignment = Alignment.Center,

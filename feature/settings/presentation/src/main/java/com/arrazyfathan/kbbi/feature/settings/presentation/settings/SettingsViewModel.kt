@@ -8,6 +8,7 @@ import com.arrazyfathan.kbbi.core.appupdate.domain.AppUpdate
 import com.arrazyfathan.kbbi.core.appupdate.domain.AppUpdateConfig
 import com.arrazyfathan.kbbi.core.appupdate.domain.AppUpdateRepository
 import com.arrazyfathan.kbbi.core.domain.model.AppResult
+import com.arrazyfathan.kbbi.core.domain.model.AppTheme
 import com.arrazyfathan.kbbi.core.presentation.ui.UiText
 import com.arrazyfathan.kbbi.feature.home.domain.usecase.ClearSearchHistoryUseCase
 import com.arrazyfathan.kbbi.feature.settings.domain.model.NotificationSettings
@@ -28,6 +29,7 @@ import kotlinx.coroutines.launch
 data class SettingsState(
     val notifications: NotificationSettings = NotificationSettings(),
     val hapticsEnabled: Boolean = true,
+    val selectedTheme: AppTheme = AppTheme.ROYAL_OCEAN,
     val selectedLanguage: AppLanguage = AppLanguage.ENGLISH,
     val isLanguagePickerVisible: Boolean = false,
     val appVersion: String = "",
@@ -45,6 +47,10 @@ sealed interface SettingsAction {
     data object OnLanguageClick : SettingsAction
 
     data object OnLanguagePickerDismissed : SettingsAction
+
+    data class OnLanguageConfigurationChanged(
+        val language: AppLanguage,
+    ) : SettingsAction
 
     data object OnCheckForUpdate : SettingsAction
 
@@ -67,6 +73,10 @@ sealed interface SettingsAction {
 
     data class OnHapticsToggled(
         val enabled: Boolean,
+    ) : SettingsAction
+
+    data class OnThemeSelected(
+        val theme: AppTheme,
     ) : SettingsAction
 
     data class OnReminderTimeChanged(
@@ -129,7 +139,12 @@ class SettingsViewModel(
         }
         viewModelScope.launch {
             uiPreferencesRepository.preferences.collect { preferences ->
-                _state.update { it.copy(hapticsEnabled = preferences.hapticsEnabled) }
+                _state.update {
+                    it.copy(
+                        hapticsEnabled = preferences.hapticsEnabled,
+                        selectedTheme = preferences.theme,
+                    )
+                }
             }
         }
     }
@@ -148,6 +163,10 @@ class SettingsViewModel(
 
             SettingsAction.OnLanguagePickerDismissed -> {
                 _state.update { it.copy(isLanguagePickerVisible = false) }
+            }
+
+            is SettingsAction.OnLanguageConfigurationChanged -> {
+                _state.update { it.copy(selectedLanguage = action.language) }
             }
 
             SettingsAction.OnCheckForUpdate -> {
@@ -180,6 +199,10 @@ class SettingsViewModel(
 
             is SettingsAction.OnHapticsToggled -> {
                 setHapticsEnabled(action.enabled)
+            }
+
+            is SettingsAction.OnThemeSelected -> {
+                selectTheme(action.theme)
             }
 
             is SettingsAction.OnReminderTimeChanged -> {
@@ -264,6 +287,15 @@ class SettingsViewModel(
         viewModelScope.launch {
             uiPreferencesRepository.setHapticsEnabled(enabled)
             _events.send(SettingsEvent.HapticsChanged(enabled))
+        }
+    }
+
+    private fun selectTheme(theme: AppTheme) {
+        if (theme == state.value.selectedTheme) return
+
+        viewModelScope.launch {
+            uiPreferencesRepository.setTheme(theme)
+            _events.send(SettingsEvent.SelectionChanged)
         }
     }
 

@@ -41,6 +41,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.Button
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -95,9 +96,6 @@ import androidx.paging.compose.LazyPagingItems
 import androidx.paging.compose.collectAsLazyPagingItems
 import androidx.paging.compose.itemKey
 import com.arrazyfathan.kbbi.core.R
-import com.arrazyfathan.kbbi.core.presentation.designsystem.BlueBg
-import com.arrazyfathan.kbbi.core.presentation.designsystem.BluePrimary
-import com.arrazyfathan.kbbi.core.presentation.designsystem.BlueSecondary
 import com.arrazyfathan.kbbi.core.presentation.designsystem.InterFontFamily
 import com.arrazyfathan.kbbi.core.presentation.designsystem.KBBIHapticType
 import com.arrazyfathan.kbbi.core.presentation.designsystem.KBBITheme
@@ -196,7 +194,7 @@ fun ProverbScreen(
 
     Scaffold(
         modifier = modifier.fillMaxSize().nestedScroll(scrollBehavior.nestedScrollConnection),
-        containerColor = BlueBg,
+        containerColor = MaterialTheme.colorScheme.background,
         topBar = {
             ProverbTopAppBar(
                 scrollBehavior = scrollBehavior,
@@ -253,8 +251,8 @@ private fun ProverbTopAppBar(
                     Brush.verticalGradient(
                         colors =
                             listOf(
-                                BlueSecondary,
-                                BluePrimary,
+                                MaterialTheme.colorScheme.secondary,
+                                MaterialTheme.colorScheme.primary,
                             ),
                     ),
             ),
@@ -263,7 +261,7 @@ private fun ProverbTopAppBar(
                 Icon(
                     painter = painterResource(id = R.drawable.ic_arrow_back),
                     contentDescription = stringResource(id = R.string.navigate_back),
-                    tint = Color.White,
+                    tint = MaterialTheme.colorScheme.onPrimary,
                 )
             }
         },
@@ -273,7 +271,7 @@ private fun ProverbTopAppBar(
                     text = stringResource(id = R.string.proverb_screen_title),
                     fontFamily = MetropolisFontFamily,
                     fontWeight = FontWeight.ExtraBold,
-                    color = Color.White,
+                    color = MaterialTheme.colorScheme.onPrimary,
                     fontSize = if (isCollapsed) 20.sp else 24.sp,
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis,
@@ -283,7 +281,7 @@ private fun ProverbTopAppBar(
                         text = stringResource(id = R.string.proverb_screen_subtitle),
                         fontFamily = InterFontFamily,
                         fontWeight = FontWeight.Normal,
-                        color = Color.White.copy(alpha = 0.82f),
+                        color = MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.82f),
                         fontSize = 13.sp,
                         lineHeight = 18.sp,
                         maxLines = 2,
@@ -297,7 +295,7 @@ private fun ProverbTopAppBar(
             TopAppBarDefaults.topAppBarColors(
                 containerColor = Color.Transparent,
                 scrolledContainerColor = Color.Transparent,
-                titleContentColor = Color.White,
+                titleContentColor = MaterialTheme.colorScheme.onPrimary,
             ),
         scrollBehavior = scrollBehavior,
     )
@@ -332,7 +330,7 @@ private fun BoxScope.FloatingProverbSearchField(
     ) {
         Surface(
             shape = CircleShape,
-            color = BlueSecondary,
+            color = MaterialTheme.colorScheme.secondary,
         ) {
             ProverbSearchField(
                 value = value,
@@ -353,6 +351,8 @@ private fun ProverbSearchField(
 ) {
     val interactionSource = remember { MutableInteractionSource() }
     val isFocused by interactionSource.collectIsFocusedAsState()
+    val primaryColor = MaterialTheme.colorScheme.primary
+    val secondaryColor = MaterialTheme.colorScheme.secondary
     val gradientAlpha by animateFloatAsState(
         targetValue = if (isFocused) 0f else 1f,
         animationSpec = tween(durationMillis = 420, easing = FastOutSlowInEasing),
@@ -366,14 +366,14 @@ private fun ProverbSearchField(
         modifier =
             modifier
                 .clip(CircleShape)
-                .background(BlueSecondary)
+                .background(secondaryColor)
                 .drawWithCache {
                     val gradient =
                         Brush.verticalGradient(
                             colors =
                                 listOf(
-                                    BlueSecondary,
-                                    BluePrimary,
+                                    secondaryColor,
+                                    primaryColor,
                                 ),
                         )
 
@@ -387,14 +387,14 @@ private fun ProverbSearchField(
                 fontFamily = InterFontFamily,
                 fontWeight = FontWeight.Medium,
                 fontSize = 14.sp,
-                color = Color.White.copy(alpha = 0.72f),
+                color = MaterialTheme.colorScheme.onSecondary.copy(alpha = 0.72f),
             )
         },
         leadingIcon = {
             Icon(
                 painter = painterResource(id = R.drawable.ic_search),
                 contentDescription = stringResource(id = R.string.button_search),
-                tint = Color.White,
+                tint = MaterialTheme.colorScheme.onSecondary,
                 modifier = Modifier.padding(start = 10.dp).size(20.dp),
             )
         },
@@ -403,7 +403,7 @@ private fun ProverbSearchField(
                 fontFamily = InterFontFamily,
                 fontWeight = FontWeight.Medium,
                 fontSize = 14.sp,
-                color = Color.White,
+                color = MaterialTheme.colorScheme.onSecondary,
             ),
         keyboardOptions =
             KeyboardOptions(
@@ -423,9 +423,9 @@ private fun ProverbSearchField(
                 unfocusedIndicatorColor = Color.Transparent,
                 disabledIndicatorColor = Color.Transparent,
                 errorIndicatorColor = Color.Transparent,
-                focusedTextColor = Color.White,
-                unfocusedTextColor = Color.White,
-                cursorColor = Color.White,
+                focusedTextColor = MaterialTheme.colorScheme.onSecondary,
+                unfocusedTextColor = MaterialTheme.colorScheme.onSecondary,
+                cursorColor = MaterialTheme.colorScheme.onSecondary,
             ),
     )
 }
@@ -602,9 +602,9 @@ private fun rememberProverbShimmerBrush(): Brush {
     return Brush.linearGradient(
         colors =
             listOf(
-                BlueBg.copy(alpha = 0.72f),
+                MaterialTheme.colorScheme.background.copy(alpha = 0.72f),
                 Color.White,
-                BlueBg.copy(alpha = 0.72f),
+                MaterialTheme.colorScheme.background.copy(alpha = 0.72f),
             ),
         start = Offset(x = translateAnimation - 1_000f, y = 0f),
         end = Offset(x = translateAnimation, y = 0f),
@@ -616,7 +616,7 @@ private fun LetterHeader(letter: String) {
     Surface(
         modifier = Modifier.padding(top = 2.dp, bottom = 2.dp),
         shape = CircleShape,
-        color = BluePrimary,
+        color = MaterialTheme.colorScheme.primary,
         shadowElevation = 0.dp,
     ) {
         Text(
@@ -660,7 +660,7 @@ private fun ProverbCard(
 //                fontFamily = MetropolisFontFamily,
 //                fontWeight = FontWeight.ExtraBold,
 //                fontSize = 18.sp,
-//                color = BluePrimary.copy(alpha = 0.32f),
+//                color = MaterialTheme.colorScheme.primary.copy(alpha = 0.32f),
 //                modifier = Modifier.padding(start = 12.dp),
 //            )
         }
@@ -688,7 +688,7 @@ private fun ProverbMeaningSheet(
             fontFamily = InterFontFamily,
             fontWeight = FontWeight.ExtraBold,
             fontSize = 14.sp,
-            color = BluePrimary,
+            color = MaterialTheme.colorScheme.primary,
         )
         Spacer(modifier = Modifier.height(12.dp))
         if (isLoading) {
@@ -699,7 +699,7 @@ private fun ProverbMeaningSheet(
                 CircularProgressIndicator(
                     modifier = Modifier.size(20.dp),
                     strokeWidth = 2.dp,
-                    color = BluePrimary,
+                    color = MaterialTheme.colorScheme.primary,
                 )
                 Text(
                     text = stringResource(id = R.string.proverb_meaning_loading),
@@ -768,7 +768,7 @@ private fun NumberedMeaningItem(
         verticalAlignment = Alignment.Top,
     ) {
         Box(
-            modifier = Modifier.size(26.dp).clip(CircleShape).background(BluePrimary),
+            modifier = Modifier.size(26.dp).clip(CircleShape).background(MaterialTheme.colorScheme.primary),
             contentAlignment = Alignment.Center,
         ) {
             Text(
@@ -776,7 +776,7 @@ private fun NumberedMeaningItem(
                 fontFamily = InterFontFamily,
                 fontWeight = FontWeight.ExtraBold,
                 fontSize = 12.sp,
-                color = Color.White,
+                color = MaterialTheme.colorScheme.onPrimary,
                 lineHeight = 13.sp,
             )
         }
@@ -830,14 +830,14 @@ private fun ErrorState(
         Spacer(modifier = Modifier.height(12.dp))
         Button(
             onClick = onRetry,
-            colors = ButtonDefaults.buttonColors(containerColor = BluePrimary),
+            colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary),
             shape = RoundedCornerShape(10.dp),
         ) {
             Text(
                 text = stringResource(id = R.string.retry),
                 fontFamily = InterFontFamily,
                 fontWeight = FontWeight.ExtraBold,
-                color = Color.White,
+                color = MaterialTheme.colorScheme.onPrimary,
             )
         }
     }
@@ -863,7 +863,7 @@ private fun EmptyState(modifier: Modifier = Modifier) {
 @Composable
 private fun ProverbCardPreview() {
     KBBITheme {
-        Box(modifier = Modifier.background(BlueBg).padding(8.dp)) {
+        Box(modifier = Modifier.background(MaterialTheme.colorScheme.background).padding(8.dp)) {
             ProverbCard(
                 proverb =
                     ProverbModel(

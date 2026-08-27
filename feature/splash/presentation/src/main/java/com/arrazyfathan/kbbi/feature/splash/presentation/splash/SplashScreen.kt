@@ -12,6 +12,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Text
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -33,8 +34,6 @@ import com.airbnb.lottie.compose.LottieCompositionSpec
 import com.airbnb.lottie.compose.LottieConstants
 import com.airbnb.lottie.compose.rememberLottieComposition
 import com.arrazyfathan.kbbi.core.R
-import com.arrazyfathan.kbbi.core.presentation.designsystem.BluePrimary
-import com.arrazyfathan.kbbi.core.presentation.designsystem.BlueSecondary
 import com.arrazyfathan.kbbi.core.presentation.designsystem.InterFontFamily
 import com.arrazyfathan.kbbi.core.presentation.designsystem.KBBITheme
 import kotlinx.coroutines.delay
@@ -80,8 +79,8 @@ fun SplashScreen(
                     Brush.verticalGradient(
                         colors =
                             listOf(
-                                BluePrimary,
-                                BlueSecondary,
+                                MaterialTheme.colorScheme.primary,
+                                MaterialTheme.colorScheme.secondary,
                             ),
                     ),
             ),
@@ -131,7 +130,7 @@ fun SplashScreen(
             )
         Text(
             text = versionText,
-            color = Color.White,
+            color = MaterialTheme.colorScheme.onPrimary,
             fontSize = 12.sp,
             fontFamily = InterFontFamily,
             modifier = Modifier.align(Alignment.BottomCenter).padding(bottom = 24.dp),
