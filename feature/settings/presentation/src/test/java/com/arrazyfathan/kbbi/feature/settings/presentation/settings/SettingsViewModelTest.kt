@@ -12,6 +12,7 @@ import com.arrazyfathan.kbbi.feature.home.domain.model.HistoryModel
 import com.arrazyfathan.kbbi.feature.home.domain.repository.SearchHistoryRepository
 import com.arrazyfathan.kbbi.feature.home.domain.usecase.ClearSearchHistoryUseCase
 import com.arrazyfathan.kbbi.feature.settings.domain.model.NotificationSettings
+import com.arrazyfathan.kbbi.feature.settings.domain.model.AppIcon
 import com.arrazyfathan.kbbi.feature.settings.domain.model.ReminderPreference
 import com.arrazyfathan.kbbi.feature.settings.domain.model.ReminderTime
 import com.arrazyfathan.kbbi.feature.settings.domain.model.ReminderType
@@ -19,6 +20,8 @@ import com.arrazyfathan.kbbi.feature.settings.domain.model.UiPreferences
 import com.arrazyfathan.kbbi.feature.settings.domain.repository.NotificationSettingsRepository
 import com.arrazyfathan.kbbi.feature.settings.domain.repository.UiPreferencesRepository
 import com.arrazyfathan.kbbi.feature.settings.domain.service.ReminderScheduler
+import com.arrazyfathan.kbbi.feature.settings.domain.service.AppIconChangeResult
+import com.arrazyfathan.kbbi.feature.settings.domain.service.AppIconManager
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -265,6 +268,83 @@ class SettingsViewModelTest {
     }
 
     @Test
+    fun `settings initializes with icon reported by manager`() = runTest(dispatcher) {
+        val appIconManager = FakeAppIconManager(current = AppIcon.NEON_VIOLET)
+
+        val viewModel = createViewModel(appIconManager = appIconManager)
+
+        assertEquals(AppIcon.NEON_VIOLET, viewModel.state.value.selectedAppIcon)
+    }
+
+    @Test
+    fun `selecting another icon waits for confirmation before changing it`() = runTest(dispatcher) {
+        val appIconManager = FakeAppIconManager()
+        val viewModel = createViewModel(appIconManager = appIconManager)
+
+        viewModel.onAction(SettingsAction.OnAppIconSelected(AppIcon.GOLDEN_SUNSET))
+
+        assertTrue(appIconManager.changeRequests.isEmpty())
+        assertEquals(AppIcon.DEFAULT, viewModel.state.value.selectedAppIcon)
+        assertEquals(AppIcon.GOLDEN_SUNSET, viewModel.state.value.pendingAppIcon)
+        assertEquals(null, withTimeoutOrNull(100) { viewModel.events.first() })
+    }
+
+    @Test
+    fun `confirming icon change invokes manager updates state and emits feedback`() = runTest(dispatcher) {
+        val appIconManager = FakeAppIconManager()
+        val viewModel = createViewModel(appIconManager = appIconManager)
+        viewModel.onAction(SettingsAction.OnAppIconSelected(AppIcon.GOLDEN_SUNSET))
+
+        viewModel.onAction(SettingsAction.OnAppIconChangeConfirmed)
+
+        assertEquals(listOf(AppIcon.GOLDEN_SUNSET), appIconManager.changeRequests)
+        assertEquals(AppIcon.GOLDEN_SUNSET, viewModel.state.value.selectedAppIcon)
+        assertEquals(null, viewModel.state.value.pendingAppIcon)
+        assertEquals(SettingsEvent.AppIconChanged, viewModel.events.first())
+    }
+
+    @Test
+    fun `dismissing icon confirmation does not change icon`() = runTest(dispatcher) {
+        val appIconManager = FakeAppIconManager()
+        val viewModel = createViewModel(appIconManager = appIconManager)
+        viewModel.onAction(SettingsAction.OnAppIconSelected(AppIcon.GOLDEN_SUNSET))
+
+        viewModel.onAction(SettingsAction.OnAppIconChangeDismissed)
+
+        assertEquals(null, viewModel.state.value.pendingAppIcon)
+        assertEquals(AppIcon.DEFAULT, viewModel.state.value.selectedAppIcon)
+        assertTrue(appIconManager.changeRequests.isEmpty())
+    }
+
+    @Test
+    fun `selecting current icon performs no operation`() = runTest(dispatcher) {
+        val appIconManager = FakeAppIconManager(current = AppIcon.ROYAL_OCEAN)
+        val viewModel = createViewModel(appIconManager = appIconManager)
+
+        viewModel.onAction(SettingsAction.OnAppIconSelected(AppIcon.ROYAL_OCEAN))
+
+        assertTrue(appIconManager.changeRequests.isEmpty())
+        assertEquals(null, withTimeoutOrNull(100) { viewModel.events.first() })
+    }
+
+    @Test
+    fun `failed icon change preserves selection and emits error`() = runTest(dispatcher) {
+        val appIconManager =
+            FakeAppIconManager(
+                current = AppIcon.DEFAULT,
+                result = AppIconChangeResult.FAILURE,
+            )
+        val viewModel = createViewModel(appIconManager = appIconManager)
+
+        viewModel.onAction(SettingsAction.OnAppIconSelected(AppIcon.BLAZE_ORANGE))
+        viewModel.onAction(SettingsAction.OnAppIconChangeConfirmed)
+
+        assertEquals(AppIcon.DEFAULT, viewModel.state.value.selectedAppIcon)
+        assertEquals(null, viewModel.state.value.pendingAppIcon)
+        assertMessage(R.string.app_icon_change_failed, viewModel.events.first())
+    }
+
+    @Test
     fun `clearing history calls usecase and emits message`() = runTest(dispatcher) {
         val historyRepository = FakeSearchHistoryRepository()
         val viewModel = createViewModel(historyRepository = historyRepository)
@@ -285,6 +365,7 @@ class SettingsViewModelTest {
         uiPreferencesRepository: FakeUiPreferencesRepository = FakeUiPreferencesRepository(),
         appVersion: String = "1.0.0",
         isUpdateCheckEnabled: Boolean = false,
+        appIconManager: FakeAppIconManager = FakeAppIconManager(),
     ) =
         SettingsViewModel(
             repository = repository,
@@ -293,6 +374,7 @@ class SettingsViewModelTest {
             appUpdateRepository = updateRepository,
             appUpdateConfig = AppUpdateConfig(appVersion, isUpdateCheckEnabled),
             clearSearchHistoryUseCase = ClearSearchHistoryUseCase(historyRepository),
+            appIconManager = appIconManager,
         )
 
     private fun assertMessage(
@@ -301,6 +383,21 @@ class SettingsViewModelTest {
     ) {
         val message = (event as SettingsEvent.ShowMessage).message as UiText.StringResource
         assertEquals(expectedResId, message.id)
+    }
+}
+
+private class FakeAppIconManager(
+    private var current: AppIcon = AppIcon.DEFAULT,
+    var result: AppIconChangeResult = AppIconChangeResult.SUCCESS,
+) : AppIconManager {
+    val changeRequests = mutableListOf<AppIcon>()
+
+    override fun currentIcon(): AppIcon = current
+
+    override suspend fun changeIcon(icon: AppIcon): AppIconChangeResult {
+        changeRequests += icon
+        if (result == AppIconChangeResult.SUCCESS) current = icon
+        return result
     }
 }
 

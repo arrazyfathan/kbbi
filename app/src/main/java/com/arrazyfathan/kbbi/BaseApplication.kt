@@ -4,6 +4,7 @@ import android.app.Application
 import com.arrazyfathan.kbbi.core.appupdate.di.appUpdateModule
 import com.arrazyfathan.kbbi.core.di.networkModule
 import com.arrazyfathan.kbbi.core.logging.AppLogger
+import com.arrazyfathan.kbbi.di.appIconModule
 import com.arrazyfathan.kbbi.di.appUpdateConfigModule
 import com.arrazyfathan.kbbi.di.useCaseModule
 import com.arrazyfathan.kbbi.di.viewModelModule
@@ -46,6 +47,7 @@ class BaseApplication : Application() {
                         repositoryModule,
                         proverbDataModule,
                         appUpdateConfigModule,
+                        appIconModule,
                         appUpdateModule,
                         viewModelModule,
                         networkModule,

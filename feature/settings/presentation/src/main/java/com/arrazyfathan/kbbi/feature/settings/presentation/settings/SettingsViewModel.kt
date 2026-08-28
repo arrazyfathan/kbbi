@@ -12,11 +12,14 @@ import com.arrazyfathan.kbbi.core.domain.model.AppTheme
 import com.arrazyfathan.kbbi.core.presentation.ui.UiText
 import com.arrazyfathan.kbbi.feature.home.domain.usecase.ClearSearchHistoryUseCase
 import com.arrazyfathan.kbbi.feature.settings.domain.model.NotificationSettings
+import com.arrazyfathan.kbbi.feature.settings.domain.model.AppIcon
 import com.arrazyfathan.kbbi.feature.settings.domain.model.ReminderTime
 import com.arrazyfathan.kbbi.feature.settings.domain.model.ReminderType
 import com.arrazyfathan.kbbi.feature.settings.domain.repository.NotificationSettingsRepository
 import com.arrazyfathan.kbbi.feature.settings.domain.repository.UiPreferencesRepository
 import com.arrazyfathan.kbbi.feature.settings.domain.service.ReminderScheduler
+import com.arrazyfathan.kbbi.feature.settings.domain.service.AppIconChangeResult
+import com.arrazyfathan.kbbi.feature.settings.domain.service.AppIconManager
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -30,6 +33,7 @@ data class SettingsState(
     val notifications: NotificationSettings = NotificationSettings(),
     val hapticsEnabled: Boolean = true,
     val selectedTheme: AppTheme = AppTheme.ROYAL_OCEAN,
+    val selectedAppIcon: AppIcon = AppIcon.DEFAULT,
     val selectedLanguage: AppLanguage = AppLanguage.ENGLISH,
     val isLanguagePickerVisible: Boolean = false,
     val appVersion: String = "",
@@ -37,6 +41,7 @@ data class SettingsState(
     val availableUpdate: AppUpdate? = null,
     val isUpdatePromptVisible: Boolean = false,
     val isClearHistoryDialogVisible: Boolean = false,
+    val pendingAppIcon: AppIcon? = null,
 )
 
 sealed interface SettingsAction {
@@ -79,6 +84,14 @@ sealed interface SettingsAction {
         val theme: AppTheme,
     ) : SettingsAction
 
+    data class OnAppIconSelected(
+        val icon: AppIcon,
+    ) : SettingsAction
+
+    data object OnAppIconChangeConfirmed : SettingsAction
+
+    data object OnAppIconChangeDismissed : SettingsAction
+
     data class OnReminderTimeChanged(
         val type: ReminderType,
         val time: ReminderTime,
@@ -111,6 +124,8 @@ sealed interface SettingsEvent {
 
     data object SelectionChanged : SettingsEvent
 
+    data object AppIconChanged : SettingsEvent
+
     data class ShowMessage(
         val message: UiText,
         val isError: Boolean = false,
@@ -124,6 +139,7 @@ class SettingsViewModel(
     private val appUpdateRepository: AppUpdateRepository,
     private val appUpdateConfig: AppUpdateConfig,
     private val clearSearchHistoryUseCase: ClearSearchHistoryUseCase,
+    private val appIconManager: AppIconManager,
 ) : ViewModel() {
     private val _state = MutableStateFlow(SettingsState(appVersion = appUpdateConfig.currentVersion))
     val state = _state.asStateFlow()
@@ -132,6 +148,13 @@ class SettingsViewModel(
     val events = _events.receiveAsFlow()
 
     init {
+        _state.update {
+            it.copy(
+                selectedAppIcon =
+                    runCatching { appIconManager.currentIcon() }
+                        .getOrDefault(AppIcon.DEFAULT),
+            )
+        }
         viewModelScope.launch {
             repository.settings.collect { settings ->
                 _state.update { it.copy(notifications = settings) }
@@ -203,6 +226,18 @@ class SettingsViewModel(
 
             is SettingsAction.OnThemeSelected -> {
                 selectTheme(action.theme)
+            }
+
+            is SettingsAction.OnAppIconSelected -> {
+                selectAppIcon(action.icon)
+            }
+
+            SettingsAction.OnAppIconChangeConfirmed -> {
+                confirmAppIconChange()
+            }
+
+            SettingsAction.OnAppIconChangeDismissed -> {
+                _state.update { it.copy(pendingAppIcon = null) }
             }
 
             is SettingsAction.OnReminderTimeChanged -> {
@@ -296,6 +331,45 @@ class SettingsViewModel(
         viewModelScope.launch {
             uiPreferencesRepository.setTheme(theme)
             _events.send(SettingsEvent.SelectionChanged)
+        }
+    }
+
+    private fun selectAppIcon(icon: AppIcon) {
+        if (icon == state.value.selectedAppIcon) return
+
+        _state.update { it.copy(pendingAppIcon = icon) }
+    }
+
+    private fun confirmAppIconChange() {
+        val icon = state.value.pendingAppIcon ?: return
+        _state.update { it.copy(pendingAppIcon = null) }
+
+        viewModelScope.launch {
+            val result =
+                try {
+                    appIconManager.changeIcon(icon)
+                } catch (_: Exception) {
+                    AppIconChangeResult.FAILURE
+                }
+            when (result) {
+                AppIconChangeResult.SUCCESS -> {
+                    _state.update {
+                        it.copy(
+                            selectedAppIcon = icon,
+                        )
+                    }
+                    _events.send(SettingsEvent.AppIconChanged)
+                }
+
+                AppIconChangeResult.FAILURE -> {
+                    _events.send(
+                        SettingsEvent.ShowMessage(
+                            message = UiText.StringResource(R.string.app_icon_change_failed),
+                            isError = true,
+                        ),
+                    )
+                }
+            }
         }
     }
 
