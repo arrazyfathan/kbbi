@@ -71,6 +71,7 @@
     <string name="copy">Copy</string>
     <string name="show_original">Show original</string>
     <string name="show_english_translation">Show English translation</string>
+    <string name="translated_by_provider">Translated by %1$s</string>
     <string name="translate_failed">Translation is unavailable right now.</string>
     <string name="number_item">1</string>
     <string name="error_empty_query">Word cannot be empty</string>
@@ -165,9 +166,27 @@
     <string name="appearance_section_title">Appearance</string>
     <string name="theme_picker_description">Choose the app color theme.</string>
     <string name="theme_royal_ocean" translatable="false">Royal Ocean</string>
+    <string name="theme_blaze_orange" translatable="false">Blaze Orange</string>
     <string name="theme_golden_sunset" translatable="false">Golden Sunset</string>
     <string name="theme_golden_coral_energy" translatable="false">Golden Coral Energy</string>
     <string name="theme_deep_forest_energy" translatable="false">Deep Forest Energy</string>
+    <string name="theme_neon_violet" translatable="false">Neon Violet</string>
+    <string name="app_icon_picker_title">App icon</string>
+    <string name="app_icon_picker_description">Choose the icon shown by your device launcher.</string>
+    <string name="app_icon_default">Default</string>
+    <string name="app_icon_royal_ocean">Royal Ocean</string>
+    <string name="app_icon_golden_sunset">Golden Sunset</string>
+    <string name="app_icon_golden_coral_energy">Golden Coral Energy</string>
+    <string name="app_icon_deep_forest_energy">Deep Forest Energy</string>
+    <string name="app_icon_neon_violet">Neon Violet</string>
+    <string name="app_icon_blaze_orange">Blaze Orange</string>
+    <string name="app_icon_change_success">App icon changed.</string>
+    <string name="app_icon_refresh_notice">Your launcher may take a moment to refresh.</string>
+    <string name="app_icon_change_failed">Couldn\'t change the app icon</string>
+    <string name="app_icon_preview_accessibility">%1$s app icon preview</string>
+    <string name="app_icon_change_dialog_title">Change app icon?</string>
+    <string name="app_icon_change_dialog_message">The app may need to be closed and reopened to apply the new launcher icon. Do you want to continue?</string>
+    <string name="app_icon_change_dialog_confirm">Yes, change icon</string>
     <string name="haptic_feedback_title">Haptic feedback</string>
     <string name="haptic_feedback_description">Use subtle vibrations for actions and results</string>
     <string name="coming_soon">Coming soon</string>

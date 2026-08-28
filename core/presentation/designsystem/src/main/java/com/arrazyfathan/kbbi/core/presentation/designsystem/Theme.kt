@@ -17,8 +17,9 @@ internal fun colorSchemeFor(theme: AppTheme) =
             onPrimary = Color.White,
             onSecondary =
                 when (theme) {
-                    AppTheme.ROYAL_OCEAN, AppTheme.DEEP_FOREST_ENERGY -> Color.White
+                    AppTheme.NEON_VIOLET, AppTheme.ROYAL_OCEAN, AppTheme.DEEP_FOREST_ENERGY -> Color.White
                     AppTheme.GOLDEN_SUNSET, AppTheme.GOLDEN_CORAL_ENERGY -> Color.White
+                    AppTheme.BLAZE_ORANGE -> Color.White
                 },
             onBackground = TextPrimary,
             onSurface = TextPrimary,

@@ -20,10 +20,14 @@ import com.arrazyfathan.kbbi.feature.home.presentation.home.HomeViewModel
 import com.arrazyfathan.kbbi.feature.proverb.domain.usecase.GetListProverbsUseCase
 import com.arrazyfathan.kbbi.feature.proverb.domain.usecase.GetProverbMeaningUseCase
 import com.arrazyfathan.kbbi.feature.proverb.presentation.proverb.ProverbViewModel
+import com.arrazyfathan.kbbi.feature.settings.domain.service.AppIconManager
 import com.arrazyfathan.kbbi.feature.words.presentation.words.WordViewModel
+import com.arrazyfathan.kbbi.settings.AndroidAppIconManager
 import com.arrazyfathan.kbbi.ui.AppUiViewModel
+import org.koin.android.ext.koin.androidContext
 import org.koin.core.module.dsl.factoryOf
 import org.koin.core.module.dsl.viewModelOf
+import org.koin.dsl.bind
 import org.koin.dsl.module
 
 /**
@@ -66,4 +70,9 @@ val appUpdateConfigModule =
                 isUpdateCheckEnabled = BuildConfig.FLAVOR == "production",
             )
         }
+    }
+
+val appIconModule =
+    module {
+        single { AndroidAppIconManager(androidContext()) } bind AppIconManager::class
     }

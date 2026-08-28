@@ -26,6 +26,8 @@ data class TranslateDataDto(
     val from: String,
     @SerialName("to")
     val to: String,
+    @SerialName("provider")
+    val provider: String,
     @SerialName("entries")
     val entries: List<TranslatedEntryDto> = emptyList(),
 )

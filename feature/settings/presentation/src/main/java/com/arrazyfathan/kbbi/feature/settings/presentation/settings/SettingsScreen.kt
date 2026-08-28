@@ -16,14 +16,17 @@ import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
-import androidx.compose.foundation.background
 import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -68,6 +71,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
@@ -83,6 +87,8 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.clearAndSetSemantics
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
@@ -102,8 +108,9 @@ import com.arrazyfathan.kbbi.core.presentation.designsystem.MetropolisFontFamily
 import com.arrazyfathan.kbbi.core.presentation.designsystem.TextH1
 import com.arrazyfathan.kbbi.core.presentation.designsystem.TextP
 import com.arrazyfathan.kbbi.core.presentation.designsystem.components.KBBITimePickerBottomSheet
-import com.arrazyfathan.kbbi.core.presentation.designsystem.perform
 import com.arrazyfathan.kbbi.core.presentation.designsystem.palette
+import com.arrazyfathan.kbbi.core.presentation.designsystem.perform
+import com.arrazyfathan.kbbi.feature.settings.domain.model.AppIcon
 import com.arrazyfathan.kbbi.feature.settings.domain.model.ReminderTime
 import com.arrazyfathan.kbbi.feature.settings.domain.model.ReminderType
 import kotlinx.coroutines.CancellationException
@@ -119,7 +126,10 @@ import kotlin.time.Duration.Companion.milliseconds
 private const val LANGUAGE_FADE_OUT_DURATION_MILLIS = 100
 private const val LANGUAGE_FADE_IN_DURATION_MILLIS = 180
 private const val LANGUAGE_CONFIGURATION_TIMEOUT_MILLIS = 1_000L
+private const val APP_ICON_COLUMN_COUNT = 6
 internal const val LANGUAGE_TRANSITION_OVERLAY_TEST_TAG = "language_transition_overlay"
+internal const val APP_ICON_OPTION_TEST_TAG_PREFIX = "app_icon_option_"
+internal const val APP_ICON_SELECTED_INDICATOR_TEST_TAG_PREFIX = "app_icon_selected_indicator_"
 private val languageTransitionEasing = CubicBezierEasing(0.23f, 1f, 0.32f, 1f)
 
 @Composable
@@ -175,8 +185,7 @@ fun SettingsRoute(
                             )
                         }
                         withTimeoutOrNull(LANGUAGE_CONFIGURATION_TIMEOUT_MILLIS.milliseconds) {
-                            snapshotFlow { currentConfigurationLanguage }
-                                .first { it == event.language }
+                            snapshotFlow { currentConfigurationLanguage }.first { it == event.language }
                         }
                         languageOverlayAlpha.animateTo(
                             targetValue = 0f,
@@ -230,6 +239,10 @@ fun SettingsRoute(
                 }
 
                 SettingsEvent.SelectionChanged -> {
+                    onHaptic(KBBIHapticType.Selection)
+                }
+
+                SettingsEvent.AppIconChanged -> {
                     onHaptic(KBBIHapticType.Selection)
                 }
             }
@@ -310,10 +323,7 @@ fun SettingsScreen(
     val coroutineScope = rememberCoroutineScope()
 
     Scaffold(
-        modifier =
-            Modifier
-                .fillMaxSize()
-                .nestedScroll(scrollBehavior.nestedScrollConnection),
+        modifier = Modifier.fillMaxSize().nestedScroll(scrollBehavior.nestedScrollConnection),
         containerColor = MaterialTheme.colorScheme.background,
         topBar = {
             SettingsTopAppBar(
@@ -347,7 +357,9 @@ fun SettingsScreen(
             )
             AppearanceSection(
                 selectedTheme = state.selectedTheme,
+                selectedAppIcon = state.selectedAppIcon,
                 onThemeSelected = { onAction(SettingsAction.OnThemeSelected(it)) },
+                onAppIconSelected = { onAction(SettingsAction.OnAppIconSelected(it)) },
             )
             InteractionSection(
                 hapticsEnabled = state.hapticsEnabled,
@@ -440,20 +452,68 @@ fun SettingsScreen(
             },
         )
     }
+
+    if (state.pendingAppIcon != null) {
+        AppIconChangeBottomSheet(
+            onDismissRequest = { onAction(SettingsAction.OnAppIconChangeDismissed) },
+            onConfirm = { onAction(SettingsAction.OnAppIconChangeConfirmed) },
+        )
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun AppIconChangeBottomSheet(
+    onDismissRequest: () -> Unit,
+    onConfirm: () -> Unit,
+) {
+    ModalBottomSheet(
+        onDismissRequest = onDismissRequest,
+        containerColor = MaterialTheme.colorScheme.surface,
+    ) {
+        Column(
+            modifier =
+                Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 24.dp)
+                    .padding(bottom = 24.dp),
+            verticalArrangement = Arrangement.spacedBy(12.dp),
+        ) {
+            Text(
+                text = stringResource(R.string.app_icon_change_dialog_title),
+                style = MaterialTheme.typography.titleLarge,
+                color = MaterialTheme.colorScheme.onSurface,
+            )
+            Text(
+                text = stringResource(R.string.app_icon_change_dialog_message),
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.End,
+            ) {
+                TextButton(onClick = onDismissRequest) {
+                    Text(stringResource(R.string.cancel))
+                }
+                TextButton(onClick = onConfirm) {
+                    Text(stringResource(R.string.app_icon_change_dialog_confirm))
+                }
+            }
+        }
+    }
 }
 
 @Composable
 private fun AppearanceSection(
     selectedTheme: AppTheme,
+    selectedAppIcon: AppIcon,
     onThemeSelected: (AppTheme) -> Unit,
+    onAppIconSelected: (AppIcon) -> Unit,
 ) {
     SettingsSectionCard(title = stringResource(R.string.appearance_section_title)) {
         Column(
-            modifier =
-                Modifier
-                    .fillMaxWidth()
-                    .selectableGroup()
-                    .padding(14.dp),
+            modifier = Modifier.fillMaxWidth().padding(14.dp),
             verticalArrangement = Arrangement.spacedBy(12.dp),
         ) {
             Text(
@@ -462,24 +522,152 @@ private fun AppearanceSection(
                 color = TextP,
                 modifier = Modifier.padding(horizontal = 4.dp),
             )
-            AppTheme.entries.chunked(2).forEach { themes ->
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(12.dp),
-                ) {
-                    themes.forEach { theme ->
-                        ThemeOption(
-                            theme = theme,
-                            selected = theme == selectedTheme,
-                            onClick = { onThemeSelected(theme) },
-                            modifier = Modifier.weight(1f),
-                        )
+            Column(
+                modifier = Modifier.selectableGroup(),
+                verticalArrangement = Arrangement.spacedBy(12.dp),
+            ) {
+                AppTheme.entries.chunked(2).forEach { themes ->
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(12.dp),
+                    ) {
+                        themes.forEach { theme ->
+                            ThemeOption(
+                                theme = theme,
+                                selected = theme == selectedTheme,
+                                onClick = { onThemeSelected(theme) },
+                                modifier = Modifier.weight(1f),
+                            )
+                        }
+                        if (themes.size == 1) Spacer(Modifier.weight(1f))
+                    }
+                }
+            }
+            HorizontalDivider(modifier = Modifier.padding(vertical = 4.dp))
+            Text(
+                text = stringResource(R.string.app_icon_picker_title),
+                style = MaterialTheme.typography.titleSmall,
+                color = MaterialTheme.colorScheme.onSurface,
+                modifier = Modifier.padding(horizontal = 4.dp),
+            )
+            Text(
+                text = stringResource(R.string.app_icon_picker_description),
+                style = MaterialTheme.typography.bodySmall,
+                color = TextP,
+                modifier = Modifier.padding(horizontal = 4.dp),
+            )
+            Column(
+                modifier = Modifier.selectableGroup(),
+                verticalArrangement = Arrangement.spacedBy(12.dp),
+            ) {
+                AppIcon.entries.chunked(APP_ICON_COLUMN_COUNT).forEach { icons ->
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(6.dp),
+                    ) {
+                        icons.forEach { icon ->
+                            AppIconOption(
+                                icon = icon,
+                                selected = icon == selectedAppIcon,
+                                onClick = { onAppIconSelected(icon) },
+                                modifier = Modifier.weight(1f),
+                            )
+                        }
+                        repeat(APP_ICON_COLUMN_COUNT - icons.size) {
+                            Spacer(Modifier.weight(1f))
+                        }
                     }
                 }
             }
         }
     }
 }
+
+@Composable
+private fun AppIconOption(
+    icon: AppIcon,
+    selected: Boolean,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    val label = stringResource(icon.labelResId)
+    val shape = RoundedCornerShape(18.dp)
+    val accessibilityDescription = stringResource(R.string.app_icon_preview_accessibility, label)
+    Box(
+        modifier =
+            modifier
+                .aspectRatio(1f)
+                .testTag("$APP_ICON_OPTION_TEST_TAG_PREFIX${icon.identifier}")
+                .clip(shape)
+                .border(
+                    width = if (selected) 3.dp else 0.dp,
+                    color =
+                        if (selected) {
+                            MaterialTheme.colorScheme.primary
+                        } else {
+                            MaterialTheme.colorScheme.outlineVariant
+                        },
+                    shape = shape,
+                ).selectable(
+                    selected = selected,
+                    onClick = onClick,
+                    role = Role.RadioButton,
+                ).semantics { contentDescription = accessibilityDescription },
+        contentAlignment = Alignment.Center,
+    ) {
+        Image(
+            painter = painterResource(icon.previewResId),
+            contentDescription = null,
+            modifier = Modifier.fillMaxSize(),
+        )
+        if (selected) {
+            Box(
+                modifier = Modifier.fillMaxSize().background(MaterialTheme.colorScheme.scrim.copy(alpha = 0.3f)),
+                contentAlignment = Alignment.Center,
+            ) {
+                Box(
+                    modifier =
+                        Modifier
+                            .size(24.dp)
+                            .testTag("$APP_ICON_SELECTED_INDICATOR_TEST_TAG_PREFIX${icon.identifier}")
+                            .background(MaterialTheme.colorScheme.primary, CircleShape),
+                    contentAlignment = Alignment.Center,
+                ) {
+                    Icon(
+                        painter = painterResource(R.drawable.ic_check),
+                        contentDescription = null,
+                        tint = MaterialTheme.colorScheme.onPrimary,
+                        modifier = Modifier.size(14.dp),
+                    )
+                }
+            }
+        }
+    }
+}
+
+private val AppIcon.labelResId: Int
+    get() =
+        when (this) {
+            AppIcon.DEFAULT -> R.string.app_icon_default
+            AppIcon.ROYAL_OCEAN -> R.string.app_icon_royal_ocean
+            AppIcon.GOLDEN_SUNSET -> R.string.app_icon_golden_sunset
+            AppIcon.GOLDEN_CORAL_ENERGY -> R.string.app_icon_golden_coral_energy
+            AppIcon.DEEP_FOREST_ENERGY -> R.string.app_icon_deep_forest_energy
+            AppIcon.NEON_VIOLET -> R.string.app_icon_neon_violet
+            AppIcon.BLAZE_ORANGE -> R.string.app_icon_blaze_orange
+        }
+
+private val AppIcon.previewResId: Int
+    get() =
+        when (this) {
+            AppIcon.DEFAULT -> R.drawable.app_icon_preview_default
+            AppIcon.ROYAL_OCEAN -> R.drawable.app_icon_preview_royal_ocean
+            AppIcon.GOLDEN_SUNSET -> R.drawable.app_icon_preview_golden_sunset
+            AppIcon.GOLDEN_CORAL_ENERGY -> R.drawable.app_icon_preview_golden_coral_energy
+            AppIcon.DEEP_FOREST_ENERGY -> R.drawable.app_icon_preview_deep_forest_energy
+            AppIcon.NEON_VIOLET -> R.drawable.app_icon_preview_neon_violet
+            AppIcon.BLAZE_ORANGE -> R.drawable.app_icon_preview_blaze_orange
+        }
 
 @Composable
 private fun ThemeOption(
@@ -527,24 +715,15 @@ private fun ThemeOption(
             ) {
                 Row(modifier = Modifier.weight(1f)) {
                     Box(
-                        modifier =
-                            Modifier
-                                .size(28.dp)
-                                .background(palette.primary, CircleShape),
+                        modifier = Modifier.size(28.dp).background(palette.primary, CircleShape),
                     )
                     Box(
-                        modifier =
-                            Modifier
-                                .size(28.dp)
-                                .background(palette.secondary, CircleShape),
+                        modifier = Modifier.size(28.dp).background(palette.secondary, CircleShape),
                     )
                 }
                 if (selected) {
                     Box(
-                        modifier =
-                            Modifier
-                                .size(24.dp)
-                                .background(MaterialTheme.colorScheme.primary, CircleShape),
+                        modifier = Modifier.size(24.dp).background(MaterialTheme.colorScheme.primary, CircleShape),
                         contentAlignment = Alignment.Center,
                     ) {
                         Text(
@@ -573,6 +752,8 @@ private val AppTheme.labelResId: Int
             AppTheme.GOLDEN_SUNSET -> R.string.theme_golden_sunset
             AppTheme.GOLDEN_CORAL_ENERGY -> R.string.theme_golden_coral_energy
             AppTheme.DEEP_FOREST_ENERGY -> R.string.theme_deep_forest_energy
+            AppTheme.NEON_VIOLET -> R.string.theme_neon_violet
+            AppTheme.BLAZE_ORANGE -> R.string.theme_blaze_orange
         }
 
 @Composable
@@ -656,7 +837,10 @@ private fun SettingsTopAppBar(
     MediumTopAppBar(
         modifier =
             Modifier.background(
-                brush = Brush.verticalGradient(listOf(MaterialTheme.colorScheme.secondary, MaterialTheme.colorScheme.primary)),
+                brush =
+                    Brush.verticalGradient(
+                        listOf(MaterialTheme.colorScheme.secondary, MaterialTheme.colorScheme.primary),
+                    ),
             ),
         navigationIcon = {
             IconButton(onClick = onNavigateBack) {
@@ -902,7 +1086,10 @@ private fun LanguageSection(
                 color = TextH1,
                 modifier = Modifier.padding(horizontal = 16.dp, vertical = 14.dp),
             )
-            HorizontalDivider(modifier = Modifier.padding(horizontal = 18.dp), color = MaterialTheme.colorScheme.background)
+            HorizontalDivider(
+                modifier = Modifier.padding(horizontal = 18.dp),
+                color = MaterialTheme.colorScheme.background,
+            )
             Row(
                 modifier =
                     Modifier
@@ -952,11 +1139,7 @@ private fun LanguagePickerBottomSheet(
         containerColor = Color.White,
     ) {
         Column(
-            modifier =
-                Modifier
-                    .fillMaxWidth()
-                    .selectableGroup()
-                    .padding(bottom = 24.dp),
+            modifier = Modifier.fillMaxWidth().selectableGroup().padding(bottom = 24.dp),
         ) {
             Text(
                 text = stringResource(R.string.choose_language_title),
@@ -1018,7 +1201,10 @@ private fun LanguageBadge(language: AppLanguage) {
             Modifier
                 .size(40.dp)
                 .background(
-                    brush = Brush.verticalGradient(listOf(MaterialTheme.colorScheme.secondary, MaterialTheme.colorScheme.primary)),
+                    brush =
+                        Brush.verticalGradient(
+                            listOf(MaterialTheme.colorScheme.secondary, MaterialTheme.colorScheme.primary),
+                        ),
                     CircleShape,
                 ).clearAndSetSemantics { },
         contentAlignment = Alignment.Center,
@@ -1064,7 +1250,10 @@ private fun ReminderSection(
                 color = TextH1,
                 modifier = Modifier.padding(horizontal = 16.dp, vertical = 14.dp),
             )
-            HorizontalDivider(modifier = Modifier.padding(horizontal = 18.dp), color = MaterialTheme.colorScheme.background)
+            HorizontalDivider(
+                modifier = Modifier.padding(horizontal = 18.dp),
+                color = MaterialTheme.colorScheme.background,
+            )
             ReminderRow(
                 icon = R.drawable.word,
                 title = stringResource(R.string.notification_daily_word),
@@ -1078,7 +1267,10 @@ private fun ReminderSection(
                 onToggle = { onAction(SettingsAction.OnReminderToggled(ReminderType.DAILY_WORD, it)) },
                 onTimeClick = { onTimeClick(ReminderType.DAILY_WORD) },
             )
-            HorizontalDivider(modifier = Modifier.padding(horizontal = 18.dp), color = MaterialTheme.colorScheme.background)
+            HorizontalDivider(
+                modifier = Modifier.padding(horizontal = 18.dp),
+                color = MaterialTheme.colorScheme.background,
+            )
             ReminderRow(
                 icon = R.drawable.ic_proverb,
                 title = stringResource(R.string.notification_daily_proverb),
@@ -1092,7 +1284,10 @@ private fun ReminderSection(
                 onToggle = { onAction(SettingsAction.OnReminderToggled(ReminderType.DAILY_PROVERB, it)) },
                 onTimeClick = { onTimeClick(ReminderType.DAILY_PROVERB) },
             )
-            HorizontalDivider(modifier = Modifier.padding(horizontal = 18.dp), color = MaterialTheme.colorScheme.background)
+            HorizontalDivider(
+                modifier = Modifier.padding(horizontal = 18.dp),
+                color = MaterialTheme.colorScheme.background,
+            )
             ReminderRow(
                 icon = R.drawable.saved,
                 title = stringResource(R.string.notification_bookmark_review),
@@ -1125,10 +1320,7 @@ private fun ReminderRow(
 
     Row(
         verticalAlignment = Alignment.Top,
-        modifier =
-            Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 18.dp, vertical = 18.dp),
+        modifier = Modifier.fillMaxWidth().padding(horizontal = 18.dp, vertical = 18.dp),
     ) {
         Icon(
             painter = painterResource(icon),
@@ -1180,10 +1372,7 @@ private fun PermissionBanner(onOpenSystemSettings: () -> Unit) {
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.errorContainer),
     ) {
         Column(
-            modifier =
-                Modifier
-                    .fillMaxWidth()
-                    .padding(16.dp),
+            modifier = Modifier.fillMaxWidth().padding(16.dp),
         ) {
             Text(
                 text = stringResource(R.string.notification_permission_title),
@@ -1211,6 +1400,43 @@ private fun SettingsPreview() {
             state = SettingsState(selectedTheme = AppTheme.GOLDEN_SUNSET),
             onNavigateBack = {},
             onAction = {},
+        )
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
+private fun AppIconOptionPreview() {
+    KBBITheme {
+        Row(
+            modifier = Modifier.padding(16.dp),
+            horizontalArrangement = Arrangement.spacedBy(16.dp),
+        ) {
+            AppIconOption(
+                icon = AppIcon.DEFAULT,
+                selected = true,
+                onClick = {},
+                modifier = Modifier.size(80.dp),
+            )
+            AppIconOption(
+                icon = AppIcon.ROYAL_OCEAN,
+                selected = false,
+                onClick = {},
+                modifier = Modifier.size(80.dp),
+            )
+        }
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
+private fun AppearanceSectionPreview() {
+    KBBITheme {
+        AppearanceSection(
+            selectedTheme = AppTheme.ROYAL_OCEAN,
+            selectedAppIcon = AppIcon.DEFAULT,
+            onThemeSelected = {},
+            onAppIconSelected = {},
         )
     }
 }

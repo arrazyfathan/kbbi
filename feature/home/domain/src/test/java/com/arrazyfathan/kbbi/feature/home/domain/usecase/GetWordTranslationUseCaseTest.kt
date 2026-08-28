@@ -58,6 +58,7 @@ class GetWordTranslationUseCaseTest {
             translation = "learn",
             from = "id",
             to = "en",
+            provider = "google",
             entries =
                 listOf(
                     TranslatedWordModel(

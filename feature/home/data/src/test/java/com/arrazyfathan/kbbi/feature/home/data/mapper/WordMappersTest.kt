@@ -84,6 +84,7 @@ class WordMappersTest {
                 translation = "learn",
                 from = "id",
                 to = "en",
+                provider = "google",
                 entries = listOf(entry),
             )
 
@@ -93,6 +94,7 @@ class WordMappersTest {
         assertEquals("learn", domain.translation)
         assertEquals("id", domain.from)
         assertEquals("en", domain.to)
+        assertEquals("google", domain.provider)
         assertEquals(1, domain.entries.size)
         assertEquals("belajar", domain.entries[0].headword)
         assertEquals(1, domain.entries[0].meanings.size)

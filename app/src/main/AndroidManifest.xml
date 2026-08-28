@@ -31,12 +31,6 @@
             android:theme="@style/SplashTheme"
             android:windowSoftInputMode="adjustResize">
             <intent-filter>
-                <action android:name="android.intent.action.MAIN" />
-
-                <category android:name="android.intent.category.LAUNCHER" />
-            </intent-filter>
-
-            <intent-filter>
                 <action android:name="android.intent.action.VIEW" />
                 <category android:name="android.intent.category.DEFAULT" />
                 <category android:name="android.intent.category.BROWSABLE" />
@@ -61,10 +55,119 @@
                     android:scheme="kbbi" />
             </intent-filter>
 
+        </activity>
+
+        <activity-alias
+            android:name=".launcher.DefaultIconAlias"
+            android:enabled="true"
+            android:exported="true"
+            android:icon="@mipmap/ic_new_icon"
+            android:label="@string/app_name"
+            android:targetActivity="com.arrazyfathan.kbbi.MainActivity">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
             <meta-data
                 android:name="android.app.shortcuts"
                 android:resource="@xml/shortcuts" />
-        </activity>
+        </activity-alias>
+
+        <activity-alias
+            android:name=".launcher.RoyalOceanIconAlias"
+            android:enabled="false"
+            android:exported="true"
+            android:icon="@mipmap/ic_royal_ocean"
+            android:label="@string/app_name"
+            android:targetActivity="com.arrazyfathan.kbbi.MainActivity">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+            <meta-data
+                android:name="android.app.shortcuts"
+                android:resource="@xml/shortcuts" />
+        </activity-alias>
+
+        <activity-alias
+            android:name=".launcher.GoldenSunsetIconAlias"
+            android:enabled="false"
+            android:exported="true"
+            android:icon="@mipmap/ic_golden_sunset"
+            android:label="@string/app_name"
+            android:targetActivity="com.arrazyfathan.kbbi.MainActivity">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+            <meta-data
+                android:name="android.app.shortcuts"
+                android:resource="@xml/shortcuts" />
+        </activity-alias>
+
+        <activity-alias
+            android:name=".launcher.GoldenCoralEnergyIconAlias"
+            android:enabled="false"
+            android:exported="true"
+            android:icon="@mipmap/ic_golden_coral_energy"
+            android:label="@string/app_name"
+            android:targetActivity="com.arrazyfathan.kbbi.MainActivity">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+            <meta-data
+                android:name="android.app.shortcuts"
+                android:resource="@xml/shortcuts" />
+        </activity-alias>
+
+        <activity-alias
+            android:name=".launcher.DeepForestEnergyIconAlias"
+            android:enabled="false"
+            android:exported="true"
+            android:icon="@mipmap/ic_deep_forest_energy"
+            android:label="@string/app_name"
+            android:targetActivity="com.arrazyfathan.kbbi.MainActivity">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+            <meta-data
+                android:name="android.app.shortcuts"
+                android:resource="@xml/shortcuts" />
+        </activity-alias>
+
+        <activity-alias
+            android:name=".launcher.NeonVioletIconAlias"
+            android:enabled="false"
+            android:exported="true"
+            android:icon="@mipmap/ic_neon_violet"
+            android:label="@string/app_name"
+            android:targetActivity="com.arrazyfathan.kbbi.MainActivity">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+            <meta-data
+                android:name="android.app.shortcuts"
+                android:resource="@xml/shortcuts" />
+        </activity-alias>
+
+        <activity-alias
+            android:name=".launcher.BlazeOrangeIconAlias"
+            android:enabled="false"
+            android:exported="true"
+            android:icon="@mipmap/ic_blaze_orange"
+            android:label="@string/app_name"
+            android:targetActivity="com.arrazyfathan.kbbi.MainActivity">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+            <meta-data
+                android:name="android.app.shortcuts"
+                android:resource="@xml/shortcuts" />
+        </activity-alias>
 
         <activity-alias
             android:name=".SearchInKbbiActivity"

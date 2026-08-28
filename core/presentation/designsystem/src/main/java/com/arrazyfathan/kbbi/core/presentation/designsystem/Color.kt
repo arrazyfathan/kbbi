@@ -25,6 +25,12 @@ val GoldenCoralEnergySecondary = Color(0xFFEF6464)
 val DeepForestEnergyPrimary = Color(0xFF2E494C)
 val DeepForestEnergySecondary = Color(0xFF507E83)
 
+val NeonVioletPrimary = Color(0xFF5825C7)
+val NeonVioletSecondary = Color(0xFF9A5FFF)
+
+val BlazeOrangePrimary = Color(0xFFF94F00)
+val BlazeOrangeSecondary = Color(0xFFFF9563)
+
 data class ThemePalette(
     val primary: Color,
     val secondary: Color,
@@ -37,4 +43,6 @@ val AppTheme.palette: ThemePalette
             AppTheme.GOLDEN_SUNSET -> ThemePalette(GoldenSunsetPrimary, GoldenSunsetSecondary)
             AppTheme.GOLDEN_CORAL_ENERGY -> ThemePalette(GoldenCoralEnergyPrimary, GoldenCoralEnergySecondary)
             AppTheme.DEEP_FOREST_ENERGY -> ThemePalette(DeepForestEnergyPrimary, DeepForestEnergySecondary)
+            AppTheme.NEON_VIOLET -> ThemePalette(NeonVioletPrimary, NeonVioletSecondary)
+            AppTheme.BLAZE_ORANGE -> ThemePalette(BlazeOrangePrimary, BlazeOrangeSecondary)
         }
