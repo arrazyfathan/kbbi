@@ -16,8 +16,8 @@ import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
-import androidx.compose.foundation.background
 import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -102,8 +102,8 @@ import com.arrazyfathan.kbbi.core.presentation.designsystem.MetropolisFontFamily
 import com.arrazyfathan.kbbi.core.presentation.designsystem.TextH1
 import com.arrazyfathan.kbbi.core.presentation.designsystem.TextP
 import com.arrazyfathan.kbbi.core.presentation.designsystem.components.KBBITimePickerBottomSheet
-import com.arrazyfathan.kbbi.core.presentation.designsystem.perform
 import com.arrazyfathan.kbbi.core.presentation.designsystem.palette
+import com.arrazyfathan.kbbi.core.presentation.designsystem.perform
 import com.arrazyfathan.kbbi.feature.settings.domain.model.ReminderTime
 import com.arrazyfathan.kbbi.feature.settings.domain.model.ReminderType
 import kotlinx.coroutines.CancellationException
@@ -573,6 +573,8 @@ private val AppTheme.labelResId: Int
             AppTheme.GOLDEN_SUNSET -> R.string.theme_golden_sunset
             AppTheme.GOLDEN_CORAL_ENERGY -> R.string.theme_golden_coral_energy
             AppTheme.DEEP_FOREST_ENERGY -> R.string.theme_deep_forest_energy
+            AppTheme.NEON_VIOLET -> R.string.theme_neon_violet
+            AppTheme.BLAZE_ORANGE -> R.string.theme_blaze_orange
         }
 
 @Composable
@@ -656,7 +658,10 @@ private fun SettingsTopAppBar(
     MediumTopAppBar(
         modifier =
             Modifier.background(
-                brush = Brush.verticalGradient(listOf(MaterialTheme.colorScheme.secondary, MaterialTheme.colorScheme.primary)),
+                brush =
+                    Brush.verticalGradient(
+                        listOf(MaterialTheme.colorScheme.secondary, MaterialTheme.colorScheme.primary),
+                    ),
             ),
         navigationIcon = {
             IconButton(onClick = onNavigateBack) {
@@ -902,7 +907,10 @@ private fun LanguageSection(
                 color = TextH1,
                 modifier = Modifier.padding(horizontal = 16.dp, vertical = 14.dp),
             )
-            HorizontalDivider(modifier = Modifier.padding(horizontal = 18.dp), color = MaterialTheme.colorScheme.background)
+            HorizontalDivider(
+                modifier = Modifier.padding(horizontal = 18.dp),
+                color = MaterialTheme.colorScheme.background,
+            )
             Row(
                 modifier =
                     Modifier
@@ -1018,7 +1026,10 @@ private fun LanguageBadge(language: AppLanguage) {
             Modifier
                 .size(40.dp)
                 .background(
-                    brush = Brush.verticalGradient(listOf(MaterialTheme.colorScheme.secondary, MaterialTheme.colorScheme.primary)),
+                    brush =
+                        Brush.verticalGradient(
+                            listOf(MaterialTheme.colorScheme.secondary, MaterialTheme.colorScheme.primary),
+                        ),
                     CircleShape,
                 ).clearAndSetSemantics { },
         contentAlignment = Alignment.Center,
@@ -1064,7 +1075,10 @@ private fun ReminderSection(
                 color = TextH1,
                 modifier = Modifier.padding(horizontal = 16.dp, vertical = 14.dp),
             )
-            HorizontalDivider(modifier = Modifier.padding(horizontal = 18.dp), color = MaterialTheme.colorScheme.background)
+            HorizontalDivider(
+                modifier = Modifier.padding(horizontal = 18.dp),
+                color = MaterialTheme.colorScheme.background,
+            )
             ReminderRow(
                 icon = R.drawable.word,
                 title = stringResource(R.string.notification_daily_word),
@@ -1078,7 +1092,10 @@ private fun ReminderSection(
                 onToggle = { onAction(SettingsAction.OnReminderToggled(ReminderType.DAILY_WORD, it)) },
                 onTimeClick = { onTimeClick(ReminderType.DAILY_WORD) },
             )
-            HorizontalDivider(modifier = Modifier.padding(horizontal = 18.dp), color = MaterialTheme.colorScheme.background)
+            HorizontalDivider(
+                modifier = Modifier.padding(horizontal = 18.dp),
+                color = MaterialTheme.colorScheme.background,
+            )
             ReminderRow(
                 icon = R.drawable.ic_proverb,
                 title = stringResource(R.string.notification_daily_proverb),
@@ -1092,7 +1109,10 @@ private fun ReminderSection(
                 onToggle = { onAction(SettingsAction.OnReminderToggled(ReminderType.DAILY_PROVERB, it)) },
                 onTimeClick = { onTimeClick(ReminderType.DAILY_PROVERB) },
             )
-            HorizontalDivider(modifier = Modifier.padding(horizontal = 18.dp), color = MaterialTheme.colorScheme.background)
+            HorizontalDivider(
+                modifier = Modifier.padding(horizontal = 18.dp),
+                color = MaterialTheme.colorScheme.background,
+            )
             ReminderRow(
                 icon = R.drawable.saved,
                 title = stringResource(R.string.notification_bookmark_review),
