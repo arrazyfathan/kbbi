@@ -28,13 +28,13 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.ripple
 import androidx.compose.runtime.Composable
@@ -253,6 +253,7 @@ fun DetailContent(
                     wordModel = wordModel,
                     translatedWord = translatedWord,
                     isTranslationEnabled = state.isTranslationEnabled,
+                    translationProvider = state.translation?.provider,
                     translationsByHeadword = translationsByHeadword,
                     onCopyClick = {
                         val clipboardManager = context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
@@ -360,6 +361,7 @@ fun WordEntryCard(
     wordModel: WordModel,
     translatedWord: String?,
     isTranslationEnabled: Boolean,
+    translationProvider: String?,
     translationsByHeadword: Map<String, List<String>>,
     onCopyClick: () -> Unit,
     onShareClick: () -> Unit,
@@ -436,6 +438,22 @@ fun WordEntryCard(
                 }
             }
 
+            if (shouldShowTranslationProvider(isTranslationEnabled, translationProvider)) {
+                Spacer(modifier = Modifier.height(8.dp))
+                Text(
+                    text =
+                        stringResource(
+                            R.string.translated_by_provider,
+                            translationProviderDisplayName(checkNotNull(translationProvider)),
+                        ),
+                    color = TextP.copy(alpha = 0.72f),
+                    fontFamily = InterFontFamily,
+                    fontWeight = FontWeight.Medium,
+                    fontSize = 12.sp,
+                    modifier = Modifier.padding(start = 46.dp),
+                )
+            }
+
             Spacer(modifier = Modifier.height(16.dp))
 
             Row(
@@ -501,8 +519,8 @@ fun WordEntryCard(
 
 @Composable
 fun VisitorCountChip(
-    visitorCount: Int,
     modifier: Modifier = Modifier,
+    visitorCount: Int,
 ) {
     Row(
         modifier =
@@ -754,6 +772,7 @@ fun DetailContentTranslatedPreview() {
             translation = "learn",
             from = "id",
             to = "en",
+            provider = "google",
             entries =
                 listOf(
                     TranslatedWordModel(

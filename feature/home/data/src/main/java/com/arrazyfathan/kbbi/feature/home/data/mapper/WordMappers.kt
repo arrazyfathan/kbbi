@@ -31,6 +31,7 @@ fun TranslateDataDto.toDomain(): TranslateModel =
         translation = translation,
         from = from,
         to = to,
+        provider = provider,
         entries = entries.map { it.toDomain() },
     )
 

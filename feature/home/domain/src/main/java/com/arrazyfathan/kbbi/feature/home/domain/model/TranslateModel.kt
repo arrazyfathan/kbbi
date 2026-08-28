@@ -11,6 +11,7 @@ data class TranslateModel(
     val translation: String,
     val from: String,
     val to: String,
+    val provider: String,
     val entries: List<TranslatedWordModel>,
 )
 

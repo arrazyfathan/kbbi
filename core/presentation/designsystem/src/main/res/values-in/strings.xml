@@ -70,6 +70,7 @@
     <string name="copy">Salin</string>
     <string name="show_original">Tampilkan asli</string>
     <string name="show_english_translation">Tampilkan terjemahan Inggris</string>
+    <string name="translated_by_provider">Diterjemahkan oleh %1$s</string>
     <string name="translate_failed">Terjemahan sedang tidak tersedia.</string>
     <string name="number_item">1</string>
     <string name="error_empty_query">Kata tidak boleh kosong</string>

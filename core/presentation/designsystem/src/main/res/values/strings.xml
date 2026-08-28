@@ -71,6 +71,7 @@
     <string name="copy">Copy</string>
     <string name="show_original">Show original</string>
     <string name="show_english_translation">Show English translation</string>
+    <string name="translated_by_provider">Translated by %1$s</string>
     <string name="translate_failed">Translation is unavailable right now.</string>
     <string name="number_item">1</string>
     <string name="error_empty_query">Word cannot be empty</string>

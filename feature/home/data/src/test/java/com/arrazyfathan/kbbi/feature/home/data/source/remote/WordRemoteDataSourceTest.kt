@@ -129,6 +129,7 @@ class WordRemoteDataSourceTest {
             assertEquals("learn", translated.translation)
             assertEquals("id", translated.from)
             assertEquals("en", translated.to)
+            assertEquals("google", translated.provider)
             assertEquals("belajar", translated.entries.single().headword)
             assertEquals("n", translated.entries.single().meanings.single().wordClass)
             assertEquals("attempt to gain knowledge or skill", translated.entries.single().meanings.single().translation)
@@ -257,6 +258,7 @@ private const val TRANSLATE_RESPONSE =
         "translation": "learn",
         "from": "id",
         "to": "en",
+        "provider": "google",
         "entries": [
           {
             "headword": "belajar",
