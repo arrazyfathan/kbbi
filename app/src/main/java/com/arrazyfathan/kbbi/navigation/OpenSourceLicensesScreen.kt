@@ -35,6 +35,7 @@ import com.mikepenz.aboutlibraries.ui.compose.m3.LibrariesContainer
 import com.mikepenz.aboutlibraries.ui.compose.m3.style.m3VariantColors
 import com.mikepenz.aboutlibraries.ui.compose.produceLibraries
 import com.mikepenz.aboutlibraries.ui.compose.variant.LibrariesVariant
+import com.mikepenz.aboutlibraries.ui.compose.variant.LibraryBadges
 import com.arrazyfathan.kbbi.core.R as CoreR
 
 @Composable
@@ -104,6 +105,7 @@ private fun OpenSourceLicensesContent(
             modifier = Modifier.fillMaxSize().padding(padding),
             libraries = libraries,
             variant = LibrariesVariant.Traditional,
+            badges = LibraryBadges(license = false),
             divider = {
                 HorizontalDivider(
                     thickness = 0.5.dp,
