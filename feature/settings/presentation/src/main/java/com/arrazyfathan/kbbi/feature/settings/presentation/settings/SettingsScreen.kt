@@ -30,6 +30,7 @@ import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -472,11 +473,7 @@ private fun AppIconChangeBottomSheet(
         containerColor = MaterialTheme.colorScheme.surface,
     ) {
         Column(
-            modifier =
-                Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 24.dp)
-                    .padding(bottom = 24.dp),
+            modifier = Modifier.fillMaxWidth().padding(horizontal = 24.dp).padding(bottom = 24.dp),
             verticalArrangement = Arrangement.spacedBy(12.dp),
         ) {
             Text(
@@ -591,7 +588,7 @@ private fun AppIconOption(
     modifier: Modifier = Modifier,
 ) {
     val label = stringResource(icon.labelResId)
-    val shape = RoundedCornerShape(18.dp)
+    val shape = RoundedCornerShape(100.dp)
     val accessibilityDescription = stringResource(R.string.app_icon_preview_accessibility, label)
     Box(
         modifier =
@@ -713,12 +710,16 @@ private fun ThemeOption(
                 modifier = Modifier.fillMaxWidth(),
                 verticalAlignment = Alignment.CenterVertically,
             ) {
-                Row(modifier = Modifier.weight(1f)) {
+                Box(modifier = Modifier.weight(2f)) {
                     Box(
                         modifier = Modifier.size(28.dp).background(palette.primary, CircleShape),
                     )
                     Box(
-                        modifier = Modifier.size(28.dp).background(palette.secondary, CircleShape),
+                        modifier =
+                            Modifier
+                                .offset(x = 18.dp)
+                                .size(28.dp)
+                                .background(palette.secondary, CircleShape)
                     )
                 }
                 if (selected) {
