@@ -103,6 +103,22 @@ jobs:
           if [ -z "$ANDROID_KEY_PASSWORD" ]; then echo "!! ANDROID_KEY_PASSWORD is empty !!"; fi
           ./gradlew assembleProductionRelease --stacktrace
 
+      - name: Verify release APK version code
+        run: |
+          APK_PATH="$(find app/build/outputs/apk/production/release -name '*.apk' -type f -print -quit)"
+          EXPECTED_VERSION_CODE="$(sed -n 's/^VERSION_CODE=//p' app/version.properties)"
+
+          if [ -z "$APK_PATH" ] || [ -z "$EXPECTED_VERSION_CODE" ]; then
+            echo "Unable to locate the release APK or configured VERSION_CODE"
+            exit 1
+          fi
+
+          ACTUAL_VERSION_CODE="$(apkanalyzer manifest version-code "$APK_PATH")"
+          if [ "$ACTUAL_VERSION_CODE" != "$EXPECTED_VERSION_CODE" ]; then
+            echo "Release APK versionCode $ACTUAL_VERSION_CODE does not match configured VERSION_CODE $EXPECTED_VERSION_CODE"
+            exit 1
+          fi
+
       - name: Upload release APK artifact
         uses: actions/upload-artifact@v7
         with:
