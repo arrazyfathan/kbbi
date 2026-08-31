@@ -69,6 +69,7 @@ android {
         applicationId = packageName
         minSdk = 23
         targetSdk = 37
+        versionCode = versionCodeValue
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
