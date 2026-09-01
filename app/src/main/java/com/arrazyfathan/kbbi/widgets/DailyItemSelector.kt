@@ -1,6 +1,7 @@
 package com.arrazyfathan.kbbi.widgets
 
 import java.util.Calendar
+import kotlin.random.Random
 
 internal object DailyItemSelector {
     fun <T> select(
@@ -28,7 +29,12 @@ internal object DailyItemSelector {
         size: Int,
         year: Int,
         dayOfYear: Int,
-    ): Int = (year * DAYS_PER_LEAP_YEAR + dayOfYear).mod(size)
+    ): Int = Random(dailySeed(year, dayOfYear)).nextInt(size)
+
+    private fun dailySeed(
+        year: Int,
+        dayOfYear: Int,
+    ): Int = year * DAYS_PER_LEAP_YEAR + dayOfYear
 
     private const val DAYS_PER_LEAP_YEAR = 366
 }
