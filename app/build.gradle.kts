@@ -14,6 +14,7 @@ plugins {
     alias(libs.plugins.google.devtools.ksp)
     alias(libs.plugins.navgraph)
     alias(libs.plugins.aboutlibraries.android)
+    alias(libs.plugins.google.services)
 }
 
 val packageName = "com.arrazyfathan.kbbi"
@@ -279,4 +280,7 @@ dependencies {
     implementation(libs.koin.androidx.compose)
     implementation(libs.lottie.compose)
     debugImplementation(libs.androidx.compose.ui.tooling)
+
+    implementation(platform(libs.firebase.bom))
+    implementation(libs.firebase.analytics)
 }

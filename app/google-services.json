@@ -1,0 +1,48 @@
+{
+  "project_info": {
+    "project_number": "607425015701",
+    "project_id": "kbbi-mobile",
+    "storage_bucket": "kbbi-mobile.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:607425015701:android:46e6d5a989fb0cebbc909c",
+        "android_client_info": {
+          "package_name": "com.arrazyfathan.kbbi"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBQc_1BzGHM_crZ-Rpxj6Yu48KrCsIeHC0"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:607425015701:android:19b080aefa07e10bbc909c",
+        "android_client_info": {
+          "package_name": "com.arrazyfathan.kbbi.dev"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBQc_1BzGHM_crZ-Rpxj6Yu48KrCsIeHC0"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

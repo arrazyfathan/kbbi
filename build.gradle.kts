@@ -9,6 +9,7 @@ plugins {
     alias(libs.plugins.ktlint) apply false
     alias(libs.plugins.kotlinx.kover)
     alias(libs.plugins.kotlin.serialization) apply false
+    alias(libs.plugins.google.services) apply false
 }
 
 tasks.register("clean", Delete::class) {
