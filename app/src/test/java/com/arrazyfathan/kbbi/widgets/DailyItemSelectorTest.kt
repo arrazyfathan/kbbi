@@ -1,7 +1,9 @@
 package com.arrazyfathan.kbbi.widgets
 
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNull
+import org.junit.Assert.assertTrue
 import org.junit.Test
 import java.util.Calendar
 import java.util.GregorianCalendar
@@ -9,28 +11,38 @@ import java.util.GregorianCalendar
 class DailyItemSelectorTest {
     @Test
     fun `selection is deterministic for a fixed date`() {
-        assertEquals("gamma", DailyItemSelector.select(listOf("alpha", "beta", "gamma"), 2026, 236))
-        assertEquals("gamma", DailyItemSelector.select(listOf("alpha", "beta", "gamma"), 2026, 236))
+        val items = listOf("alpha", "beta", "gamma")
+
+        assertEquals(
+            DailyItemSelector.select(items, 2026, 236),
+            DailyItemSelector.select(items, 2026, 236),
+        )
     }
 
     @Test
-    fun `selection advances at date rollover`() {
-        val items = listOf("one", "two", "three", "four")
-        val first = DailyItemSelector.select(items, 2026, 236)
-        val next = DailyItemSelector.select(items, 2026, 237)
+    fun `selection does not advance sequentially through sorted items`() {
+        val items = (1..32).map { "word-$it" }
+        val selections = (1..14).map { dayOfYear -> DailyItemSelector.select(items, 2026, dayOfYear) }
+        val followsSequentialOrder =
+            selections.zipWithNext().all { (current, next) ->
+                next == items[(items.indexOf(current) + 1) % items.size]
+            }
 
-        assertEquals(items[(items.indexOf(first) + 1) % items.size], next)
+        assertTrue(selections.distinct().size > 1)
+        assertFalse(followsSequentialOrder)
     }
 
     @Test
     fun `selection adapts to list size and empty input`() {
-        assertEquals("b", DailyItemSelector.select(listOf("a", "b", "c"), 2026, 1))
-        assertEquals("b", DailyItemSelector.select(listOf("a", "b"), 2026, 1))
+        val items = listOf("a", "b", "c")
+
+        assertTrue(DailyItemSelector.select(items, 2026, 1) in items)
+        assertEquals("only", DailyItemSelector.select(listOf("only"), 2026, 1))
         assertNull(DailyItemSelector.select(emptyList<String>(), 2026, 1))
     }
 
     @Test
-    fun `saved words are filtered sorted and rotate deterministically`() {
+    fun `saved words are filtered sorted and selected deterministically`() {
         val date: Calendar = GregorianCalendar(2026, Calendar.AUGUST, 24)
         val words = listOf("zebra", "", "apel", "  ", "makan")
 
