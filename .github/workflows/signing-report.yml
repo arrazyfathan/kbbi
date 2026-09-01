@@ -6,6 +6,9 @@ on:
 permissions:
   contents: read
 
+env:
+  KBBI_BASE_URL: ${{ secrets.KBBI_BASE_URL }}
+
 jobs:
   signing-report:
     name: Print Production Signing Report
@@ -34,6 +37,7 @@ jobs:
           ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
           ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
         run: |
+          if [ -z "$KBBI_BASE_URL" ]; then echo "Error: KBBI_BASE_URL secret is missing or unavailable to this workflow"; exit 1; fi
           if [ -z "$ANDROID_KEYSTORE_BASE64" ]; then echo "Error: ANDROID_KEYSTORE_BASE64 secret is missing"; exit 1; fi
           if [ -z "$ANDROID_KEYSTORE_PASSWORD" ]; then echo "Error: ANDROID_KEYSTORE_PASSWORD secret is missing"; exit 1; fi
           if [ -z "$ANDROID_KEY_ALIAS" ]; then echo "Error: ANDROID_KEY_ALIAS secret is missing"; exit 1; fi
