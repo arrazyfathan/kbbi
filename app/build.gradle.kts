@@ -1,4 +1,5 @@
 import com.android.build.api.dsl.ApplicationProductFlavor
+import com.google.firebase.appdistribution.gradle.firebaseAppDistribution
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 import java.io.FileInputStream
 import java.util.Properties
@@ -15,6 +16,7 @@ plugins {
     alias(libs.plugins.navgraph)
     alias(libs.plugins.aboutlibraries.android)
     alias(libs.plugins.google.services)
+    alias(libs.plugins.firebase.app.distribution)
 }
 
 val packageName = "com.arrazyfathan.kbbi"
@@ -93,6 +95,12 @@ android {
                 }
             resValue("string", "version_name", versionName.orEmpty())
             configureAppMetadata("Dev $appAliasName")
+            firebaseAppDistribution {
+                appId = "1:607425015701:android:19b080aefa07e10bbc909c"
+                artifactType = "APK"
+                testersFile = file("firebase/testers.txt").absolutePath
+                releaseNotesFile = file("firebase/release-notes.txt").absolutePath
+            }
         }
 
         create("production") {

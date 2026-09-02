@@ -239,6 +239,21 @@ The build fails early when no API URL is configured. Keep private endpoints and 
 
 In Android Studio, select the `developmentDebug` build variant and run the `app` configuration.
 
+## Firebase App Distribution
+
+Development builds can be distributed to Firebase App Distribution by pushing a tag whose name exactly matches the development `versionName`, including the `-dev` suffix. For example:
+
+```sh
+git tag 5.21.5-dev
+git push origin 5.21.5-dev
+```
+
+The workflow validates tests, lint, and the `developmentDebug` APK before uploading it with `appDistributionUploadDevelopmentDebug`. Branch pushes and pull requests remain validation-only. Production tags continue to publish the signed production APK as a GitHub Release.
+
+The configured tester is listed in [`app/firebase/testers.txt`](app/firebase/testers.txt). CI generates [`app/firebase/release-notes.txt`](app/firebase/release-notes.txt) from commits since the nearest preceding reachable tag before uploading; the tracked file documents the canonical input path.
+
+Tagged development distribution requires the `FIREBASE_APP_DISTRIBUTION_SERVICE_ACCOUNT_JSON` GitHub Actions secret containing the complete Google service-account JSON. Grant the service account the Firebase App Distribution Admin role, store the key only in GitHub Actions secrets, and follow Firebase's [service-account authentication guidance](https://firebase.google.com/docs/app-distribution/authenticate-service-account). The upload is configured through Firebase's [official Gradle plugin](https://firebase.google.com/docs/app-distribution/android/distribute-gradle).
+
 ## Build variants and versioning
 
 The `stage` flavor dimension defines:

@@ -6,6 +6,7 @@ on:
       - main
     tags:
       - "*.*"
+      - "*-dev"
   pull_request:
     branches:
       - main
@@ -43,6 +44,57 @@ jobs:
       - name: Run unit tests, lint, and development build
         run: ./gradlew testDevelopmentDebugUnitTest lintDevelopmentDebug assembleDevelopmentDebug --stacktrace
 
+      - name: Verify development tag version
+        if: github.event_name == 'push' && github.ref_type == 'tag' && endsWith(github.ref_name, '-dev')
+        run: |
+          VERSION_NAME="$(sed -n 's/.*\"versionName\": \"\([^\"]*\)\".*/\1/p' app/build/outputs/apk/development/debug/output-metadata.json | head -n 1)"
+          if [ -z "$VERSION_NAME" ]; then
+            echo "Unable to read versionName from development-debug output metadata"
+            exit 1
+          fi
+          if [ "$VERSION_NAME" != "$GITHUB_REF_NAME" ]; then
+            echo "Development APK versionName $VERSION_NAME does not match pushed tag $GITHUB_REF_NAME"
+            exit 1
+          fi
+
+      - name: Generate development release notes
+        if: github.event_name == 'push' && github.ref_type == 'tag' && endsWith(github.ref_name, '-dev')
+        run: |
+          CURRENT_TAG="$GITHUB_REF_NAME"
+          PREVIOUS_TAG="$(git describe --tags --abbrev=0 "$GITHUB_SHA^" 2>/dev/null || true)"
+
+          if [ -n "$PREVIOUS_TAG" ]; then
+            {
+              echo "Changes since ${PREVIOUS_TAG}:"
+              echo
+              git log "${PREVIOUS_TAG}..${GITHUB_SHA}" --pretty=format:'- %s (%h)'
+              echo
+            } > app/firebase/release-notes.txt
+          else
+            {
+              echo "Initial development release ${CURRENT_TAG}"
+              echo
+              git log "${GITHUB_SHA}" --pretty=format:'- %s (%h)'
+              echo
+            } > app/firebase/release-notes.txt
+          fi
+
+      - name: Decode Firebase App Distribution service account
+        if: github.event_name == 'push' && github.ref_type == 'tag' && endsWith(github.ref_name, '-dev')
+        env:
+          FIREBASE_SERVICE_ACCOUNT_JSON: ${{ secrets.FIREBASE_APP_DISTRIBUTION_SERVICE_ACCOUNT_JSON }}
+        run: |
+          if [ -z "$FIREBASE_SERVICE_ACCOUNT_JSON" ]; then
+            echo "Error: FIREBASE_APP_DISTRIBUTION_SERVICE_ACCOUNT_JSON secret is missing"
+            exit 1
+          fi
+          printf '%s' "$FIREBASE_SERVICE_ACCOUNT_JSON" > "$RUNNER_TEMP/firebase-app-distribution.json"
+          echo "GOOGLE_APPLICATION_CREDENTIALS=$RUNNER_TEMP/firebase-app-distribution.json" >> "$GITHUB_ENV"
+
+      - name: Upload development APK to Firebase App Distribution
+        if: github.event_name == 'push' && github.ref_type == 'tag' && endsWith(github.ref_name, '-dev')
+        run: ./gradlew appDistributionUploadDevelopmentDebug --stacktrace
+
       - name: Upload development APK
         if: success()
         uses: actions/upload-artifact@v7
@@ -56,7 +108,7 @@ jobs:
     permissions:
       contents: write
     name: Build And Publish Release
-    if: github.event_name == 'push' && github.ref_type == 'tag'
+    if: github.event_name == 'push' && github.ref_type == 'tag' && !endsWith(github.ref_name, '-dev')
     runs-on: ubuntu-latest
 
 

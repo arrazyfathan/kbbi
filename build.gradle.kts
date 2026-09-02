@@ -10,6 +10,7 @@ plugins {
     alias(libs.plugins.kotlinx.kover)
     alias(libs.plugins.kotlin.serialization) apply false
     alias(libs.plugins.google.services) apply false
+    alias(libs.plugins.firebase.app.distribution) apply false
 }
 
 tasks.register("clean", Delete::class) {
