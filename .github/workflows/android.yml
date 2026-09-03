@@ -61,7 +61,7 @@ jobs:
         if: github.event_name == 'push' && github.ref_type == 'tag' && endsWith(github.ref_name, '-dev')
         run: |
           CURRENT_TAG="$GITHUB_REF_NAME"
-          PREVIOUS_TAG="$(git describe --tags --abbrev=0 "$GITHUB_SHA^" 2>/dev/null || true)"
+          PREVIOUS_TAG="$(git describe --tags --abbrev=0 --match='*-dev' "$GITHUB_SHA^" 2>/dev/null || true)"
 
           if [ -n "$PREVIOUS_TAG" ]; then
             {
@@ -201,7 +201,7 @@ jobs:
           git fetch --tags
 
           CURRENT_TAG="${GITHUB_REF_NAME}"
-          PREVIOUS_TAG="$(git tag --sort=-version:refname | grep -Fxv "$CURRENT_TAG" | head -n 1)"
+          PREVIOUS_TAG="$(git describe --tags --abbrev=0 --exclude='*-dev' "$GITHUB_SHA^" 2>/dev/null || true)"
 
           if [ -n "$PREVIOUS_TAG" ]; then
             {
