@@ -176,11 +176,23 @@ jobs:
             exit 1
           fi
 
+      - name: Verify Crashlytics mapping output
+        run: |
+          MAPPING_FILE="app/build/outputs/mapping/productionRelease/mapping.txt"
+          if [ ! -s "$MAPPING_FILE" ]; then
+            echo "Crashlytics mapping file is missing or empty: $MAPPING_FILE"
+            exit 1
+          fi
+
       - name: Upload release APK artifact
         uses: actions/upload-artifact@v7
         with:
           name: production-release-apk
-          path: app/build/outputs/apk/production/release/*.apk
+          path: |
+            app/build/outputs/apk/production/release/*.apk
+            app/build/outputs/mapping/productionRelease/mapping.txt
+            app/build/outputs/mapping/productionRelease/seeds.txt
+            app/build/outputs/mapping/productionRelease/usage.txt
           if-no-files-found: error
           retention-days: 30
 

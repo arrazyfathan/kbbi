@@ -4,6 +4,9 @@ import android.app.Application
 import com.arrazyfathan.kbbi.core.appupdate.di.appUpdateModule
 import com.arrazyfathan.kbbi.core.di.networkModule
 import com.arrazyfathan.kbbi.core.logging.AppLogger
+import com.arrazyfathan.kbbi.core.observability.AppBuildInfo
+import com.arrazyfathan.kbbi.core.observability.ReportingCoordinator
+import com.arrazyfathan.kbbi.core.observability.observabilityModule
 import com.arrazyfathan.kbbi.di.appIconModule
 import com.arrazyfathan.kbbi.di.appUpdateConfigModule
 import com.arrazyfathan.kbbi.di.useCaseModule
@@ -54,6 +57,13 @@ class BaseApplication : Application() {
                         useCaseModule,
                         settingsDataModule,
                         settingsPresentationModule,
+                        observabilityModule(
+                            AppBuildInfo(
+                                flavor = BuildConfig.FLAVOR,
+                                buildType = BuildConfig.BUILD_TYPE,
+                                versionName = BuildConfig.VERSION_NAME,
+                            ),
+                        ),
                         module {
                             single<NotificationPermissionGateway> {
                                 AndroidNotificationPermissionGateway(
@@ -67,6 +77,10 @@ class BaseApplication : Application() {
                     ),
                 )
             }
+
+        applicationScope.launch {
+            koinApplication.koin.get<ReportingCoordinator>().initialize()
+        }
 
         try {
             WidgetRefreshScheduler.reconcile(this)

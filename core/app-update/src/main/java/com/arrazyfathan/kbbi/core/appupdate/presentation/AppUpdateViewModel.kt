@@ -6,6 +6,11 @@ import com.arrazyfathan.kbbi.core.appupdate.domain.AppUpdate
 import com.arrazyfathan.kbbi.core.appupdate.domain.AppUpdateConfig
 import com.arrazyfathan.kbbi.core.appupdate.domain.AppUpdateRepository
 import com.arrazyfathan.kbbi.core.domain.model.AppResult
+import com.arrazyfathan.kbbi.core.observability.AnalyticsEvent
+import com.arrazyfathan.kbbi.core.observability.AnalyticsReporter
+import com.arrazyfathan.kbbi.core.observability.EventOutcome
+import com.arrazyfathan.kbbi.core.observability.NoOpAnalyticsReporter
+import com.arrazyfathan.kbbi.core.observability.UpdateAction
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
@@ -25,6 +30,7 @@ sealed interface AppUpdateAction {
 class AppUpdateViewModel(
     private val repository: AppUpdateRepository,
     private val config: AppUpdateConfig,
+    private val analyticsReporter: AnalyticsReporter = NoOpAnalyticsReporter,
 ) : ViewModel() {
     private val _state = MutableStateFlow(AppUpdateState(currentVersion = config.currentVersion))
     val state = _state.asStateFlow()
@@ -32,7 +38,12 @@ class AppUpdateViewModel(
     fun onAction(action: AppUpdateAction) {
         when (action) {
             AppUpdateAction.OnAppStarted -> checkForUpdate()
-            AppUpdateAction.OnPromptDismissed -> _state.update { it.copy(availableUpdate = null) }
+            AppUpdateAction.OnPromptDismissed -> {
+                analyticsReporter.log(
+                    AnalyticsEvent.AppUpdateInteraction(UpdateAction.Prompt, EventOutcome.Dismissed),
+                )
+                _state.update { it.copy(availableUpdate = null) }
+            }
         }
     }
 
@@ -41,8 +52,19 @@ class AppUpdateViewModel(
 
         viewModelScope.launch {
             when (val result = repository.checkForUpdate(config.currentVersion)) {
-                is AppResult.Success -> _state.update { it.copy(availableUpdate = result.data) }
-                is AppResult.Error -> Unit
+                is AppResult.Success -> {
+                    if (result.data != null) {
+                        analyticsReporter.log(
+                            AnalyticsEvent.AppUpdateInteraction(UpdateAction.Prompt, EventOutcome.Shown),
+                        )
+                    }
+                    _state.update { it.copy(availableUpdate = result.data) }
+                }
+                is AppResult.Error -> {
+                    analyticsReporter.log(
+                        AnalyticsEvent.AppUpdateInteraction(UpdateAction.Prompt, EventOutcome.Error),
+                    )
+                }
             }
         }
     }

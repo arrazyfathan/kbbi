@@ -6,6 +6,13 @@ import androidx.lifecycle.viewModelScope
 import com.arrazyfathan.kbbi.core.domain.model.AppResult
 import com.arrazyfathan.kbbi.core.presentation.ui.UiText
 import com.arrazyfathan.kbbi.core.presentation.ui.asUiText
+import com.arrazyfathan.kbbi.core.observability.AnalyticsEvent
+import com.arrazyfathan.kbbi.core.observability.AnalyticsReporter
+import com.arrazyfathan.kbbi.core.observability.ContentType
+import com.arrazyfathan.kbbi.core.observability.EventOutcome
+import com.arrazyfathan.kbbi.core.observability.EventSource
+import com.arrazyfathan.kbbi.core.observability.InputMethod
+import com.arrazyfathan.kbbi.core.observability.NoOpAnalyticsReporter
 import com.arrazyfathan.kbbi.feature.home.domain.model.ListWordModel
 import com.arrazyfathan.kbbi.feature.home.domain.usecase.GetWordEntriesUseCase
 import com.arrazyfathan.kbbi.feature.home.domain.usecase.SearchWordUseCase
@@ -53,6 +60,7 @@ sealed interface WordListEvent {
 class WordViewModel(
     private val searchWord: SearchWordUseCase,
     private val getWordEntries: GetWordEntriesUseCase,
+    private val analyticsReporter: AnalyticsReporter = NoOpAnalyticsReporter,
 ) : ViewModel() {
     private val _state = MutableStateFlow(WordListState())
     val state = _state.asStateFlow()
@@ -107,10 +115,27 @@ class WordViewModel(
                 _state.update { it.copy(isLoading = false) }
                 when (result) {
                     is AppResult.Success -> {
+                        analyticsReporter.log(
+                            AnalyticsEvent.SearchCompleted(
+                                source = EventSource.WordList,
+                                inputMethod = InputMethod.Text,
+                                outcome = EventOutcome.Success,
+                            ),
+                        )
+                        analyticsReporter.log(
+                            AnalyticsEvent.ContentOpened(ContentType.Word, EventSource.WordList),
+                        )
                         _events.send(WordListEvent.NavigateToDetail(result.data))
                     }
 
                     is AppResult.Error -> {
+                        analyticsReporter.log(
+                            AnalyticsEvent.SearchCompleted(
+                                source = EventSource.WordList,
+                                inputMethod = InputMethod.Text,
+                                outcome = EventOutcome.Error,
+                            ),
+                        )
                         _events.send(WordListEvent.ShowMessage(result.error.asUiText()))
                     }
                 }

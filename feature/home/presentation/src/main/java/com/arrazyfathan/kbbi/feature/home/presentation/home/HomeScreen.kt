@@ -84,6 +84,7 @@ import com.airbnb.lottie.compose.LottieCompositionSpec
 import com.airbnb.lottie.compose.LottieConstants
 import com.airbnb.lottie.compose.rememberLottieComposition
 import com.arrazyfathan.kbbi.core.R
+import com.arrazyfathan.kbbi.core.observability.EventSource
 import com.arrazyfathan.kbbi.core.presentation.designsystem.InterFontFamily
 import com.arrazyfathan.kbbi.core.presentation.designsystem.KBBIHapticType
 import com.arrazyfathan.kbbi.core.presentation.designsystem.KBBITheme
@@ -182,7 +183,7 @@ fun HomeScreen(
 
     LaunchedEffect(externalSearchRequestKey) {
         val query = externalSearchQuery?.takeIf { it.isNotBlank() } ?: return@LaunchedEffect
-        viewModel.onAction(HomeAction.OnSearchSubmitted(query))
+        viewModel.onAction(HomeAction.OnSearchSubmitted(query, EventSource.ExternalIntent))
         onExternalSearchConsumed()
     }
 

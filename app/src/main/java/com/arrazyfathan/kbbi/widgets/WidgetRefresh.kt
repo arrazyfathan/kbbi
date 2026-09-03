@@ -9,6 +9,7 @@ import androidx.work.ExistingPeriodicWorkPolicy
 import androidx.work.PeriodicWorkRequestBuilder
 import androidx.work.WorkManager
 import androidx.work.WorkerParameters
+import com.arrazyfathan.kbbi.core.logging.AppLogger
 import com.arrazyfathan.kbbi.feature.home.domain.repository.BookmarkRepository
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.flow.distinctUntilChanged
@@ -77,7 +78,8 @@ internal class WidgetRefreshWorker(
             Result.success()
         } catch (error: CancellationException) {
             throw error
-        } catch (_: Exception) {
+        } catch (error: Exception) {
+            AppLogger.error("WidgetRefresh", error, "Scheduled widget refresh failed")
             Result.retry()
         }
 }
@@ -96,7 +98,8 @@ internal class BookmarkWidgetCoordinator(
                     SavedWordWidget().updateAll(context)
                 } catch (error: CancellationException) {
                     throw error
-                } catch (_: Exception) {
+                } catch (error: Exception) {
+                    AppLogger.error("WidgetRefresh", error, "Bookmark widget synchronization failed")
                     // A later bookmark change will retry while the daily worker remains a fallback.
                 }
             }

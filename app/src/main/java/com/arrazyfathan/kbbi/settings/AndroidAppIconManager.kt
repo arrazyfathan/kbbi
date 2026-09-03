@@ -4,6 +4,7 @@ import android.content.ComponentName
 import android.content.Context
 import android.content.pm.PackageManager
 import android.os.Build
+import com.arrazyfathan.kbbi.core.logging.AppLogger
 import com.arrazyfathan.kbbi.feature.settings.domain.model.AppIcon
 import com.arrazyfathan.kbbi.feature.settings.domain.service.AppIconChangeResult
 import com.arrazyfathan.kbbi.feature.settings.domain.service.AppIconManager
@@ -33,7 +34,8 @@ class AndroidAppIconManager(
             applyIcon(icon)
             check(resolveEnabledIcons(componentStates()) == listOf(icon))
             AppIconChangeResult.SUCCESS
-        } catch (_: Exception) {
+        } catch (error: Exception) {
+            AppLogger.error("AppIcon", error, "App icon change failed")
             runCatching { restoreStates(previousStates) }
             AppIconChangeResult.FAILURE
         }

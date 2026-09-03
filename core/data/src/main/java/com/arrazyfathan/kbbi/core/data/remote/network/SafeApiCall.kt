@@ -3,6 +3,7 @@ package com.arrazyfathan.kbbi.core.data.remote.network
 import com.arrazyfathan.kbbi.core.data.BuildConfig
 import com.arrazyfathan.kbbi.core.domain.model.AppResult
 import com.arrazyfathan.kbbi.core.domain.model.DataError
+import com.arrazyfathan.kbbi.core.logging.AppLogger
 import io.ktor.client.HttpClient
 import io.ktor.client.call.body
 import io.ktor.client.plugins.HttpRequestTimeoutException
@@ -107,14 +108,21 @@ suspend inline fun <reified T : Any> safeCall(noinline execute: suspend () -> Ht
         } catch (_: HttpRequestTimeoutException) {
             return AppResult.Error(DataError.RequestTimeout)
         } catch (e: IOException) {
-            return AppResult.Error(e.toDataError())
+            val error = e.toDataError()
+            if (error == DataError.Unknown) {
+                AppLogger.error(API_ERROR_TAG, e, "Network request failed unexpectedly")
+            }
+            return AppResult.Error(error)
         } catch (e: CancellationException) {
             throw e
-        } catch (_: SerializationException) {
+        } catch (e: SerializationException) {
+            AppLogger.error(API_ERROR_TAG, e, "Network response serialization failed")
             return AppResult.Error(DataError.Serialization)
-        } catch (_: IllegalArgumentException) {
+        } catch (e: IllegalArgumentException) {
+            AppLogger.error(API_ERROR_TAG, e, "Network response was invalid")
             return AppResult.Error(DataError.Serialization)
-        } catch (_: Exception) {
+        } catch (e: Exception) {
+            AppLogger.error(API_ERROR_TAG, e, "Network request failed unexpectedly")
             return AppResult.Error(DataError.Unknown)
         }
 
@@ -133,12 +141,16 @@ suspend inline fun <reified T : Any> readSuccessBody(response: HttpResponse): Ap
     } catch (e: CancellationException) {
         throw e
     } catch (e: SerializationException) {
+        AppLogger.error(API_ERROR_TAG, e, "Response body serialization failed")
         AppResult.Error(DataError.Serialization)
     } catch (e: IllegalArgumentException) {
+        AppLogger.error(API_ERROR_TAG, e, "Response body was invalid")
         AppResult.Error(DataError.Serialization)
     } catch (e: NoSuchElementException) {
+        AppLogger.error(API_ERROR_TAG, e, "Successful response body was empty")
         AppResult.Error(DataError.EmptyBody)
     } catch (e: Exception) {
+        AppLogger.error(API_ERROR_TAG, e, "Response body processing failed unexpectedly")
         AppResult.Error(DataError.Unknown)
     }
 
@@ -149,6 +161,9 @@ fun constructRoute(route: String): String =
         route.startsWith("/") -> BuildConfig.BASE_URL.trimEnd('/') + route
         else -> BuildConfig.BASE_URL.trimEnd('/') + "/$route"
     }
+
+@PublishedApi
+internal const val API_ERROR_TAG = "KBBI-API"
 
 @PublishedApi
 internal fun IOException.toDataError(): DataError =

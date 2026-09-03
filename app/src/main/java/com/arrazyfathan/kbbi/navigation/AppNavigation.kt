@@ -71,6 +71,14 @@ import com.arrazyfathan.kbbi.core.R
 import com.arrazyfathan.kbbi.core.appupdate.presentation.AppUpdateAction
 import com.arrazyfathan.kbbi.core.appupdate.presentation.AppUpdatePrompt
 import com.arrazyfathan.kbbi.core.appupdate.presentation.AppUpdateViewModel
+import com.arrazyfathan.kbbi.core.observability.AnalyticsEvent
+import com.arrazyfathan.kbbi.core.observability.AnalyticsReporter
+import com.arrazyfathan.kbbi.core.observability.AnalyticsScreen
+import com.arrazyfathan.kbbi.core.observability.ContentType
+import com.arrazyfathan.kbbi.core.observability.CrashReporter
+import com.arrazyfathan.kbbi.core.observability.EventSource
+import com.arrazyfathan.kbbi.core.observability.ReminderKind
+import com.arrazyfathan.kbbi.core.observability.WidgetKind
 import com.arrazyfathan.kbbi.core.presentation.designsystem.KBBIHapticType
 import com.arrazyfathan.kbbi.core.presentation.designsystem.perform
 import com.arrazyfathan.kbbi.core.presentation.ui.LocalAppLoadingController
@@ -92,6 +100,7 @@ import com.github.skydoves.navgraph.annotations.NavGraphRoot
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
 import org.koin.androidx.compose.koinViewModel
+import org.koin.compose.koinInject
 
 private const val IOS_NAVIGATION_TRANSITION_DURATION_MILLIS = 350
 private const val IOS_NAVIGATION_PARALLAX_DIVISOR = 3
@@ -181,6 +190,8 @@ internal fun MainApp(
 ) {
     val appUpdateViewModel: AppUpdateViewModel = koinViewModel()
     val appUiViewModel: AppUiViewModel = koinViewModel()
+    val analyticsReporter: AnalyticsReporter = koinInject()
+    val crashReporter: CrashReporter = koinInject()
     val externalSearchQuery = launchRequests.externalSearchQuery
     val externalSearchRequestKey = launchRequests.externalSearchRequestKey
     val shortcutRequest = launchRequests.shortcutRequest
@@ -248,6 +259,21 @@ internal fun MainApp(
 
     LaunchedEffect(widgetRequestKey) {
         when (widgetRequest) {
+            WidgetLaunchRequest.QuickSearch ->
+                analyticsReporter.log(
+                    AnalyticsEvent.WidgetOpened(WidgetKind.QuickSearch),
+                )
+            is WidgetLaunchRequest.WordOfDay ->
+                analyticsReporter.log(
+                    AnalyticsEvent.WidgetOpened(WidgetKind.WordOfDay),
+                )
+            is WidgetLaunchRequest.SavedWord ->
+                analyticsReporter.log(
+                    AnalyticsEvent.WidgetOpened(WidgetKind.SavedWord),
+                )
+            null -> Unit
+        }
+        when (widgetRequest) {
             WidgetLaunchRequest.QuickSearch -> navigator.navigateToRoot(Screen.Home)
             is WidgetLaunchRequest.WordOfDay -> {
                 navigator.navigateToRoot(Screen.Home)
@@ -291,17 +317,26 @@ internal fun MainApp(
     LaunchedEffect(notificationRequestKey) {
         when (notificationRequest) {
             is NotificationLaunchRequest.Proverb -> {
+                analyticsReporter.log(AnalyticsEvent.NotificationOpened(ReminderKind.DailyProverb))
                 navigator.navigateToRoot(Screen.Home)
                 navigator.navigate(Screen.Proverb)
                 onNotificationRequestConsumed()
             }
 
             NotificationLaunchRequest.Bookmarks -> {
+                analyticsReporter.log(AnalyticsEvent.NotificationOpened(ReminderKind.BookmarkReview))
                 navigator.navigateToRoot(Screen.Bookmarks)
                 onNotificationRequestConsumed()
             }
 
             null -> return@LaunchedEffect
+        }
+    }
+
+    LaunchedEffect(currentRoute) {
+        currentRoute.toAnalyticsScreen()?.let { screen ->
+            analyticsReporter.screenViewed(screen)
+            crashReporter.setKey("current_screen", screen.value)
         }
     }
 
@@ -401,6 +436,9 @@ internal fun MainApp(
                     BookmarkRoute(
                         onHaptic = performHaptic,
                         onNavigateToDetail = { word ->
+                            analyticsReporter.log(
+                                AnalyticsEvent.ContentOpened(ContentType.Word, EventSource.Bookmarks),
+                            )
                             navigator.navigate(DetailNavRoute(routeJson.encodeToString(word)))
                         },
                     )
@@ -513,6 +551,20 @@ internal fun MainApp(
         }
     }
 }
+
+private fun NavKey.toAnalyticsScreen(): AnalyticsScreen? =
+    when (this) {
+        Screen.Home -> AnalyticsScreen.Home
+        Screen.WordList -> AnalyticsScreen.Words
+        Screen.Proverb -> AnalyticsScreen.Proverbs
+        Screen.Settings -> AnalyticsScreen.Settings
+        Screen.Bookmarks -> AnalyticsScreen.Bookmarks
+        is DetailNavRoute -> AnalyticsScreen.WordDetail
+        PrivacyPolicyRoute -> AnalyticsScreen.PrivacyPolicy
+        TermsConditionsRoute -> AnalyticsScreen.TermsConditions
+        OpenSourceLicensesRoute -> AnalyticsScreen.OpenSourceLicenses
+        else -> null
+    }
 
 @Composable
 private fun BlockingLoadingOverlay() {

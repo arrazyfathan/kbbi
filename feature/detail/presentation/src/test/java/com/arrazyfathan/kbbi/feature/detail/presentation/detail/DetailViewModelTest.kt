@@ -3,6 +3,10 @@ package com.arrazyfathan.kbbi.feature.detail.presentation.detail
 import com.arrazyfathan.kbbi.core.R
 import com.arrazyfathan.kbbi.core.domain.model.AppResult
 import com.arrazyfathan.kbbi.core.domain.model.DataError
+import com.arrazyfathan.kbbi.core.observability.AnalyticsEvent
+import com.arrazyfathan.kbbi.core.observability.AnalyticsReporter
+import com.arrazyfathan.kbbi.core.observability.AnalyticsScreen
+import com.arrazyfathan.kbbi.core.observability.BookmarkAction
 import com.arrazyfathan.kbbi.feature.home.domain.model.ListWordModel
 import com.arrazyfathan.kbbi.feature.home.domain.model.TranslateModel
 import com.arrazyfathan.kbbi.feature.home.domain.model.TranslatedMeaningModel
@@ -96,15 +100,31 @@ class DetailViewModelTest {
         assertMessage(R.string.translate_failed, viewModel.events.first())
     }
 
+    @Test
+    fun `bookmark action reports only action and surface`() = runTest(dispatcher) {
+        val reporter = FakeAnalyticsReporter()
+        val viewModel = createViewModel(analyticsReporter = reporter)
+
+        viewModel.onAction(DetailAction.OnBookmarkClick("private-word", emptyList(), null))
+
+        assertEquals(
+            AnalyticsEvent.BookmarkChanged(BookmarkAction.Added, AnalyticsScreen.WordDetail),
+            reporter.events.single(),
+        )
+        assertFalse(reporter.events.single().parameters.values.contains("private-word"))
+    }
+
     private fun createViewModel(
         bookmarkRepository: FakeBookmarkRepository = FakeBookmarkRepository(),
         translateRepository: FakeTranslateRepository = FakeTranslateRepository(),
+        analyticsReporter: AnalyticsReporter = FakeAnalyticsReporter(),
     ): DetailViewModel =
         DetailViewModel(
             checkWordSaved = CheckWordSavedUseCase(bookmarkRepository),
             saveBookmark = SaveBookmarkUseCase(bookmarkRepository),
             deleteBookmark = DeleteBookmarkUseCase(bookmarkRepository),
             getWordTranslation = GetWordTranslationUseCase(translateRepository),
+            analyticsReporter = analyticsReporter,
         )
 
     private fun sampleTranslation(): TranslateModel =
@@ -137,6 +157,16 @@ class DetailViewModelTest {
         val message = (event as DetailEvent.ShowError).messageResId
         assertEquals(expectedResId, message)
     }
+}
+
+private class FakeAnalyticsReporter : AnalyticsReporter {
+    val events = mutableListOf<AnalyticsEvent>()
+
+    override fun log(event: AnalyticsEvent) {
+        events += event
+    }
+
+    override fun screenViewed(screen: AnalyticsScreen) = Unit
 }
 
 private class FakeBookmarkRepository : BookmarkRepository {

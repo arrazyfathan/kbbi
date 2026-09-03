@@ -38,6 +38,7 @@ kotlin {
 
 dependencies {
     implementation(project(":core:data"))
+    implementation(project(":core:logging"))
     implementation(project(":feature:home:domain"))
 
     implementation(libs.androidx.room.runtime)

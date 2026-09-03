@@ -101,6 +101,8 @@ import androidx.core.os.LocaleListCompat
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.arrazyfathan.kbbi.core.R
 import com.arrazyfathan.kbbi.core.appupdate.presentation.AppUpdatePrompt
+import com.arrazyfathan.kbbi.core.observability.AnalyticsEvent
+import com.arrazyfathan.kbbi.core.observability.AnalyticsReporter
 import com.arrazyfathan.kbbi.core.domain.model.AppTheme
 import com.arrazyfathan.kbbi.core.presentation.designsystem.InterFontFamily
 import com.arrazyfathan.kbbi.core.presentation.designsystem.KBBIHapticType
@@ -122,6 +124,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import kotlinx.coroutines.withTimeoutOrNull
 import org.koin.androidx.compose.koinViewModel
+import org.koin.compose.koinInject
 import kotlin.time.Duration.Companion.milliseconds
 
 private const val LANGUAGE_FADE_OUT_DURATION_MILLIS = 100
@@ -142,6 +145,7 @@ fun SettingsRoute(
     onOpenSourceLicenses: () -> Unit,
 ) {
     val viewModel: SettingsViewModel = koinViewModel()
+    val analyticsReporter: AnalyticsReporter = koinInject()
     val context = LocalContext.current
     val configuration = LocalConfiguration.current
     val platformHapticFeedback = LocalHapticFeedback.current
@@ -285,6 +289,7 @@ fun SettingsRoute(
                         )
                     }
                 context.startActivity(Intent.createChooser(shareIntent, null))
+                analyticsReporter.log(AnalyticsEvent.AppShared)
                 onHaptic(KBBIHapticType.ContextClick)
             },
             onOpenUri = { uri ->
@@ -365,6 +370,12 @@ fun SettingsScreen(
             InteractionSection(
                 hapticsEnabled = state.hapticsEnabled,
                 onHapticsChanged = { onAction(SettingsAction.OnHapticsToggled(it)) },
+            )
+            PrivacyDiagnosticsSection(
+                crashReportingEnabled = state.crashReportingEnabled,
+                analyticsEnabled = state.analyticsEnabled,
+                onCrashReportingChanged = { onAction(SettingsAction.OnCrashReportingToggled(it)) },
+                onAnalyticsChanged = { onAction(SettingsAction.OnAnalyticsToggled(it)) },
             )
             LanguageSection(
                 selectedLanguage = state.selectedLanguage,
@@ -801,6 +812,62 @@ private fun InteractionSection(
                 onCheckedChange = null,
             )
         }
+    }
+}
+
+@Composable
+private fun PrivacyDiagnosticsSection(
+    crashReportingEnabled: Boolean,
+    analyticsEnabled: Boolean,
+    onCrashReportingChanged: (Boolean) -> Unit,
+    onAnalyticsChanged: (Boolean) -> Unit,
+) {
+    SettingsSectionCard(title = stringResource(R.string.privacy_diagnostics_section_title)) {
+        ReportingToggleRow(
+            title = stringResource(R.string.crash_reporting_title),
+            description = stringResource(R.string.crash_reporting_description),
+            enabled = crashReportingEnabled,
+            onToggle = onCrashReportingChanged,
+        )
+        SettingsDivider()
+        ReportingToggleRow(
+            title = stringResource(R.string.usage_analytics_title),
+            description = stringResource(R.string.usage_analytics_description),
+            enabled = analyticsEnabled,
+            onToggle = onAnalyticsChanged,
+        )
+    }
+}
+
+@Composable
+private fun ReportingToggleRow(
+    title: String,
+    description: String,
+    enabled: Boolean,
+    onToggle: (Boolean) -> Unit,
+) {
+    Row(
+        modifier =
+            Modifier
+                .fillMaxWidth()
+                .toggleable(value = enabled, role = Role.Switch, onValueChange = onToggle)
+                .padding(horizontal = 18.dp, vertical = 16.dp),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Icon(
+            painter = painterResource(R.drawable.ic_privacy),
+            contentDescription = null,
+            tint = MaterialTheme.colorScheme.primary,
+            modifier = Modifier.size(22.dp),
+        )
+        Spacer(Modifier.width(14.dp))
+        Column(modifier = Modifier.weight(1f)) {
+            Text(text = title, style = MaterialTheme.typography.titleSmall, color = TextH1)
+            Spacer(Modifier.height(2.dp))
+            Text(text = description, style = MaterialTheme.typography.bodySmall, color = TextP)
+        }
+        Spacer(Modifier.width(8.dp))
+        Switch(modifier = Modifier.scale(0.7f), checked = enabled, onCheckedChange = null)
     }
 }
 

@@ -6,6 +6,11 @@ import androidx.lifecycle.viewModelScope
 import com.arrazyfathan.kbbi.feature.home.domain.model.ListWordModel
 import com.arrazyfathan.kbbi.feature.home.domain.usecase.DeleteBookmarkUseCase
 import com.arrazyfathan.kbbi.feature.home.domain.usecase.ObserveBookmarksUseCase
+import com.arrazyfathan.kbbi.core.observability.AnalyticsEvent
+import com.arrazyfathan.kbbi.core.observability.AnalyticsReporter
+import com.arrazyfathan.kbbi.core.observability.AnalyticsScreen
+import com.arrazyfathan.kbbi.core.observability.BookmarkAction
+import com.arrazyfathan.kbbi.core.observability.NoOpAnalyticsReporter
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -32,6 +37,7 @@ sealed interface BookmarksEvent {
 class BookmarksViewModel(
     observeBookmarks: ObserveBookmarksUseCase,
     private val deleteBookmark: DeleteBookmarkUseCase,
+    private val analyticsReporter: AnalyticsReporter = NoOpAnalyticsReporter,
 ) : ViewModel() {
     private val _events = Channel<BookmarksEvent>(Channel.BUFFERED)
     val events = _events.receiveAsFlow()
@@ -48,6 +54,9 @@ class BookmarksViewModel(
             is BookmarksAction.OnDeleteConfirmed -> {
                 viewModelScope.launch {
                     deleteBookmark(action.word)
+                    analyticsReporter.log(
+                        AnalyticsEvent.BookmarkChanged(BookmarkAction.Removed, AnalyticsScreen.Bookmarks),
+                    )
                     _events.send(BookmarksEvent.BookmarkDeleted)
                 }
             }

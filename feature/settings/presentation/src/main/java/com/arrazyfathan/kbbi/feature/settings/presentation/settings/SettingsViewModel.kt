@@ -10,6 +10,12 @@ import com.arrazyfathan.kbbi.core.appupdate.domain.AppUpdateRepository
 import com.arrazyfathan.kbbi.core.domain.model.AppResult
 import com.arrazyfathan.kbbi.core.domain.model.AppTheme
 import com.arrazyfathan.kbbi.core.presentation.ui.UiText
+import com.arrazyfathan.kbbi.core.observability.AnalyticsEvent
+import com.arrazyfathan.kbbi.core.observability.AnalyticsReporter
+import com.arrazyfathan.kbbi.core.observability.DefaultReportingPreferencesRepository
+import com.arrazyfathan.kbbi.core.observability.NoOpAnalyticsReporter
+import com.arrazyfathan.kbbi.core.observability.ReminderKind
+import com.arrazyfathan.kbbi.core.observability.ReportingPreferencesRepository
 import com.arrazyfathan.kbbi.feature.home.domain.usecase.ClearSearchHistoryUseCase
 import com.arrazyfathan.kbbi.feature.settings.domain.model.NotificationSettings
 import com.arrazyfathan.kbbi.feature.settings.domain.model.AppIcon
@@ -42,6 +48,8 @@ data class SettingsState(
     val isUpdatePromptVisible: Boolean = false,
     val isClearHistoryDialogVisible: Boolean = false,
     val pendingAppIcon: AppIcon? = null,
+    val crashReportingEnabled: Boolean = true,
+    val analyticsEnabled: Boolean = false,
 )
 
 sealed interface SettingsAction {
@@ -77,6 +85,14 @@ sealed interface SettingsAction {
     ) : SettingsAction
 
     data class OnHapticsToggled(
+        val enabled: Boolean,
+    ) : SettingsAction
+
+    data class OnCrashReportingToggled(
+        val enabled: Boolean,
+    ) : SettingsAction
+
+    data class OnAnalyticsToggled(
         val enabled: Boolean,
     ) : SettingsAction
 
@@ -140,6 +156,8 @@ class SettingsViewModel(
     private val appUpdateConfig: AppUpdateConfig,
     private val clearSearchHistoryUseCase: ClearSearchHistoryUseCase,
     private val appIconManager: AppIconManager,
+    private val reportingPreferencesRepository: ReportingPreferencesRepository = DefaultReportingPreferencesRepository,
+    private val analyticsReporter: AnalyticsReporter = NoOpAnalyticsReporter,
 ) : ViewModel() {
     private val _state = MutableStateFlow(SettingsState(appVersion = appUpdateConfig.currentVersion))
     val state = _state.asStateFlow()
@@ -166,6 +184,16 @@ class SettingsViewModel(
                     it.copy(
                         hapticsEnabled = preferences.hapticsEnabled,
                         selectedTheme = preferences.theme,
+                    )
+                }
+            }
+        }
+        viewModelScope.launch {
+            reportingPreferencesRepository.preferences.collect { preferences ->
+                _state.update {
+                    it.copy(
+                        crashReportingEnabled = preferences.crashReportingEnabled,
+                        analyticsEnabled = preferences.analyticsEnabled,
                     )
                 }
             }
@@ -222,6 +250,14 @@ class SettingsViewModel(
 
             is SettingsAction.OnHapticsToggled -> {
                 setHapticsEnabled(action.enabled)
+            }
+
+            is SettingsAction.OnCrashReportingToggled -> {
+                setCrashReportingEnabled(action.enabled)
+            }
+
+            is SettingsAction.OnAnalyticsToggled -> {
+                setAnalyticsEnabled(action.enabled)
             }
 
             is SettingsAction.OnThemeSelected -> {
@@ -325,6 +361,20 @@ class SettingsViewModel(
         }
     }
 
+    private fun setCrashReportingEnabled(enabled: Boolean) {
+        viewModelScope.launch {
+            runCatching { reportingPreferencesRepository.setCrashReportingEnabled(enabled) }
+                .onFailure { showMessage(R.string.reporting_setting_failed) }
+        }
+    }
+
+    private fun setAnalyticsEnabled(enabled: Boolean) {
+        viewModelScope.launch {
+            runCatching { reportingPreferencesRepository.setAnalyticsEnabled(enabled) }
+                .onFailure { showMessage(R.string.reporting_setting_failed) }
+        }
+    }
+
     private fun selectTheme(theme: AppTheme) {
         if (theme == state.value.selectedTheme) return
 
@@ -381,6 +431,7 @@ class SettingsViewModel(
             viewModelScope.launch {
                 repository.setEnabled(type, false)
                 scheduler.cancel(type)
+                analyticsReporter.log(AnalyticsEvent.ReminderChanged(type.toAnalyticsKind(), false))
                 _events.send(SettingsEvent.ReminderChanged(false))
             }
             return
@@ -418,6 +469,7 @@ class SettingsViewModel(
                     .preference(type)
                     .time,
             )
+            analyticsReporter.log(AnalyticsEvent.ReminderChanged(type.toAnalyticsKind(), true))
             _events.send(SettingsEvent.ReminderChanged(true))
         }
     }
@@ -452,3 +504,10 @@ class SettingsViewModel(
         }
     }
 }
+
+private fun ReminderType.toAnalyticsKind(): ReminderKind =
+    when (this) {
+        ReminderType.DAILY_WORD -> ReminderKind.DailyWord
+        ReminderType.DAILY_PROVERB -> ReminderKind.DailyProverb
+        ReminderType.BOOKMARK_REVIEW -> ReminderKind.BookmarkReview
+    }

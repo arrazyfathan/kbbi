@@ -5,6 +5,11 @@ import androidx.lifecycle.viewModelScope
 import com.arrazyfathan.kbbi.core.appupdate.domain.AppUpdate
 import com.arrazyfathan.kbbi.core.appupdate.domain.AppUpdateDownloadManager
 import com.arrazyfathan.kbbi.core.appupdate.domain.AppUpdateDownloadState
+import com.arrazyfathan.kbbi.core.observability.AnalyticsEvent
+import com.arrazyfathan.kbbi.core.observability.AnalyticsReporter
+import com.arrazyfathan.kbbi.core.observability.EventOutcome
+import com.arrazyfathan.kbbi.core.observability.NoOpAnalyticsReporter
+import com.arrazyfathan.kbbi.core.observability.UpdateAction
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.delay
@@ -40,6 +45,7 @@ sealed interface AppUpdateDownloadEvent {
 
 class AppUpdateDownloadViewModel(
     private val downloadManager: AppUpdateDownloadManager,
+    private val analyticsReporter: AnalyticsReporter = NoOpAnalyticsReporter,
 ) : ViewModel() {
     private val _state = MutableStateFlow(AppUpdateDownloadUiState(downloadManager.state.value))
     val state = _state.asStateFlow()
@@ -51,11 +57,13 @@ class AppUpdateDownloadViewModel(
     private var isHostResumed = false
     private var lastInstallerDownloadId: Long? = null
     private var refreshJob: Job? = null
+    private var lastReportedDownloadOutcome: EventOutcome? = null
 
     init {
         viewModelScope.launch {
             downloadManager.state.collect { downloadState ->
                 _state.update { it.copy(downloadState = downloadState) }
+                reportDownloadState(downloadState)
                 updateRefreshPolling(downloadState)
                 launchInstallerWhenReady(downloadState)
             }
@@ -88,6 +96,9 @@ class AppUpdateDownloadViewModel(
 
     private fun onDownloadClick() {
         val update = currentUpdate ?: return
+        analyticsReporter.log(
+            AnalyticsEvent.AppUpdateInteraction(UpdateAction.Download, EventOutcome.Started),
+        )
         when (val downloadState = downloadManager.state.value) {
             is AppUpdateDownloadState.Ready -> {
                 if (downloadState.version == update.latestVersion) {
@@ -139,7 +150,22 @@ class AppUpdateDownloadViewModel(
 
     private fun emitInstallerEvent(downloadId: Long) {
         lastInstallerDownloadId = downloadId
+        analyticsReporter.log(
+            AnalyticsEvent.AppUpdateInteraction(UpdateAction.Install, EventOutcome.Started),
+        )
         viewModelScope.launch { _events.send(AppUpdateDownloadEvent.LaunchInstaller(downloadId)) }
+    }
+
+    private fun reportDownloadState(state: AppUpdateDownloadState) {
+        val outcome =
+            when (state) {
+                is AppUpdateDownloadState.Ready -> EventOutcome.Success
+                is AppUpdateDownloadState.Failed -> EventOutcome.Error
+                else -> return
+            }
+        if (lastReportedDownloadOutcome == outcome) return
+        lastReportedDownloadOutcome = outcome
+        analyticsReporter.log(AnalyticsEvent.AppUpdateInteraction(UpdateAction.Download, outcome))
     }
 
     private companion object {

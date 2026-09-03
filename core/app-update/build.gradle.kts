@@ -37,6 +37,7 @@ dependencies {
     api(project(":core:presentation:designsystem"))
 
     implementation(project(":core:data"))
+    implementation(project(":core:observability"))
 
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.viewmodel.ktx)

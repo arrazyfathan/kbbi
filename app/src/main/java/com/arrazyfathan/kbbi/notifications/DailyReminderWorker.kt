@@ -17,12 +17,14 @@ import androidx.work.CoroutineWorker
 import androidx.work.WorkerParameters
 import com.arrazyfathan.kbbi.MainActivity
 import com.arrazyfathan.kbbi.core.R
+import com.arrazyfathan.kbbi.core.logging.AppLogger
 import com.arrazyfathan.kbbi.feature.home.domain.repository.BookmarkRepository
 import com.arrazyfathan.kbbi.feature.home.domain.repository.WordCatalogRepository
 import com.arrazyfathan.kbbi.feature.proverb.domain.repository.ProverbRepository
 import com.arrazyfathan.kbbi.feature.settings.domain.model.ReminderType
 import com.arrazyfathan.kbbi.feature.settings.domain.repository.NotificationSettingsRepository
 import com.arrazyfathan.kbbi.widgets.DailyItemSelector
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.flow.first
 import org.koin.core.context.GlobalContext
 
@@ -36,8 +38,15 @@ class DailyReminderWorker(
         return if (type == null) {
             Result.failure()
         } else {
-            deliverReminder(type)
-            Result.success()
+            try {
+                deliverReminder(type)
+                Result.success()
+            } catch (error: CancellationException) {
+                throw error
+            } catch (error: Exception) {
+                AppLogger.error("DailyReminder", error, "Reminder delivery failed")
+                throw error
+            }
         }
     }
 

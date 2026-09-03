@@ -8,6 +8,13 @@ import com.arrazyfathan.kbbi.core.domain.model.AppResult
 import com.arrazyfathan.kbbi.core.domain.model.DataError
 import com.arrazyfathan.kbbi.core.presentation.ui.UiText
 import com.arrazyfathan.kbbi.core.presentation.ui.asUiText
+import com.arrazyfathan.kbbi.core.observability.AnalyticsEvent
+import com.arrazyfathan.kbbi.core.observability.AnalyticsReporter
+import com.arrazyfathan.kbbi.core.observability.ContentType
+import com.arrazyfathan.kbbi.core.observability.EventOutcome
+import com.arrazyfathan.kbbi.core.observability.EventSource
+import com.arrazyfathan.kbbi.core.observability.InputMethod
+import com.arrazyfathan.kbbi.core.observability.NoOpAnalyticsReporter
 import com.arrazyfathan.kbbi.core.utils.VoiceRecognitionError
 import com.arrazyfathan.kbbi.feature.home.domain.model.HistoryModel
 import com.arrazyfathan.kbbi.feature.home.domain.model.ListWordModel
@@ -51,6 +58,7 @@ sealed interface HomeAction {
 
     data class OnSearchSubmitted(
         val word: String,
+        val source: EventSource = EventSource.TypedSearch,
     ) : HomeAction
 
     data class OnSuggestionClick(
@@ -100,6 +108,7 @@ class HomeViewModel(
     private val observeSearchHistory: ObserveSearchHistoryUseCase,
     private val getWordEntries: GetWordEntriesUseCase,
     private val getWordSuggestions: GetWordSuggestionsUseCase,
+    private val analyticsReporter: AnalyticsReporter = NoOpAnalyticsReporter,
 ) : ViewModel() {
     private val _state = MutableStateFlow(HomeState())
     val state = _state.asStateFlow()
@@ -111,6 +120,7 @@ class HomeViewModel(
     private var searchJob: Job? = null
     private var wordEntriesJob: Job? = null
     private var wordEntries: List<String> = emptyList()
+    private var pendingInputMethod = InputMethod.Text
 
     fun onAction(action: HomeAction) {
         when (action) {
@@ -124,11 +134,12 @@ class HomeViewModel(
             }
 
             is HomeAction.OnSearchSubmitted -> {
-                search(action.word)
+                search(action.word, action.source, pendingInputMethod)
+                pendingInputMethod = InputMethod.Text
             }
 
             is HomeAction.OnSuggestionClick -> {
-                search(action.word)
+                search(action.word, EventSource.Suggestion, InputMethod.Text, suggestionUsed = true)
             }
 
             HomeAction.OnRandomWordRequested -> {
@@ -157,18 +168,22 @@ class HomeViewModel(
             }
 
             is HomeAction.OnVoiceSearchError -> {
+                pendingInputMethod = InputMethod.Text
                 showVoiceSearchError(action.error)
             }
 
             HomeAction.OnVoiceSearchUnavailable -> {
+                pendingInputMethod = InputMethod.Text
                 showMessage(R.string.voice_search_unavailable)
             }
 
             HomeAction.OnVoiceSearchPermissionDenied -> {
+                pendingInputMethod = InputMethod.Text
                 showMessage(R.string.voice_search_permission_denied)
             }
 
             HomeAction.OnVoiceSearchCancelled -> {
+                pendingInputMethod = InputMethod.Text
                 showMessage(R.string.voice_search_cancelled, isError = false)
             }
 
@@ -213,10 +228,12 @@ class HomeViewModel(
     private fun updateVoiceSearchQuery(recognizedTexts: List<String>) {
         val normalizedQuery = normalizeVoiceSearchCandidates(recognizedTexts, wordEntries)
         if (normalizedQuery.isBlank()) {
+            pendingInputMethod = InputMethod.Text
             showMessage(R.string.voice_search_empty_result)
             return
         }
 
+        pendingInputMethod = InputMethod.Voice
         _state.update {
             it.copy(
                 searchQuery = normalizedQuery,
@@ -267,11 +284,16 @@ class HomeViewModel(
         }
     }
 
-    private fun search(word: String) {
+    private fun search(
+        word: String,
+        source: EventSource,
+        inputMethod: InputMethod,
+        suggestionUsed: Boolean = false,
+    ) {
         searchJob?.cancel()
         searchJob =
             viewModelScope.launch {
-                performSearch(word)
+                performSearch(word, source, inputMethod, suggestionUsed)
             }
     }
 
@@ -291,11 +313,22 @@ class HomeViewModel(
                     return@launch
                 }
 
-                performSearch(randomWord)
+                performSearch(
+                    word = randomWord,
+                    source = EventSource.RandomWord,
+                    inputMethod = InputMethod.System,
+                    randomSelection = true,
+                )
             }
     }
 
-    private suspend fun performSearch(word: String) {
+    private suspend fun performSearch(
+        word: String,
+        source: EventSource,
+        inputMethod: InputMethod,
+        suggestionUsed: Boolean = false,
+        randomSelection: Boolean = false,
+    ) {
         _state.update {
             it.copy(
                 searchQuery = word,
@@ -308,11 +341,35 @@ class HomeViewModel(
         _state.update { it.copy(isLoading = false) }
         when (result) {
             is AppResult.Success -> {
+                analyticsReporter.log(
+                    AnalyticsEvent.SearchCompleted(
+                        source = source,
+                        inputMethod = inputMethod,
+                        outcome = EventOutcome.Success,
+                        suggestionUsed = suggestionUsed,
+                        randomSelection = randomSelection,
+                    ),
+                )
+                analyticsReporter.log(AnalyticsEvent.ContentOpened(ContentType.Word, source))
                 _state.update { it.copy(searchQuery = "") }
                 _events.send(HomeEvent.NavigateToDetail(result.data))
             }
 
             is AppResult.Error -> {
+                analyticsReporter.log(
+                    AnalyticsEvent.SearchCompleted(
+                        source = source,
+                        inputMethod = inputMethod,
+                        outcome =
+                            if (result.error == DataError.NotFound) {
+                                EventOutcome.NotFound
+                            } else {
+                                EventOutcome.Error
+                            },
+                        suggestionUsed = suggestionUsed,
+                        randomSelection = randomSelection,
+                    ),
+                )
                 if (result.error == DataError.NotFound) {
                     _state.update {
                         it.copy(

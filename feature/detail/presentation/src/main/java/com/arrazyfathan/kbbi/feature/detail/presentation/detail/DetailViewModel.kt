@@ -7,6 +7,13 @@ import androidx.lifecycle.viewModelScope
 import com.arrazyfathan.kbbi.core.R
 import com.arrazyfathan.kbbi.core.domain.model.onFailure
 import com.arrazyfathan.kbbi.core.domain.model.onSuccess
+import com.arrazyfathan.kbbi.core.observability.AnalyticsEvent
+import com.arrazyfathan.kbbi.core.observability.AnalyticsReporter
+import com.arrazyfathan.kbbi.core.observability.AnalyticsScreen
+import com.arrazyfathan.kbbi.core.observability.BookmarkAction
+import com.arrazyfathan.kbbi.core.observability.EventOutcome
+import com.arrazyfathan.kbbi.core.observability.NoOpAnalyticsReporter
+import com.arrazyfathan.kbbi.core.observability.TranslationAction
 import com.arrazyfathan.kbbi.feature.home.domain.model.TranslateModel
 import com.arrazyfathan.kbbi.feature.home.domain.model.WordModel
 import com.arrazyfathan.kbbi.feature.home.domain.usecase.CheckWordSavedUseCase
@@ -66,6 +73,7 @@ class DetailViewModel(
     private val saveBookmark: SaveBookmarkUseCase,
     private val deleteBookmark: DeleteBookmarkUseCase,
     private val getWordTranslation: GetWordTranslationUseCase,
+    private val analyticsReporter: AnalyticsReporter = NoOpAnalyticsReporter,
 ) : ViewModel() {
     private val _state = MutableStateFlow(DetailState())
     val state = _state.asStateFlow()
@@ -102,6 +110,9 @@ class DetailViewModel(
         viewModelScope.launch {
             if (state.value.isSaved) {
                 deleteBookmark(word)
+                analyticsReporter.log(
+                    AnalyticsEvent.BookmarkChanged(BookmarkAction.Removed, AnalyticsScreen.WordDetail),
+                )
                 _events.send(
                     DetailEvent.BookmarkChanged(
                         isSaved = false,
@@ -111,6 +122,9 @@ class DetailViewModel(
             } else {
                 val isSaved = saveBookmark(word, wordList, visitorCount)
                 if (isSaved) {
+                    analyticsReporter.log(
+                        AnalyticsEvent.BookmarkChanged(BookmarkAction.Added, AnalyticsScreen.WordDetail),
+                    )
                     _events.send(
                         DetailEvent.BookmarkChanged(
                             isSaved = true,
@@ -130,6 +144,13 @@ class DetailViewModel(
             enableTranslation(word)
         } else {
             _state.update { it.copy(isTranslationEnabled = false) }
+            analyticsReporter.log(
+                AnalyticsEvent.TranslationChanged(
+                    action = TranslationAction.Disabled,
+                    outcome = EventOutcome.Success,
+                    cacheHit = state.value.translation != null,
+                ),
+            )
             viewModelScope.launch { _events.send(DetailEvent.TranslationChanged(false)) }
         }
     }
@@ -139,6 +160,13 @@ class DetailViewModel(
         if (cachedTranslation != null) {
             _state.update { it.copy(isTranslationEnabled = true) }
             viewModelScope.launch { _events.send(DetailEvent.TranslationChanged(true)) }
+            analyticsReporter.log(
+                AnalyticsEvent.TranslationChanged(
+                    action = TranslationAction.Enabled,
+                    outcome = EventOutcome.Success,
+                    cacheHit = true,
+                ),
+            )
             return
         }
 
@@ -148,6 +176,13 @@ class DetailViewModel(
             viewModelScope.launch {
                 getWordTranslation(word)
                     .onSuccess { translation ->
+                        analyticsReporter.log(
+                            AnalyticsEvent.TranslationChanged(
+                                action = TranslationAction.Enabled,
+                                outcome = EventOutcome.Success,
+                                cacheHit = false,
+                            ),
+                        )
                         _state.update {
                             it.copy(
                                 isTranslationEnabled = true,
@@ -157,6 +192,13 @@ class DetailViewModel(
                         }
                         _events.send(DetailEvent.TranslationChanged(true))
                     }.onFailure {
+                        analyticsReporter.log(
+                            AnalyticsEvent.TranslationChanged(
+                                action = TranslationAction.Enabled,
+                                outcome = EventOutcome.Error,
+                                cacheHit = false,
+                            ),
+                        )
                         _state.update { it.copy(isTranslationLoading = false) }
                         _events.send(DetailEvent.ShowError(R.string.translate_failed))
                     }

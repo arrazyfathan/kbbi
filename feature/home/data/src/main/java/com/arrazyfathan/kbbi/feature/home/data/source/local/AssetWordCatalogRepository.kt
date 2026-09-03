@@ -1,6 +1,7 @@
 package com.arrazyfathan.kbbi.feature.home.data.source.local
 
 import android.content.Context
+import com.arrazyfathan.kbbi.core.logging.AppLogger
 import com.arrazyfathan.kbbi.feature.home.domain.repository.WordCatalogRepository
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
@@ -32,7 +33,8 @@ class AssetWordCatalogRepository(
                     .bufferedReader()
                     .use { it.readText() }
             json.decodeFromString<List<String>>(jsonString)
-        } catch (_: Exception) {
+        } catch (error: Exception) {
+            AppLogger.error("WordCatalog", error, "Bundled word catalog could not be read")
             emptyList()
         }
 

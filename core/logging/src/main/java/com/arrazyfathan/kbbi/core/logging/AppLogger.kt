@@ -6,8 +6,10 @@ private const val ANDROID_LOG_CHUNK_SIZE = 3_500
 
 object AppLogger {
     private var debugTreePlanted = false
+    @Volatile
+    private var remoteSink: AppLogSink? = null
 
-    private enum class LogLevel {
+    enum class LogLevel {
         Verbose,
         Debug,
         Info,
@@ -21,6 +23,10 @@ object AppLogger {
 
         Timber.plant(Timber.DebugTree())
         debugTreePlanted = true
+    }
+
+    fun installRemoteSink(sink: AppLogSink?) {
+        remoteSink = sink
     }
 
     fun verbose(
@@ -90,7 +96,7 @@ object AppLogger {
     fun throwable(
         tag: String,
         throwable: Throwable,
-        message: String = throwable.message ?: throwable::class.java.simpleName,
+        message: String = throwable::class.java.simpleName,
     ) {
         error(tag = tag, message = message, throwable = throwable)
     }
@@ -104,6 +110,7 @@ object AppLogger {
         message.toLogChunks().forEachIndexed { index, chunk ->
             val throwableForChunk = throwable.takeIf { index == 0 }
             Timber.tag(tag).writeChunk(level, chunk, throwableForChunk)
+            remoteSink?.write(level, tag, chunk, throwableForChunk)
         }
     }
 
@@ -126,4 +133,13 @@ object AppLogger {
             LogLevel.Critical -> wtf(throwable, message)
         }
     }
+}
+
+fun interface AppLogSink {
+    fun write(
+        level: AppLogger.LogLevel,
+        tag: String,
+        message: String,
+        throwable: Throwable?,
+    )
 }

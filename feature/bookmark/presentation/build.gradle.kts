@@ -32,6 +32,7 @@ kotlin {
 }
 
 dependencies {
+    implementation(project(":core:observability"))
     implementation(project(":core:presentation:designsystem"))
     implementation(project(":feature:home:domain"))
 

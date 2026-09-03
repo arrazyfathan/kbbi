@@ -17,6 +17,7 @@ plugins {
     alias(libs.plugins.aboutlibraries.android)
     alias(libs.plugins.google.services)
     alias(libs.plugins.firebase.app.distribution)
+    alias(libs.plugins.firebase.crashlytics)
 }
 
 val packageName = "com.arrazyfathan.kbbi"
@@ -229,6 +230,7 @@ gradle.taskGraph.whenReady {
 
 dependencies {
     implementation(project(":core:app-update"))
+    implementation(project(":core:observability"))
     implementation(project(":core:di"))
     implementation(project(":core:logging"))
     implementation(project(":core:presentation:designsystem"))
@@ -288,7 +290,4 @@ dependencies {
     implementation(libs.koin.androidx.compose)
     implementation(libs.lottie.compose)
     debugImplementation(libs.androidx.compose.ui.tooling)
-
-    implementation(platform(libs.firebase.bom))
-    implementation(libs.firebase.analytics)
 }

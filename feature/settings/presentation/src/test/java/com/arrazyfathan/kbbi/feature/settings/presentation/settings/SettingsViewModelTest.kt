@@ -8,6 +8,8 @@ import com.arrazyfathan.kbbi.core.domain.model.AppResult
 import com.arrazyfathan.kbbi.core.domain.model.AppTheme
 import com.arrazyfathan.kbbi.core.domain.model.DataError
 import com.arrazyfathan.kbbi.core.presentation.ui.UiText
+import com.arrazyfathan.kbbi.core.observability.ReportingPreferences
+import com.arrazyfathan.kbbi.core.observability.ReportingPreferencesRepository
 import com.arrazyfathan.kbbi.feature.home.domain.model.HistoryModel
 import com.arrazyfathan.kbbi.feature.home.domain.repository.SearchHistoryRepository
 import com.arrazyfathan.kbbi.feature.home.domain.usecase.ClearSearchHistoryUseCase
@@ -357,6 +359,18 @@ class SettingsViewModelTest {
         assertMessage(R.string.clear_history_confirmed, viewModel.events.first())
     }
 
+    @Test
+    fun `reporting toggles persist independently and update state`() = runTest(dispatcher) {
+        val reportingRepository = FakeReportingPreferencesRepository()
+        val viewModel = createViewModel(reportingRepository = reportingRepository)
+
+        viewModel.onAction(SettingsAction.OnCrashReportingToggled(false))
+        viewModel.onAction(SettingsAction.OnAnalyticsToggled(true))
+
+        assertFalse(viewModel.state.value.crashReportingEnabled)
+        assertTrue(viewModel.state.value.analyticsEnabled)
+    }
+
     private fun createViewModel(
         repository: FakeSettingsRepository = FakeSettingsRepository(),
         scheduler: FakeScheduler = FakeScheduler(),
@@ -366,6 +380,7 @@ class SettingsViewModelTest {
         appVersion: String = "1.0.0",
         isUpdateCheckEnabled: Boolean = false,
         appIconManager: FakeAppIconManager = FakeAppIconManager(),
+        reportingRepository: ReportingPreferencesRepository = FakeReportingPreferencesRepository(),
     ) =
         SettingsViewModel(
             repository = repository,
@@ -375,6 +390,7 @@ class SettingsViewModelTest {
             appUpdateConfig = AppUpdateConfig(appVersion, isUpdateCheckEnabled),
             clearSearchHistoryUseCase = ClearSearchHistoryUseCase(historyRepository),
             appIconManager = appIconManager,
+            reportingPreferencesRepository = reportingRepository,
         )
 
     private fun assertMessage(
@@ -383,6 +399,19 @@ class SettingsViewModelTest {
     ) {
         val message = (event as SettingsEvent.ShowMessage).message as UiText.StringResource
         assertEquals(expectedResId, message.id)
+    }
+}
+
+private class FakeReportingPreferencesRepository : ReportingPreferencesRepository {
+    private val state = MutableStateFlow(ReportingPreferences())
+    override val preferences: Flow<ReportingPreferences> = state
+
+    override suspend fun setCrashReportingEnabled(enabled: Boolean) {
+        state.value = state.value.copy(crashReportingEnabled = enabled)
+    }
+
+    override suspend fun setAnalyticsEnabled(enabled: Boolean) {
+        state.value = state.value.copy(analyticsEnabled = enabled)
     }
 }
 
