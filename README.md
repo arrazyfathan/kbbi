@@ -72,8 +72,26 @@ KBBI is an unofficial project and is not operated by or affiliated with the Indo
 - View privacy policy, terms and conditions, and open-source licenses in the app.
 - Use Material 3, edge-to-edge layouts, animated transitions, and Lottie states.
 
-<p align="right">
-  <img src="media/preview.gif" alt="Animated KBBI application preview" width="32%" />
+### App preview
+
+<p align="center">
+  <video src="media/preview/preview.mp4" controls muted loop playsinline width="720">
+    Your browser does not support embedded videos. <a href="media/preview/preview.mp4">Watch the KBBI app preview</a>.
+  </video>
+</p>
+
+### Screenshots
+
+<p align="center">
+  <img src="media/screenshot/01-home.png" alt="KBBI home screen" width="180" />
+  <img src="media/screenshot/02-definition.png" alt="KBBI word definition screen" width="180" />
+  <img src="media/screenshot/03-translation.png" alt="KBBI translation screen" width="180" />
+  <img src="media/screenshot/04-word-list.png" alt="KBBI word list screen" width="180" />
+</p>
+<p align="center">
+  <img src="media/screenshot/05-proverb-meaning.png" alt="KBBI proverb meaning screen" width="180" />
+  <img src="media/screenshot/06-proverbs.png" alt="KBBI proverbs screen" width="180" />
+  <img src="media/screenshot/07-settings.png" alt="KBBI settings screen" width="180" />
 </p>
 
 ## Architecture
