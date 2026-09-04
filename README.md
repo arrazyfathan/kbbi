@@ -16,6 +16,18 @@ KBBI is an unofficial Android dictionary for **Kamus Besar Bahasa Indonesia**, b
 
 > The APK is distributed through GitHub Releases. Android may ask you to allow installation from your browser or file manager. Verify that the download comes from `github.com/arrazyfathan/kbbi` before installing it.
 
+<p align="center">
+  <img src="media/screenshot/01-home.png" alt="KBBI home screen" width="180" />
+  <img src="media/screenshot/02-definition.png" alt="KBBI word definition screen" width="180" />
+  <img src="media/screenshot/03-translation.png" alt="KBBI translation screen" width="180" />
+  <img src="media/screenshot/04-word-list.png" alt="KBBI word list screen" width="180" />
+</p>
+<p align="center">
+  <img src="media/screenshot/05-proverb-meaning.png" alt="KBBI proverb meaning screen" width="180" />
+  <img src="media/screenshot/06-proverbs.png" alt="KBBI proverbs screen" width="180" />
+  <img src="media/screenshot/07-settings.png" alt="KBBI settings screen" width="180" />
+</p>
+
 ## About the project
 
 This repository contains the Android client for KBBI. It combines a remote dictionary service with a bundled local word index and on-device Room caches. A successful lookup is cached so previously opened content can remain available when the network is unavailable.
@@ -77,20 +89,6 @@ KBBI is an unofficial project and is not operated by or affiliated with the Indo
 </p>
 <p align="center">
   <a href="media/preview/preview.mp4">Watch the full-quality MP4 preview</a>
-</p>
-
-### Screenshots
-
-<p align="center">
-  <img src="media/screenshot/01-home.png" alt="KBBI home screen" width="180" />
-  <img src="media/screenshot/02-definition.png" alt="KBBI word definition screen" width="180" />
-  <img src="media/screenshot/03-translation.png" alt="KBBI translation screen" width="180" />
-  <img src="media/screenshot/04-word-list.png" alt="KBBI word list screen" width="180" />
-</p>
-<p align="center">
-  <img src="media/screenshot/05-proverb-meaning.png" alt="KBBI proverb meaning screen" width="180" />
-  <img src="media/screenshot/06-proverbs.png" alt="KBBI proverbs screen" width="180" />
-  <img src="media/screenshot/07-settings.png" alt="KBBI settings screen" width="180" />
 </p>
 
 ## Architecture
@@ -398,7 +396,7 @@ Fastlane currently provides `bundle exec fastlane android test`, which delegates
 - [GitHub releases](https://github.com/arrazyfathan/kbbi/releases)
 - [Issue tracker](https://github.com/arrazyfathan/kbbi/issues)
 
-## Screenshots and metrics
+## Metrics
 
 ### MAD Score
 
