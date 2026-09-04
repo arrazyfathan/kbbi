@@ -16,10 +16,6 @@ KBBI is an unofficial Android dictionary for **Kamus Besar Bahasa Indonesia**, b
 
 > The APK is distributed through GitHub Releases. Android may ask you to allow installation from your browser or file manager. Verify that the download comes from `github.com/arrazyfathan/kbbi` before installing it.
 
-<p align="center">
-  <img src="media/Final.png" alt="KBBI Android application preview" />
-</p>
-
 ## About the project
 
 This repository contains the Android client for KBBI. It combines a remote dictionary service with a bundled local word index and on-device Room caches. A successful lookup is cached so previously opened content can remain available when the network is unavailable.
@@ -75,9 +71,12 @@ KBBI is an unofficial project and is not operated by or affiliated with the Indo
 ### App preview
 
 <p align="center">
-  <video src="media/preview/preview.mp4" controls muted loop playsinline width="720">
-    Your browser does not support embedded videos. <a href="media/preview/preview.mp4">Watch the KBBI app preview</a>.
-  </video>
+  <a href="media/preview/preview.mp4">
+    <img src="media/preview/preview.gif" alt="Animated preview of the KBBI Android application" width="320" />
+  </a>
+</p>
+<p align="center">
+  <a href="media/preview/preview.mp4">Watch the full-quality MP4 preview</a>
 </p>
 
 ### Screenshots
