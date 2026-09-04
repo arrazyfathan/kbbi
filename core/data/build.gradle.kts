@@ -58,6 +58,7 @@ kotlin {
 
 dependencies {
     api(project(":core:domain"))
+    implementation(project(":core:observability"))
 
     implementation(project(":core:logging"))
     implementation(libs.ktor.client.core)

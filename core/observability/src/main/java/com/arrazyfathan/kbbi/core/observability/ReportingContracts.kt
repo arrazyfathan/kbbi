@@ -9,6 +9,24 @@ interface AnalyticsReporter {
     fun screenViewed(screen: AnalyticsScreen)
 }
 
+interface NetworkPerformanceReporter {
+    fun start(url: String, method: String): NetworkPerformanceTrace
+}
+
+interface NetworkPerformanceTrace {
+    fun response(statusCode: Int, contentType: String?, payloadSizeBytes: Long?)
+    fun stop()
+}
+
+object NoOpNetworkPerformanceReporter : NetworkPerformanceReporter {
+    override fun start(url: String, method: String): NetworkPerformanceTrace = NoOpNetworkPerformanceTrace
+}
+
+private object NoOpNetworkPerformanceTrace : NetworkPerformanceTrace {
+    override fun response(statusCode: Int, contentType: String?, payloadSizeBytes: Long?) = Unit
+    override fun stop() = Unit
+}
+
 object NoOpAnalyticsReporter : AnalyticsReporter {
     override fun log(event: AnalyticsEvent) = Unit
 
@@ -61,6 +79,7 @@ object NoOpCrashReporter : CrashReporter {
 data class ReportingPreferences(
     val crashReportingEnabled: Boolean = true,
     val analyticsEnabled: Boolean = false,
+    val performanceMonitoringEnabled: Boolean = false,
 )
 
 interface ReportingPreferencesRepository {
@@ -69,6 +88,8 @@ interface ReportingPreferencesRepository {
     suspend fun setCrashReportingEnabled(enabled: Boolean)
 
     suspend fun setAnalyticsEnabled(enabled: Boolean)
+
+    suspend fun setPerformanceMonitoringEnabled(enabled: Boolean)
 }
 
 object DefaultReportingPreferencesRepository : ReportingPreferencesRepository {
@@ -77,6 +98,8 @@ object DefaultReportingPreferencesRepository : ReportingPreferencesRepository {
     override suspend fun setCrashReportingEnabled(enabled: Boolean) = Unit
 
     override suspend fun setAnalyticsEnabled(enabled: Boolean) = Unit
+
+    override suspend fun setPerformanceMonitoringEnabled(enabled: Boolean) = Unit
 }
 
 interface ReportingCoordinator {

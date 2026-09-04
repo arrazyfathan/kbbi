@@ -5,11 +5,66 @@ import com.arrazyfathan.kbbi.core.logging.AppLogSink
 import com.arrazyfathan.kbbi.core.logging.AppLogger
 import com.google.firebase.analytics.FirebaseAnalytics
 import com.google.firebase.crashlytics.FirebaseCrashlytics
+import com.google.firebase.perf.FirebasePerformance
+import com.google.firebase.perf.metrics.HttpMetric
 import java.util.concurrent.atomic.AtomicBoolean
 
 internal class ReportingGate {
     val analyticsEnabled = AtomicBoolean(false)
     val crashReportingEnabled = AtomicBoolean(true)
+    val performanceMonitoringEnabled = AtomicBoolean(false)
+}
+
+internal class FirebaseNetworkPerformanceReporter(
+    private val performance: FirebasePerformance,
+    private val gate: ReportingGate,
+    private val eligible: Boolean,
+) : NetworkPerformanceReporter {
+    override fun start(url: String, method: String): NetworkPerformanceTrace {
+        if (!eligible || !gate.performanceMonitoringEnabled.get()) {
+            return NoOpNetworkPerformanceReporter.start(url, method)
+        }
+        return runCatching {
+            FirebaseNetworkPerformanceTrace(
+                performance.newHttpMetric(sanitizePerformanceUrl(url), method),
+            ).also { it.start() }
+        }.getOrElse { NoOpNetworkPerformanceReporter.start(url, method) }
+    }
+}
+
+private class FirebaseNetworkPerformanceTrace(
+    private val metric: HttpMetric,
+) : NetworkPerformanceTrace {
+    private val stopped = AtomicBoolean(false)
+
+    fun start() = metric.start()
+
+    override fun response(statusCode: Int, contentType: String?, payloadSizeBytes: Long?) {
+        if (stopped.get()) return
+        runCatching {
+            metric.setHttpResponseCode(statusCode)
+            contentType?.let(metric::setResponseContentType)
+            payloadSizeBytes?.let(metric::setResponsePayloadSize)
+        }
+    }
+
+    override fun stop() {
+        if (stopped.compareAndSet(false, true)) runCatching { metric.stop() }
+    }
+}
+
+internal fun sanitizePerformanceUrl(url: String): String {
+    val uri = runCatching { java.net.URI(url) }.getOrNull() ?: return "https://invalid.invalid/unknown"
+    val origin = "${uri.scheme ?: "https"}://${uri.rawAuthority ?: "invalid.invalid"}"
+    val path = uri.path.orEmpty()
+    val safePath = when {
+        path == "/proverb" || path == "/proverb/search" -> path
+        path.startsWith("/search/") -> "/search/_redacted_"
+        path.startsWith("/translate/") -> "/translate/_redacted_"
+        path.startsWith("/proverb/") -> "/proverb/_redacted_"
+        else -> "/unknown"
+    }
+    return origin + safePath
 }
 
 internal class FirebaseAnalyticsReporter(

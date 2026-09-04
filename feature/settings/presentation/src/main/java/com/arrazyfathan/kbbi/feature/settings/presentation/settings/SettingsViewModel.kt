@@ -50,6 +50,7 @@ data class SettingsState(
     val pendingAppIcon: AppIcon? = null,
     val crashReportingEnabled: Boolean = true,
     val analyticsEnabled: Boolean = false,
+    val performanceMonitoringEnabled: Boolean = false,
 )
 
 sealed interface SettingsAction {
@@ -93,6 +94,10 @@ sealed interface SettingsAction {
     ) : SettingsAction
 
     data class OnAnalyticsToggled(
+        val enabled: Boolean,
+    ) : SettingsAction
+
+    data class OnPerformanceMonitoringToggled(
         val enabled: Boolean,
     ) : SettingsAction
 
@@ -194,6 +199,7 @@ class SettingsViewModel(
                     it.copy(
                         crashReportingEnabled = preferences.crashReportingEnabled,
                         analyticsEnabled = preferences.analyticsEnabled,
+                        performanceMonitoringEnabled = preferences.performanceMonitoringEnabled,
                     )
                 }
             }
@@ -258,6 +264,10 @@ class SettingsViewModel(
 
             is SettingsAction.OnAnalyticsToggled -> {
                 setAnalyticsEnabled(action.enabled)
+            }
+
+            is SettingsAction.OnPerformanceMonitoringToggled -> {
+                setPerformanceMonitoringEnabled(action.enabled)
             }
 
             is SettingsAction.OnThemeSelected -> {
@@ -371,6 +381,13 @@ class SettingsViewModel(
     private fun setAnalyticsEnabled(enabled: Boolean) {
         viewModelScope.launch {
             runCatching { reportingPreferencesRepository.setAnalyticsEnabled(enabled) }
+                .onFailure { showMessage(R.string.reporting_setting_failed) }
+        }
+    }
+
+    private fun setPerformanceMonitoringEnabled(enabled: Boolean) {
+        viewModelScope.launch {
+            runCatching { reportingPreferencesRepository.setPerformanceMonitoringEnabled(enabled) }
                 .onFailure { showMessage(R.string.reporting_setting_failed) }
         }
     }

@@ -374,8 +374,10 @@ fun SettingsScreen(
             PrivacyDiagnosticsSection(
                 crashReportingEnabled = state.crashReportingEnabled,
                 analyticsEnabled = state.analyticsEnabled,
+                performanceMonitoringEnabled = state.performanceMonitoringEnabled,
                 onCrashReportingChanged = { onAction(SettingsAction.OnCrashReportingToggled(it)) },
                 onAnalyticsChanged = { onAction(SettingsAction.OnAnalyticsToggled(it)) },
+                onPerformanceMonitoringChanged = { onAction(SettingsAction.OnPerformanceMonitoringToggled(it)) },
             )
             LanguageSection(
                 selectedLanguage = state.selectedLanguage,
@@ -819,11 +821,14 @@ private fun InteractionSection(
 private fun PrivacyDiagnosticsSection(
     crashReportingEnabled: Boolean,
     analyticsEnabled: Boolean,
+    performanceMonitoringEnabled: Boolean,
     onCrashReportingChanged: (Boolean) -> Unit,
     onAnalyticsChanged: (Boolean) -> Unit,
+    onPerformanceMonitoringChanged: (Boolean) -> Unit,
 ) {
     SettingsSectionCard(title = stringResource(R.string.privacy_diagnostics_section_title)) {
         ReportingToggleRow(
+            iconRes = R.drawable.ic_bug,
             title = stringResource(R.string.crash_reporting_title),
             description = stringResource(R.string.crash_reporting_description),
             enabled = crashReportingEnabled,
@@ -831,16 +836,26 @@ private fun PrivacyDiagnosticsSection(
         )
         SettingsDivider()
         ReportingToggleRow(
+            iconRes = R.drawable.ic_analytics,
             title = stringResource(R.string.usage_analytics_title),
             description = stringResource(R.string.usage_analytics_description),
             enabled = analyticsEnabled,
             onToggle = onAnalyticsChanged,
+        )
+        SettingsDivider()
+        ReportingToggleRow(
+            iconRes = R.drawable.ic_speed,
+            title = stringResource(R.string.performance_monitoring_title),
+            description = stringResource(R.string.performance_monitoring_description),
+            enabled = performanceMonitoringEnabled,
+            onToggle = onPerformanceMonitoringChanged,
         )
     }
 }
 
 @Composable
 private fun ReportingToggleRow(
+    iconRes: Int,
     title: String,
     description: String,
     enabled: Boolean,
@@ -855,7 +870,7 @@ private fun ReportingToggleRow(
         verticalAlignment = Alignment.CenterVertically,
     ) {
         Icon(
-            painter = painterResource(R.drawable.ic_privacy),
+            painter = painterResource(iconRes),
             contentDescription = null,
             tint = MaterialTheme.colorScheme.primary,
             modifier = Modifier.size(22.dp),

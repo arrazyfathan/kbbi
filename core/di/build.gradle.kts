@@ -28,6 +28,7 @@ kotlin {
 
 dependencies {
     implementation(project(":core:data"))
+    implementation(project(":core:observability"))
     implementation(libs.koin.core)
     implementation(libs.ktor.client.core)
     implementation(libs.kotlinx.serialization.json)

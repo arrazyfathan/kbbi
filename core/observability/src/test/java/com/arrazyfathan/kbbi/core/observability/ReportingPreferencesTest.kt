@@ -13,6 +13,7 @@ class ReportingPreferencesTest {
 
         assertTrue(preferences.crashReportingEnabled)
         assertFalse(preferences.analyticsEnabled)
+        assertFalse(preferences.performanceMonitoringEnabled)
     }
 
     @Test
@@ -25,5 +26,6 @@ class ReportingPreferencesTest {
 
         assertFalse(preferences.crashReportingEnabled)
         assertTrue(preferences.analyticsEnabled)
+        assertFalse(preferences.performanceMonitoringEnabled)
     }
 }

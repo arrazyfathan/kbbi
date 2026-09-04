@@ -366,9 +366,11 @@ class SettingsViewModelTest {
 
         viewModel.onAction(SettingsAction.OnCrashReportingToggled(false))
         viewModel.onAction(SettingsAction.OnAnalyticsToggled(true))
+        viewModel.onAction(SettingsAction.OnPerformanceMonitoringToggled(true))
 
         assertFalse(viewModel.state.value.crashReportingEnabled)
         assertTrue(viewModel.state.value.analyticsEnabled)
+        assertTrue(viewModel.state.value.performanceMonitoringEnabled)
     }
 
     private fun createViewModel(
@@ -412,6 +414,10 @@ private class FakeReportingPreferencesRepository : ReportingPreferencesRepositor
 
     override suspend fun setAnalyticsEnabled(enabled: Boolean) {
         state.value = state.value.copy(analyticsEnabled = enabled)
+    }
+
+    override suspend fun setPerformanceMonitoringEnabled(enabled: Boolean) {
+        state.value = state.value.copy(performanceMonitoringEnabled = enabled)
     }
 }
 

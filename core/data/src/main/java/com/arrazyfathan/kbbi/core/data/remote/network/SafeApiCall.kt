@@ -4,6 +4,8 @@ import com.arrazyfathan.kbbi.core.data.BuildConfig
 import com.arrazyfathan.kbbi.core.domain.model.AppResult
 import com.arrazyfathan.kbbi.core.domain.model.DataError
 import com.arrazyfathan.kbbi.core.logging.AppLogger
+import com.arrazyfathan.kbbi.core.observability.NetworkPerformanceTrace
+import com.arrazyfathan.kbbi.core.observability.NoOpNetworkPerformanceReporter
 import io.ktor.client.HttpClient
 import io.ktor.client.call.body
 import io.ktor.client.plugins.HttpRequestTimeoutException
@@ -17,6 +19,7 @@ import io.ktor.client.request.put
 import io.ktor.client.request.setBody
 import io.ktor.client.request.url
 import io.ktor.client.statement.HttpResponse
+import io.ktor.http.HttpHeaders
 import io.ktor.util.network.UnresolvedAddressException
 import kotlinx.serialization.SerializationException
 import java.io.IOException
@@ -41,7 +44,7 @@ suspend inline fun <reified Response : Any> HttpClient.get(
     queryParameters: Map<String, Any?> = emptyMap(),
     headers: Map<String, String> = emptyMap(),
 ): AppResult<Response, DataError> =
-    safeCall {
+    safeCall(networkTrace("GET", route)) {
         get {
             url(constructRoute(route))
             queryParameters.forEach { (key, value) ->
@@ -57,7 +60,7 @@ suspend inline fun <reified Request : Any, reified Response : Any> HttpClient.po
     route: String,
     body: Request,
 ): AppResult<Response, DataError> =
-    safeCall {
+    safeCall(networkTrace("POST", route)) {
         post {
             url(constructRoute(route))
             setBody(body)
@@ -68,7 +71,7 @@ suspend inline fun <reified Request : Any, reified Response : Any> HttpClient.pu
     route: String,
     body: Request,
 ): AppResult<Response, DataError> =
-    safeCall {
+    safeCall(networkTrace("PUT", route)) {
         put {
             url(constructRoute(route))
             setBody(body)
@@ -79,7 +82,7 @@ suspend inline fun <reified Request : Any, reified Response : Any> HttpClient.pa
     route: String,
     body: Request,
 ): AppResult<Response, DataError> =
-    safeCall {
+    safeCall(networkTrace("PATCH", route)) {
         patch {
             url(constructRoute(route))
             setBody(body)
@@ -90,7 +93,7 @@ suspend inline fun <reified Response : Any> HttpClient.delete(
     route: String,
     queryParameters: Map<String, Any?> = emptyMap(),
 ): AppResult<Response, DataError> =
-    safeCall {
+    safeCall(networkTrace("DELETE", route)) {
         delete {
             url(constructRoute(route))
             queryParameters.forEach { (key, value) ->
@@ -99,35 +102,52 @@ suspend inline fun <reified Response : Any> HttpClient.delete(
         }
     }
 
-suspend inline fun <reified T : Any> safeCall(noinline execute: suspend () -> HttpResponse): AppResult<T, DataError> {
-    val response =
-        try {
-            execute()
-        } catch (_: UnresolvedAddressException) {
-            return AppResult.Error(DataError.NoInternet)
-        } catch (_: HttpRequestTimeoutException) {
-            return AppResult.Error(DataError.RequestTimeout)
-        } catch (e: IOException) {
-            val error = e.toDataError()
-            if (error == DataError.Unknown) {
-                AppLogger.error(API_ERROR_TAG, e, "Network request failed unexpectedly")
-            }
-            return AppResult.Error(error)
-        } catch (e: CancellationException) {
-            throw e
-        } catch (e: SerializationException) {
-            AppLogger.error(API_ERROR_TAG, e, "Network response serialization failed")
-            return AppResult.Error(DataError.Serialization)
-        } catch (e: IllegalArgumentException) {
-            AppLogger.error(API_ERROR_TAG, e, "Network response was invalid")
-            return AppResult.Error(DataError.Serialization)
-        } catch (e: Exception) {
+suspend inline fun <reified T : Any> safeCall(
+    trace: NetworkPerformanceTrace = NoOpNetworkPerformanceReporter.start("", ""),
+    noinline execute: suspend () -> HttpResponse,
+): AppResult<T, DataError> = try {
+    val response = try {
+        execute()
+    } catch (_: UnresolvedAddressException) {
+        return AppResult.Error(DataError.NoInternet)
+    } catch (_: HttpRequestTimeoutException) {
+        return AppResult.Error(DataError.RequestTimeout)
+    } catch (e: IOException) {
+        val error = e.toDataError()
+        if (error == DataError.Unknown) {
             AppLogger.error(API_ERROR_TAG, e, "Network request failed unexpectedly")
-            return AppResult.Error(DataError.Unknown)
         }
+        return AppResult.Error(error)
+    } catch (e: CancellationException) {
+        throw e
+    } catch (e: SerializationException) {
+        AppLogger.error(API_ERROR_TAG, e, "Network response serialization failed")
+        return AppResult.Error(DataError.Serialization)
+    } catch (e: IllegalArgumentException) {
+        AppLogger.error(API_ERROR_TAG, e, "Network response was invalid")
+        return AppResult.Error(DataError.Serialization)
+    } catch (e: Exception) {
+        AppLogger.error(API_ERROR_TAG, e, "Network request failed unexpectedly")
+        return AppResult.Error(DataError.Unknown)
+    }
 
-    return responseToResult(response)
+    runCatching {
+        trace.response(
+            statusCode = response.status.value,
+            contentType = response.headers[HttpHeaders.ContentType],
+            payloadSizeBytes = response.headers[HttpHeaders.ContentLength]?.toLongOrNull(),
+        )
+    }
+    responseToResult(response)
+} finally {
+    runCatching { trace.stop() }
 }
+
+@PublishedApi
+internal fun HttpClient.networkTrace(method: String, route: String): NetworkPerformanceTrace =
+    attributes.getOrNull(NETWORK_PERFORMANCE_REPORTER)?.let {
+        runCatching { it.start(constructRoute(route), method) }.getOrNull()
+    } ?: NoOpNetworkPerformanceReporter.start("", method)
 
 suspend inline fun <reified T : Any> responseToResult(response: HttpResponse): AppResult<T, DataError> =
     when (response.status.value) {

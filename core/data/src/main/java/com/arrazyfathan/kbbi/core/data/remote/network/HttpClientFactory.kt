@@ -3,6 +3,7 @@ package com.arrazyfathan.kbbi.core.data.remote.network
 import com.arrazyfathan.kbbi.core.data.BuildConfig
 import com.arrazyfathan.kbbi.core.logging.AppLogger
 import com.arrazyfathan.kbbi.core.logging.NetworkLogFormatter
+import com.arrazyfathan.kbbi.core.observability.NetworkPerformanceReporter
 import io.ktor.client.HttpClient
 import io.ktor.client.engine.HttpClientEngine
 import io.ktor.client.engine.okhttp.OkHttp
@@ -17,6 +18,7 @@ import io.ktor.client.request.header
 import io.ktor.http.ContentType
 import io.ktor.http.contentType
 import io.ktor.serialization.kotlinx.json.json
+import io.ktor.util.AttributeKey
 import kotlinx.serialization.json.Json
 
 private const val NETWORK_TIMEOUT_SECONDS = 120L
@@ -25,6 +27,7 @@ private const val API_LOG_TAG = "KBBI-API"
 
 class HttpClientFactory(
     private val json: Json,
+    private val networkPerformanceReporter: NetworkPerformanceReporter,
 ) {
     fun build(engine: HttpClientEngine = OkHttp.create()): HttpClient =
         HttpClient(engine) {
@@ -54,5 +57,8 @@ class HttpClientFactory(
                 accept(ContentType.Application.Json)
                 header("Accept-Language", "id")
             }
-        }
+        }.also { it.attributes.put(NETWORK_PERFORMANCE_REPORTER, networkPerformanceReporter) }
 }
+
+@PublishedApi
+internal val NETWORK_PERFORMANCE_REPORTER = AttributeKey<NetworkPerformanceReporter>("network_performance_reporter")
