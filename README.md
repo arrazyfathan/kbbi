@@ -101,6 +101,11 @@ KBBI is a multi-module Android project organized by feature and layer. Dependenc
 
 :feature:<name>:domain
   └── domain models, repository interfaces, and use cases
+
+:core:observability
+  ├── Firebase Analytics, Crashlytics, and Performance Monitoring adapters
+  ├── privacy-aware reporting preferences and collection gates
+  └── sanitized network performance traces and diagnostic context
 ```
 
 Presentation follows an MVI-style unidirectional flow with immutable screen state, user actions, ViewModels, and one-shot events. Koin assembles implementations at the application boundary.
@@ -121,6 +126,7 @@ Presentation follows an MVI-style unidirectional flow with immutable screen stat
 │   ├── di/                         # Shared Koin modules
 │   ├── domain/                     # AppResult, DataError, shared primitives
 │   ├── logging/                    # Application and network logging
+│   ├── observability/              # Crash, analytics, and performance reporting
 │   ├── presentation/
 │   │   ├── designsystem/           # Theme, typography, resources, haptics, components
 │   │   └── ui/                     # UiText, alerts, errors, loading coordination
@@ -175,6 +181,18 @@ The bundled asset contains word entries, not full definitions. A word must be op
 - WorkManager schedules unique periodic work for each enabled reminder type.
 - Notification taps route back into the appropriate word, proverb, or bookmark destination.
 - App language is stored through AndroidX per-app locale APIs.
+
+## Observability
+
+The app uses the `:core:observability` module to provide opt-in usage and performance diagnostics, plus crash diagnostics:
+
+- Firebase Crashlytics records crashes, selected non-fatal failures, warning/error breadcrumbs, and allowlisted diagnostic keys. Crash reporting is enabled by default.
+- Firebase Analytics records anonymous screen views and feature events when Usage analytics is enabled. It is disabled by default.
+- Firebase Performance records app performance data and sanitized HTTP timing metrics when Performance diagnostics is enabled. It is disabled by default and only eligible for production release builds.
+- Search terms, dictionary definitions, translations, and the dictionary visitor identifier are not sent to Firebase. Network performance URLs redact word, translation, and proverb identifiers.
+- Reporting choices are stored locally and can be changed independently under **Settings → Privacy & diagnostics**. Disabling crash reporting also deletes unsent Crashlytics reports; changes take effect fully after restarting the app.
+
+Firebase reporting requires the application's Firebase configuration. The implementation uses no-op reporters when a reporting channel is disabled, keeping feature code independent of the telemetry provider.
 
 ## Technology
 
