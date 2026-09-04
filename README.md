@@ -82,14 +82,7 @@ KBBI is an unofficial project and is not operated by or affiliated with the Indo
 
 ### App preview
 
-<p align="center">
-  <a href="media/preview/preview.mp4">
-    <img src="media/preview/preview.gif" alt="Animated preview of the KBBI Android application" width="320" />
-  </a>
-</p>
-<p align="center">
-  <a href="media/preview/preview.mp4">Watch the full-quality MP4 preview</a>
-</p>
+https://github.com/user-attachments/assets/fa659d84-d993-4c0a-9be1-c2f4eeef82a0
 
 ## Architecture
 
