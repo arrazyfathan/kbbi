@@ -8,10 +8,12 @@ import com.arrazyfathan.kbbi.feature.home.data.source.local.AssetWordCatalogRepo
 import com.arrazyfathan.kbbi.feature.home.data.source.local.WordLocalDataSource
 import com.arrazyfathan.kbbi.feature.home.data.source.local.room.WordDatabase
 import com.arrazyfathan.kbbi.feature.home.data.source.remote.SharedPreferencesVisitorIdProvider
+import com.arrazyfathan.kbbi.feature.home.data.source.remote.TopWordsRemoteDataSource
 import com.arrazyfathan.kbbi.feature.home.data.source.remote.VisitorIdProvider
 import com.arrazyfathan.kbbi.feature.home.data.source.remote.WordRemoteDataSource
 import com.arrazyfathan.kbbi.feature.home.domain.repository.BookmarkRepository
 import com.arrazyfathan.kbbi.feature.home.domain.repository.SearchHistoryRepository
+import com.arrazyfathan.kbbi.feature.home.domain.repository.TopWordsRepository
 import com.arrazyfathan.kbbi.feature.home.domain.repository.TranslateRepository
 import com.arrazyfathan.kbbi.feature.home.domain.repository.WordCatalogRepository
 import com.arrazyfathan.kbbi.feature.home.domain.repository.WordSearchRepository
@@ -57,6 +59,7 @@ val repositoryModule =
     module {
         single<VisitorIdProvider> { SharedPreferencesVisitorIdProvider(androidContext()) }
         singleOf(::WordRemoteDataSource)
+        singleOf(::TopWordsRemoteDataSource)
         singleOf(::WordLocalDataSource)
         single<WordCatalogRepository> { AssetWordCatalogRepository(androidContext(), get()) }
         singleOf(::WordRepository) {
@@ -64,5 +67,6 @@ val repositoryModule =
             bind<BookmarkRepository>()
             bind<SearchHistoryRepository>()
             bind<TranslateRepository>()
+            bind<TopWordsRepository>()
         }
     }

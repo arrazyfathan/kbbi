@@ -3,6 +3,7 @@ package com.arrazyfathan.kbbi.feature.home.data.source.remote
 import com.arrazyfathan.kbbi.core.data.remote.network.HttpClientFactory
 import com.arrazyfathan.kbbi.core.domain.model.AppResult
 import com.arrazyfathan.kbbi.core.domain.model.DataError
+import com.arrazyfathan.kbbi.core.observability.NoOpNetworkPerformanceReporter
 import io.ktor.client.engine.mock.MockEngine
 import io.ktor.client.engine.mock.MockRequestHandleScope
 import io.ktor.client.engine.mock.respond
@@ -172,7 +173,10 @@ class WordRemoteDataSourceTest {
         }
 
     private fun httpClientWithMockEngine(handler: suspend MockRequestHandleScope.(HttpRequestData) -> HttpResponseData) =
-        HttpClientFactory(Json { ignoreUnknownKeys = true })
+        HttpClientFactory(
+            json = Json { ignoreUnknownKeys = true },
+            networkPerformanceReporter = NoOpNetworkPerformanceReporter,
+        )
             .build(MockEngine { request -> handler(request) })
 
     private fun MockRequestHandleScope.respondJson(content: String) =

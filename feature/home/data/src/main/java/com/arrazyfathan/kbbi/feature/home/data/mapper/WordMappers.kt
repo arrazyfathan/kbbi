@@ -5,6 +5,7 @@ import com.arrazyfathan.kbbi.feature.home.data.source.local.entity.ListWordEntit
 import com.arrazyfathan.kbbi.feature.home.data.source.local.entity.MeaningEntity
 import com.arrazyfathan.kbbi.feature.home.data.source.local.entity.WordEntity
 import com.arrazyfathan.kbbi.feature.home.data.source.remote.dto.MeaningDto
+import com.arrazyfathan.kbbi.feature.home.data.source.remote.dto.TopWordDto
 import com.arrazyfathan.kbbi.feature.home.data.source.remote.dto.TranslateDataDto
 import com.arrazyfathan.kbbi.feature.home.data.source.remote.dto.TranslatedDefinitionDto
 import com.arrazyfathan.kbbi.feature.home.data.source.remote.dto.TranslatedEntryDto
@@ -12,6 +13,7 @@ import com.arrazyfathan.kbbi.feature.home.data.source.remote.dto.WordDto
 import com.arrazyfathan.kbbi.feature.home.domain.model.HistoryModel
 import com.arrazyfathan.kbbi.feature.home.domain.model.ListWordModel
 import com.arrazyfathan.kbbi.feature.home.domain.model.MeaningModel
+import com.arrazyfathan.kbbi.feature.home.domain.model.TopWordModel
 import com.arrazyfathan.kbbi.feature.home.domain.model.TranslateModel
 import com.arrazyfathan.kbbi.feature.home.domain.model.TranslatedMeaningModel
 import com.arrazyfathan.kbbi.feature.home.domain.model.TranslatedWordModel
@@ -21,6 +23,12 @@ fun WordDto.toDomain(): WordModel =
     WordModel(
         entry = entry,
         meanings = meanings.map { it.toDomain() },
+    )
+
+fun TopWordDto.toDomain(): TopWordModel =
+    TopWordModel(
+        word = word,
+        visitorCount = visitorCount,
     )
 
 fun List<WordDto>.toWordModels(): List<WordModel> = map { it.toDomain() }

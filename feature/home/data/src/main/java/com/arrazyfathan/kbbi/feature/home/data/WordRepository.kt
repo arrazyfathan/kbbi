@@ -8,13 +8,16 @@ import com.arrazyfathan.kbbi.feature.home.data.mapper.toHistoryModels
 import com.arrazyfathan.kbbi.feature.home.data.mapper.toWordEntities
 import com.arrazyfathan.kbbi.feature.home.data.source.local.WordLocalDataSource
 import com.arrazyfathan.kbbi.feature.home.data.source.local.entity.ListWordEntity
+import com.arrazyfathan.kbbi.feature.home.data.source.remote.TopWordsRemoteDataSource
 import com.arrazyfathan.kbbi.feature.home.data.source.remote.WordRemoteDataSource
 import com.arrazyfathan.kbbi.feature.home.domain.model.HistoryModel
 import com.arrazyfathan.kbbi.feature.home.domain.model.ListWordModel
+import com.arrazyfathan.kbbi.feature.home.domain.model.TopWordModel
 import com.arrazyfathan.kbbi.feature.home.domain.model.TranslateModel
 import com.arrazyfathan.kbbi.feature.home.domain.model.WordModel
 import com.arrazyfathan.kbbi.feature.home.domain.repository.BookmarkRepository
 import com.arrazyfathan.kbbi.feature.home.domain.repository.SearchHistoryRepository
+import com.arrazyfathan.kbbi.feature.home.domain.repository.TopWordsRepository
 import com.arrazyfathan.kbbi.feature.home.domain.repository.TranslateRepository
 import com.arrazyfathan.kbbi.feature.home.domain.repository.WordSearchRepository
 import kotlinx.coroutines.Dispatchers
@@ -27,11 +30,13 @@ import kotlinx.coroutines.withContext
  */
 class WordRepository(
     private val remoteDataSource: WordRemoteDataSource,
+    private val topWordsRemoteDataSource: TopWordsRemoteDataSource,
     private val localDataSource: WordLocalDataSource,
 ) : WordSearchRepository,
     BookmarkRepository,
     SearchHistoryRepository,
-    TranslateRepository {
+    TranslateRepository,
+    TopWordsRepository {
     override suspend fun getMeaningOfWord(word: String): AppResult<ListWordModel, DataError> {
         val remoteResult = remoteDataSource.getMeaningOfWord(word)
         if (remoteResult is AppResult.Success) {
@@ -110,4 +115,7 @@ class WordRepository(
 
     override suspend fun getTranslation(word: String): AppResult<TranslateModel, DataError> =
         remoteDataSource.translate(word)
+
+    override suspend fun getTopWords(limit: Int): AppResult<List<TopWordModel>, DataError> =
+        topWordsRemoteDataSource.getTopWords(limit)
 }
