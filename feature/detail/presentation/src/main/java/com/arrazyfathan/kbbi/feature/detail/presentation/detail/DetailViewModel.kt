@@ -170,7 +170,7 @@ class DetailViewModel(
             return
         }
 
-        if (translationJob != null) return
+        if (translationJob?.isActive == true) return
         _state.update { it.copy(isTranslationLoading = true) }
         translationJob =
             viewModelScope.launch {

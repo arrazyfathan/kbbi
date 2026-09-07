@@ -101,6 +101,23 @@ class DetailViewModelTest {
     }
 
     @Test
+    fun `retrying translation after a failure refetches and enables`() = runTest(dispatcher) {
+        val translateRepository = FakeTranslateRepository(AppResult.Error(DataError.NoInternet))
+        val viewModel = createViewModel(translateRepository = translateRepository)
+
+        viewModel.onAction(DetailAction.OnTranslateToggled("belajar", true))
+        viewModel.events.first()
+
+        translateRepository.result = AppResult.Success(sampleTranslation())
+        viewModel.onAction(DetailAction.OnTranslateToggled("belajar", true))
+
+        assertTrue(viewModel.state.value.isTranslationEnabled)
+        assertFalse(viewModel.state.value.isTranslationLoading)
+        assertEquals("learn", viewModel.state.value.translation?.translation)
+        assertEquals(2, translateRepository.requestedWords.size)
+    }
+
+    @Test
     fun `bookmark action reports only action and surface`() = runTest(dispatcher) {
         val reporter = FakeAnalyticsReporter()
         val viewModel = createViewModel(analyticsReporter = reporter)
