@@ -5,11 +5,13 @@ import androidx.lifecycle.viewModelScope
 import com.arrazyfathan.kbbi.core.appupdate.domain.AppUpdate
 import com.arrazyfathan.kbbi.core.appupdate.domain.AppUpdateDownloadManager
 import com.arrazyfathan.kbbi.core.appupdate.domain.AppUpdateDownloadState
+import com.arrazyfathan.kbbi.core.appupdate.domain.AppUpdateRequirement
 import com.arrazyfathan.kbbi.core.observability.AnalyticsEvent
 import com.arrazyfathan.kbbi.core.observability.AnalyticsReporter
 import com.arrazyfathan.kbbi.core.observability.EventOutcome
 import com.arrazyfathan.kbbi.core.observability.NoOpAnalyticsReporter
 import com.arrazyfathan.kbbi.core.observability.UpdateAction
+import com.arrazyfathan.kbbi.core.observability.UpdateRequirement
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.delay
@@ -35,12 +37,16 @@ sealed interface AppUpdateDownloadAction {
     data object OnHostResumed : AppUpdateDownloadAction
 
     data object OnHostPaused : AppUpdateDownloadAction
+
+    data object OnExitClick : AppUpdateDownloadAction
 }
 
 sealed interface AppUpdateDownloadEvent {
     data class LaunchInstaller(
         val downloadId: Long,
     ) : AppUpdateDownloadEvent
+
+    data object ExitApp : AppUpdateDownloadEvent
 }
 
 class AppUpdateDownloadViewModel(
@@ -91,13 +97,28 @@ class AppUpdateDownloadViewModel(
             AppUpdateDownloadAction.OnHostPaused -> {
                 isHostResumed = false
             }
+
+            AppUpdateDownloadAction.OnExitClick -> {
+                analyticsReporter.log(
+                    AnalyticsEvent.AppUpdateInteraction(
+                        UpdateAction.Exit,
+                        EventOutcome.Started,
+                        currentUpdate.analyticsRequirement(),
+                    ),
+                )
+                viewModelScope.launch { _events.send(AppUpdateDownloadEvent.ExitApp) }
+            }
         }
     }
 
     private fun onDownloadClick() {
         val update = currentUpdate ?: return
         analyticsReporter.log(
-            AnalyticsEvent.AppUpdateInteraction(UpdateAction.Download, EventOutcome.Started),
+            AnalyticsEvent.AppUpdateInteraction(
+                UpdateAction.Download,
+                EventOutcome.Started,
+                update.analyticsRequirement(),
+            ),
         )
         when (val downloadState = downloadManager.state.value) {
             is AppUpdateDownloadState.Ready -> {
@@ -151,7 +172,11 @@ class AppUpdateDownloadViewModel(
     private fun emitInstallerEvent(downloadId: Long) {
         lastInstallerDownloadId = downloadId
         analyticsReporter.log(
-            AnalyticsEvent.AppUpdateInteraction(UpdateAction.Install, EventOutcome.Started),
+            AnalyticsEvent.AppUpdateInteraction(
+                UpdateAction.Install,
+                EventOutcome.Started,
+                currentUpdate.analyticsRequirement(),
+            ),
         )
         viewModelScope.launch { _events.send(AppUpdateDownloadEvent.LaunchInstaller(downloadId)) }
     }
@@ -165,10 +190,23 @@ class AppUpdateDownloadViewModel(
             }
         if (lastReportedDownloadOutcome == outcome) return
         lastReportedDownloadOutcome = outcome
-        analyticsReporter.log(AnalyticsEvent.AppUpdateInteraction(UpdateAction.Download, outcome))
+        analyticsReporter.log(
+            AnalyticsEvent.AppUpdateInteraction(
+                UpdateAction.Download,
+                outcome,
+                currentUpdate.analyticsRequirement(),
+            ),
+        )
     }
 
     private companion object {
         const val DOWNLOAD_REFRESH_INTERVAL_MILLIS = 750L
     }
 }
+
+private fun AppUpdate?.analyticsRequirement(): UpdateRequirement =
+    if (this?.requirement == AppUpdateRequirement.REQUIRED) {
+        UpdateRequirement.Required
+    } else {
+        UpdateRequirement.Optional
+    }

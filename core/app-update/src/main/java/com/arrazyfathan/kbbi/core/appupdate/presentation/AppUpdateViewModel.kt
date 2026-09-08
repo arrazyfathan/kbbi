@@ -5,12 +5,14 @@ import androidx.lifecycle.viewModelScope
 import com.arrazyfathan.kbbi.core.appupdate.domain.AppUpdate
 import com.arrazyfathan.kbbi.core.appupdate.domain.AppUpdateConfig
 import com.arrazyfathan.kbbi.core.appupdate.domain.AppUpdateRepository
+import com.arrazyfathan.kbbi.core.appupdate.domain.AppUpdateRequirement
 import com.arrazyfathan.kbbi.core.domain.model.AppResult
 import com.arrazyfathan.kbbi.core.observability.AnalyticsEvent
 import com.arrazyfathan.kbbi.core.observability.AnalyticsReporter
 import com.arrazyfathan.kbbi.core.observability.EventOutcome
 import com.arrazyfathan.kbbi.core.observability.NoOpAnalyticsReporter
 import com.arrazyfathan.kbbi.core.observability.UpdateAction
+import com.arrazyfathan.kbbi.core.observability.UpdateRequirement
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
@@ -34,13 +36,28 @@ class AppUpdateViewModel(
 ) : ViewModel() {
     private val _state = MutableStateFlow(AppUpdateState(currentVersion = config.currentVersion))
     val state = _state.asStateFlow()
+    private var hasStarted = false
 
     fun onAction(action: AppUpdateAction) {
         when (action) {
-            AppUpdateAction.OnAppStarted -> checkForUpdate()
+            AppUpdateAction.OnAppStarted -> {
+                if (!hasStarted) {
+                    hasStarted = true
+                    checkForUpdate()
+                }
+            }
+
             AppUpdateAction.OnPromptDismissed -> {
+                val requirement =
+                    _state.value.availableUpdate
+                        ?.requirement
+                        .toAnalyticsRequirement()
                 analyticsReporter.log(
-                    AnalyticsEvent.AppUpdateInteraction(UpdateAction.Prompt, EventOutcome.Dismissed),
+                    AnalyticsEvent.AppUpdateInteraction(
+                        UpdateAction.Prompt,
+                        EventOutcome.Dismissed,
+                        requirement,
+                    ),
                 )
                 _state.update { it.copy(availableUpdate = null) }
             }
@@ -53,13 +70,19 @@ class AppUpdateViewModel(
         viewModelScope.launch {
             when (val result = repository.checkForUpdate(config.currentVersion)) {
                 is AppResult.Success -> {
-                    if (result.data != null) {
+                    val update = result.data
+                    if (update != null) {
                         analyticsReporter.log(
-                            AnalyticsEvent.AppUpdateInteraction(UpdateAction.Prompt, EventOutcome.Shown),
+                            AnalyticsEvent.AppUpdateInteraction(
+                                UpdateAction.Prompt,
+                                EventOutcome.Shown,
+                                update.requirement.toAnalyticsRequirement(),
+                            ),
                         )
                     }
-                    _state.update { it.copy(availableUpdate = result.data) }
+                    _state.update { it.copy(availableUpdate = update) }
                 }
+
                 is AppResult.Error -> {
                     analyticsReporter.log(
                         AnalyticsEvent.AppUpdateInteraction(UpdateAction.Prompt, EventOutcome.Error),
@@ -69,3 +92,12 @@ class AppUpdateViewModel(
         }
     }
 }
+
+private fun AppUpdateRequirement?.toAnalyticsRequirement(): UpdateRequirement =
+    when (this) {
+        AppUpdateRequirement.REQUIRED -> UpdateRequirement.Required
+
+        AppUpdateRequirement.OPTIONAL,
+        null,
+        -> UpdateRequirement.Optional
+    }

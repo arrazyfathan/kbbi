@@ -3,6 +3,7 @@ package com.arrazyfathan.kbbi.core.appupdate.di
 import com.arrazyfathan.kbbi.core.appupdate.data.AndroidAppUpdateDownloadManager
 import com.arrazyfathan.kbbi.core.appupdate.data.AndroidAppUpdateInstallLauncher
 import com.arrazyfathan.kbbi.core.appupdate.data.AppUpdatePreferences
+import com.arrazyfathan.kbbi.core.appupdate.data.AppUpdateStore
 import com.arrazyfathan.kbbi.core.appupdate.data.GitHubAppUpdateRepository
 import com.arrazyfathan.kbbi.core.appupdate.domain.AppUpdateDownloadManager
 import com.arrazyfathan.kbbi.core.appupdate.domain.AppUpdateInstallLauncher
@@ -16,7 +17,7 @@ import org.koin.dsl.module
 
 val appUpdateModule =
     module {
-        single { AppUpdatePreferences(androidContext()) }
+        single<AppUpdateStore> { AppUpdatePreferences(androidContext()) }
         singleOf(::GitHubAppUpdateRepository)
         single<AppUpdateRepository> { get<GitHubAppUpdateRepository>() }
         single(createdAtStart = true) { AndroidAppUpdateDownloadManager(androidContext()) }

@@ -84,9 +84,15 @@ sealed interface AnalyticsEvent {
     data class AppUpdateInteraction(
         val action: UpdateAction,
         val outcome: EventOutcome,
+        val requirement: UpdateRequirement = UpdateRequirement.Optional,
     ) : AnalyticsEvent {
         override val name = "app_update_action"
-        override val parameters = mapOf("action" to action.value, "outcome" to outcome.value)
+        override val parameters =
+            mapOf(
+                "action" to action.value,
+                "outcome" to outcome.value,
+                "requirement" to requirement.value,
+            )
     }
 
     data object AppShared : AnalyticsEvent {
@@ -170,4 +176,10 @@ enum class UpdateAction(val value: String) {
     Prompt("prompt"),
     Download("download"),
     Install("install"),
+    Exit("exit"),
+}
+
+enum class UpdateRequirement(val value: String) {
+    Optional("optional"),
+    Required("required"),
 }

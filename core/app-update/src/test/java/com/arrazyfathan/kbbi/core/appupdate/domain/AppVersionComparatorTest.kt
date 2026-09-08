@@ -29,4 +29,19 @@ class AppVersionComparatorTest {
     fun `dev suffix does not crash parser`() {
         assertFalse(AppVersionComparator.isNewer("v1.2.0", "1.2.0-dev.4"))
     }
+
+    @Test
+    fun `higher major version is a major update`() {
+        assertTrue(AppVersionComparator.isMajorUpdate("6.0", "5.24.3"))
+    }
+
+    @Test
+    fun `higher minor version is not a major update`() {
+        assertFalse(AppVersionComparator.isMajorUpdate("5.25", "5.24"))
+    }
+
+    @Test
+    fun `equivalent versions with omitted trailing zero are the same`() {
+        assertTrue(AppVersionComparator.isSameVersion("v5.24", "5.24.0"))
+    }
 }

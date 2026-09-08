@@ -5,4 +5,10 @@ data class AppUpdate(
     val releaseUrl: String,
     val downloadUrl: String?,
     val releaseNotes: String?,
+    val requirement: AppUpdateRequirement = AppUpdateRequirement.OPTIONAL,
 )
+
+enum class AppUpdateRequirement {
+    OPTIONAL,
+    REQUIRED,
+}

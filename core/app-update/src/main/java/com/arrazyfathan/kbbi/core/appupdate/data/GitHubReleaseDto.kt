@@ -19,3 +19,10 @@ data class GitHubReleaseAssetDto(
     @SerialName("browser_download_url")
     val browserDownloadUrl: String,
 )
+
+@Serializable
+data class GitHubUpdatePolicyDto(
+    val schemaVersion: Int,
+    val releaseVersion: String,
+    val forceUpdate: Boolean,
+)

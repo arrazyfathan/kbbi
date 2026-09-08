@@ -1,5 +1,8 @@
 package com.arrazyfathan.kbbi.core.appupdate.presentation
 
+import android.app.Activity
+import android.content.Context
+import android.content.ContextWrapper
 import android.content.Intent
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -7,19 +10,21 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.safeDrawingPadding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Surface
@@ -40,6 +45,8 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.window.Dialog
+import androidx.compose.ui.window.DialogProperties
 import androidx.core.net.toUri
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
@@ -49,6 +56,7 @@ import com.arrazyfathan.kbbi.core.R
 import com.arrazyfathan.kbbi.core.appupdate.domain.AppUpdate
 import com.arrazyfathan.kbbi.core.appupdate.domain.AppUpdateDownloadState
 import com.arrazyfathan.kbbi.core.appupdate.domain.AppUpdateInstallLauncher
+import com.arrazyfathan.kbbi.core.appupdate.domain.AppUpdateRequirement
 import com.arrazyfathan.kbbi.core.presentation.designsystem.InterFontFamily
 import com.arrazyfathan.kbbi.core.presentation.designsystem.KBBITheme
 import com.arrazyfathan.kbbi.core.presentation.designsystem.TextH1
@@ -83,6 +91,10 @@ fun AppUpdatePrompt(
                 is AppUpdateDownloadEvent.LaunchInstaller -> {
                     installLauncher.launch(event.downloadId)
                 }
+
+                AppUpdateDownloadEvent.ExitApp -> {
+                    context.findActivity()?.finishAffinity()
+                }
             }
         }
     }
@@ -105,24 +117,62 @@ fun AppUpdatePrompt(
         }
     }
 
-    ModalBottomSheet(
-        onDismissRequest = { if (!isDownloading) onDismiss() },
-        sheetState = sheetState,
-        containerColor = Color.White,
-        shape = RoundedCornerShape(topStart = 18.dp, topEnd = 18.dp),
-        modifier = modifier,
-    ) {
-        AppUpdatePromptContent(
-            update = update,
-            currentVersion = currentVersion,
-            downloadState = downloadState,
-            onDownload = { viewModel.onAction(AppUpdateDownloadAction.OnDownloadClick) },
-            onOpenRelease = {
-                context.startActivity(Intent(Intent.ACTION_VIEW, update.releaseUrl.toUri()))
-                onDismiss()
-            },
-            onDismiss = onDismiss,
-        )
+    val onOpenRelease = {
+        context.startActivity(Intent(Intent.ACTION_VIEW, update.releaseUrl.toUri()))
+        if (update.requirement == AppUpdateRequirement.OPTIONAL) onDismiss()
+    }
+    val onExit = { viewModel.onAction(AppUpdateDownloadAction.OnExitClick) }
+
+    if (update.requirement == AppUpdateRequirement.REQUIRED) {
+        Dialog(
+            onDismissRequest = onExit,
+            properties =
+                DialogProperties(
+                    dismissOnBackPress = true,
+                    dismissOnClickOutside = false,
+                    usePlatformDefaultWidth = false,
+                    decorFitsSystemWindows = false,
+                ),
+        ) {
+            Surface(
+                modifier = modifier.fillMaxSize(),
+                color = Color.White,
+            ) {
+                Box(
+                    modifier = Modifier.fillMaxSize().safeDrawingPadding(),
+                    contentAlignment = Alignment.Center,
+                ) {
+                    AppUpdatePromptContent(
+                        modifier = Modifier.padding(top = 28.dp),
+                        update = update,
+                        currentVersion = currentVersion,
+                        downloadState = downloadState,
+                        isRequired = true,
+                        onDownload = { viewModel.onAction(AppUpdateDownloadAction.OnDownloadClick) },
+                        onOpenRelease = onOpenRelease,
+                        onDismiss = onExit,
+                    )
+                }
+            }
+        }
+    } else {
+        ModalBottomSheet(
+            onDismissRequest = { if (!isDownloading) onDismiss() },
+            sheetState = sheetState,
+            containerColor = Color.White,
+            shape = RoundedCornerShape(topStart = 18.dp, topEnd = 18.dp),
+            modifier = modifier,
+        ) {
+            AppUpdatePromptContent(
+                update = update,
+                currentVersion = currentVersion,
+                downloadState = downloadState,
+                isRequired = false,
+                onDownload = { viewModel.onAction(AppUpdateDownloadAction.OnDownloadClick) },
+                onOpenRelease = onOpenRelease,
+                onDismiss = onDismiss,
+            )
+        }
     }
 }
 
@@ -132,6 +182,7 @@ fun AppUpdatePromptContent(
     update: AppUpdate,
     currentVersion: String,
     downloadState: AppUpdateDownloadState,
+    isRequired: Boolean = update.requirement == AppUpdateRequirement.REQUIRED,
     onDownload: () -> Unit,
     onOpenRelease: () -> Unit,
     onDismiss: () -> Unit,
@@ -153,7 +204,15 @@ fun AppUpdatePromptContent(
 
             Column(modifier = Modifier.weight(1f)) {
                 Text(
-                    text = stringResource(id = R.string.update_available_title),
+                    text =
+                        stringResource(
+                            id =
+                                if (isRequired) {
+                                    R.string.update_required_title
+                                } else {
+                                    R.string.update_available_title
+                                },
+                        ),
                     color = TextH1,
                     fontFamily = InterFontFamily,
                     fontWeight = FontWeight.Bold,
@@ -163,7 +222,15 @@ fun AppUpdatePromptContent(
                 )
                 Spacer(modifier = Modifier.height(4.dp))
                 Text(
-                    text = stringResource(id = R.string.update_available_subtitle),
+                    text =
+                        stringResource(
+                            id =
+                                if (isRequired) {
+                                    R.string.update_required_subtitle
+                                } else {
+                                    R.string.update_available_subtitle
+                                },
+                        ),
                     color = TextP,
                     fontFamily = InterFontFamily,
                     fontWeight = FontWeight.Normal,
@@ -210,11 +277,14 @@ fun AppUpdatePromptContent(
             TextButton(
                 modifier = Modifier.weight(1f).height(44.dp),
                 onClick = onDismiss,
-                enabled = !isDownloading,
+                enabled = isRequired || !isDownloading,
                 shape = RoundedCornerShape(12.dp),
             ) {
                 Text(
-                    text = stringResource(id = R.string.update_later_action),
+                    text =
+                        stringResource(
+                            id = if (isRequired) R.string.update_exit_action else R.string.update_later_action,
+                        ),
                     fontFamily = InterFontFamily,
                     fontWeight = FontWeight.Medium,
                     color = TextP,
@@ -289,6 +359,13 @@ private fun downloadActionLabel(
 
 private fun AppUpdateDownloadState.progressArgument(): Any =
     (this as? AppUpdateDownloadState.Downloading)?.progressPercent ?: ""
+
+private tailrec fun Context.findActivity(): Activity? =
+    when (this) {
+        is Activity -> this
+        is ContextWrapper -> baseContext.findActivity()
+        else -> null
+    }
 
 @Composable
 private fun UpdateBadge(modifier: Modifier = Modifier) {

@@ -22,6 +22,24 @@ object AppVersionComparator {
         return normalized.takeIf { it.matches(Regex("""\d+(\.\d+)*""")) }
     }
 
+    fun isMajorUpdate(
+        latestVersion: String,
+        currentVersion: String,
+    ): Boolean {
+        val latestMajor = latestVersion.toComparableVersion()?.firstOrNull() ?: return false
+        val currentMajor = currentVersion.toComparableVersion()?.firstOrNull() ?: return false
+        return latestMajor > currentMajor
+    }
+
+    fun isSameVersion(
+        firstVersion: String,
+        secondVersion: String,
+    ): Boolean {
+        val first = firstVersion.toComparableVersion() ?: return false
+        val second = secondVersion.toComparableVersion() ?: return false
+        return compare(first, second) == 0
+    }
+
     private fun String.toComparableVersion(): List<Int>? =
         normalize(this)
             ?.split(".")

@@ -92,6 +92,8 @@
     <string name="error_unknown">Error occurred</string>
     <string name="update_available_title">Update available</string>
     <string name="update_available_subtitle">A newer KBBI build is ready to install.</string>
+    <string name="update_required_title">Update required</string>
+    <string name="update_required_subtitle">Install the latest KBBI version to continue using the app.</string>
     <string name="update_available_versions">Current version: %1$s\nLatest version: %2$s</string>
     <string name="update_badge_text">↑</string>
     <string name="update_current_version_label">Current</string>
@@ -105,6 +107,7 @@
     <string name="update_retry_action">Retry download</string>
     <string name="update_open_release_action">Open release</string>
     <string name="update_later_action">Later</string>
+    <string name="update_exit_action">Exit app</string>
     <string name="update_download_notification_title">Downloading KBBI %1$s</string>
     <string name="update_download_notification_description">The update will be ready to install when the download finishes.</string>
     <string name="update_ready_notification_title">KBBI update ready</string>

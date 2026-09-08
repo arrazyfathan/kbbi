@@ -70,6 +70,18 @@ class AppUpdateDownloadViewModelTest {
             assertEquals(AppUpdateDownloadState.Ready(42L, "3.0.0"), viewModel.state.value.downloadState)
         }
 
+    @Test
+    fun `exit click emits exit app event`() =
+        runTest {
+            val viewModel = AppUpdateDownloadViewModel(FakeAppUpdateDownloadManager())
+            viewModel.onAction(AppUpdateDownloadAction.OnPromptShown(update()))
+
+            val event = async { viewModel.events.first() }
+            viewModel.onAction(AppUpdateDownloadAction.OnExitClick)
+
+            assertEquals(AppUpdateDownloadEvent.ExitApp, event.await())
+        }
+
     private fun update() =
         AppUpdate(
             latestVersion = "2.0.0",

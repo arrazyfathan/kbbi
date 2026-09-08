@@ -7,6 +7,18 @@ import org.junit.Test
 
 class AnalyticsEventTest {
     @Test
+    fun `app update event includes requirement`() {
+        val event =
+            AnalyticsEvent.AppUpdateInteraction(
+                action = UpdateAction.Prompt,
+                outcome = EventOutcome.Shown,
+                requirement = UpdateRequirement.Required,
+            )
+
+        assertEquals("required", event.parameters["requirement"])
+    }
+
+    @Test
     fun `search event contains only low-cardinality context`() {
         val event =
             AnalyticsEvent.SearchCompleted(

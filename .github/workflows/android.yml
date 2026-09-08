@@ -176,6 +176,45 @@ jobs:
             exit 1
           fi
 
+      - name: Generate and validate app update policy
+        env:
+          GENERATED_POLICY_FILE: ${{ runner.temp }}/kbbi-update-policy.json
+        run: |
+          VERSION_MAJOR="$(sed -n 's/^VERSION_MAJOR=//p' app/version.properties)"
+          VERSION_MINOR="$(sed -n 's/^VERSION_MINOR=//p' app/version.properties)"
+          VERSION_MAINTENANCE="$(sed -n 's/^VERSION_MAINTENANCE=//p' app/version.properties)"
+          FORCE_UPDATE="$(sed -n 's/^FORCE_UPDATE=//p' app/version.properties)"
+          EXPECTED_VERSION="${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_MAINTENANCE}"
+          TAG_VERSION="${GITHUB_REF_NAME#v}"
+          TAG_VERSION="${TAG_VERSION#V}"
+
+          if [ -z "$VERSION_MAJOR" ] || [ -z "$VERSION_MINOR" ] || [ -z "$VERSION_MAINTENANCE" ]; then
+            echo "Unable to determine the release version from app/version.properties"
+            exit 1
+          fi
+
+          if [ "$FORCE_UPDATE" != "true" ] && [ "$FORCE_UPDATE" != "false" ]; then
+            echo "FORCE_UPDATE must be either true or false"
+            exit 1
+          fi
+
+          if [ "$TAG_VERSION" != "$EXPECTED_VERSION" ]; then
+            echo "Tag ($TAG_VERSION) and app version ($EXPECTED_VERSION) must match"
+            exit 1
+          fi
+
+          jq -n \
+            --arg releaseVersion "$EXPECTED_VERSION" \
+            --argjson forceUpdate "$FORCE_UPDATE" \
+            '{schemaVersion: 1, releaseVersion: $releaseVersion, forceUpdate: $forceUpdate}' \
+            > "$GENERATED_POLICY_FILE"
+
+          jq -e --arg expectedVersion "$EXPECTED_VERSION" '
+            .schemaVersion == 1 and
+            .releaseVersion == $expectedVersion and
+            (.forceUpdate | type == "boolean")
+          ' "$GENERATED_POLICY_FILE" > /dev/null
+
       - name: Verify Crashlytics mapping output
         run: |
           MAPPING_FILE="app/build/outputs/mapping/productionRelease/mapping.txt"
@@ -193,6 +232,7 @@ jobs:
             app/build/outputs/mapping/productionRelease/mapping.txt
             app/build/outputs/mapping/productionRelease/seeds.txt
             app/build/outputs/mapping/productionRelease/usage.txt
+            ${{ runner.temp }}/kbbi-update-policy.json
           if-no-files-found: error
           retention-days: 30
 
@@ -226,5 +266,7 @@ jobs:
       - name: Publish GitHub release
         uses: softprops/action-gh-release@v3
         with:
-          files: app/build/outputs/apk/production/release/*.apk
+          files: |
+            app/build/outputs/apk/production/release/*.apk
+            ${{ runner.temp }}/kbbi-update-policy.json
           body: ${{ env.RELEASE_NOTES }}

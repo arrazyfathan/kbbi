@@ -91,6 +91,8 @@
     <string name="error_unknown">Terjadi kesalahan</string>
     <string name="update_available_title">Pembaruan tersedia</string>
     <string name="update_available_subtitle">Versi KBBI yang lebih baru siap dipasang.</string>
+    <string name="update_required_title">Pembaruan wajib</string>
+    <string name="update_required_subtitle">Pasang versi KBBI terbaru untuk melanjutkan menggunakan aplikasi.</string>
     <string name="update_available_versions">Versi saat ini: %1$s\nVersi terbaru: %2$s</string>
     <string name="update_badge_text">↑</string>
     <string name="update_current_version_label">Saat ini</string>
@@ -104,6 +106,7 @@
     <string name="update_retry_action">Coba unduh lagi</string>
     <string name="update_open_release_action">Buka rilis</string>
     <string name="update_later_action">Nanti</string>
+    <string name="update_exit_action">Keluar dari aplikasi</string>
     <string name="update_download_notification_title">Mengunduh KBBI %1$s</string>
     <string name="update_download_notification_description">Pembaruan siap dipasang setelah unduhan selesai.</string>
     <string name="update_ready_notification_title">Pembaruan KBBI siap</string>

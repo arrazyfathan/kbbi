@@ -14,4 +14,11 @@ object GitHubReleaseAssetSelector {
                 .firstOrNull { asset -> asset.name.endsWith(".apk", ignoreCase = true) }
                 ?.browserDownloadUrl
     }
+
+    fun selectPolicyUrl(assets: List<GitHubReleaseAssetDto>): String? =
+        assets
+            .firstOrNull { asset -> asset.name.equals(POLICY_ASSET_NAME, ignoreCase = true) }
+            ?.browserDownloadUrl
+
+    const val POLICY_ASSET_NAME = "kbbi-update-policy.json"
 }

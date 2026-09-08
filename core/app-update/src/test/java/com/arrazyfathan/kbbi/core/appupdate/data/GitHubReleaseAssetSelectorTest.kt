@@ -42,4 +42,14 @@ class GitHubReleaseAssetSelectorTest {
 
         assertNull(GitHubReleaseAssetSelector.selectDownloadUrl("1.2.0", assets))
     }
+
+    @Test
+    fun `selects update policy asset case insensitively`() {
+        val assets =
+            listOf(
+                GitHubReleaseAssetDto("KBBI-UPDATE-POLICY.JSON", "https://example.com/policy"),
+            )
+
+        assertEquals("https://example.com/policy", GitHubReleaseAssetSelector.selectPolicyUrl(assets))
+    }
 }
