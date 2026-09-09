@@ -32,6 +32,8 @@ class DailyReminderWorker(
     appContext: Context,
     workerParams: WorkerParameters,
 ) : CoroutineWorker(appContext, workerParams) {
+    // Log every unexpected delivery failure at the worker boundary while preserving cancellation.
+    @Suppress("TooGenericExceptionCaught")
     override suspend fun doWork(): Result {
         val type =
             inputData.getString(REMINDER_TYPE_KEY)?.let { runCatching { ReminderType.valueOf(it) }.getOrNull() }

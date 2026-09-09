@@ -24,6 +24,8 @@ class AndroidAppIconManager(
         return current
     }
 
+    // PackageManager can surface different runtime failures; this boundary rolls back all of them.
+    @Suppress("TooGenericExceptionCaught")
     override suspend fun changeIcon(icon: AppIcon): AppIconChangeResult {
         val previousStates = componentStates()
         if (resolveEnabledIcons(previousStates) == listOf(icon)) {

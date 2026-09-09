@@ -238,6 +238,8 @@ dependencies {
     implementation(project(":core:utils"))
     implementation(project(":feature:bookmark:presentation"))
     implementation(project(":feature:detail:presentation"))
+    implementation(project(":feature:figure:data"))
+    implementation(project(":feature:figure:domain"))
     implementation(project(":feature:home:data"))
     implementation(project(":feature:home:domain"))
     implementation(project(":feature:home:presentation"))

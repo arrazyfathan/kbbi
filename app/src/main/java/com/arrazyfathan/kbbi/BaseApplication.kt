@@ -11,6 +11,7 @@ import com.arrazyfathan.kbbi.di.appIconModule
 import com.arrazyfathan.kbbi.di.appUpdateConfigModule
 import com.arrazyfathan.kbbi.di.useCaseModule
 import com.arrazyfathan.kbbi.di.viewModelModule
+import com.arrazyfathan.kbbi.feature.figure.data.di.figureDataModule
 import com.arrazyfathan.kbbi.feature.home.data.di.databaseModule
 import com.arrazyfathan.kbbi.feature.home.data.di.repositoryModule
 import com.arrazyfathan.kbbi.feature.proverb.data.di.proverbDataModule
@@ -48,6 +49,7 @@ class BaseApplication : Application() {
                     listOf(
                         databaseModule,
                         repositoryModule,
+                        figureDataModule,
                         proverbDataModule,
                         appUpdateConfigModule,
                         appIconModule,

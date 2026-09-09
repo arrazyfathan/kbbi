@@ -71,6 +71,8 @@ internal class WidgetRefreshWorker(
     appContext: Context,
     workerParams: WorkerParameters,
 ) : CoroutineWorker(appContext, workerParams) {
+    // Any unexpected Glance update failure should be logged and retried without swallowing cancellation.
+    @Suppress("TooGenericExceptionCaught")
     override suspend fun doWork(): Result =
         try {
             WordOfDayWidget().updateAll(applicationContext)
@@ -88,6 +90,8 @@ internal class BookmarkWidgetCoordinator(
     private val context: Context,
     private val repository: BookmarkRepository,
 ) {
+    // Keep the long-lived bookmark observer active after rendering failures while preserving cancellation.
+    @Suppress("TooGenericExceptionCaught")
     suspend fun observeBookmarkChanges() {
         repository
             .getBookmarks()

@@ -27,6 +27,9 @@
             <option value="$PROJECT_DIR$/feature/bookmark/presentation" />
             <option value="$PROJECT_DIR$/feature/detail" />
             <option value="$PROJECT_DIR$/feature/detail/presentation" />
+            <option value="$PROJECT_DIR$/feature/figure" />
+            <option value="$PROJECT_DIR$/feature/figure/data" />
+            <option value="$PROJECT_DIR$/feature/figure/domain" />
             <option value="$PROJECT_DIR$/feature/home" />
             <option value="$PROJECT_DIR$/feature/home/data" />
             <option value="$PROJECT_DIR$/feature/home/domain" />

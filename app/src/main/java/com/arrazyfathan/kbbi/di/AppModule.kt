@@ -4,6 +4,8 @@ import com.arrazyfathan.kbbi.BuildConfig
 import com.arrazyfathan.kbbi.core.appupdate.domain.AppUpdateConfig
 import com.arrazyfathan.kbbi.feature.bookmark.presentation.bookmark.BookmarksViewModel
 import com.arrazyfathan.kbbi.feature.detail.presentation.detail.DetailViewModel
+import com.arrazyfathan.kbbi.feature.figure.domain.usecase.GetFigureDetailUseCase
+import com.arrazyfathan.kbbi.feature.figure.domain.usecase.GetFiguresUseCase
 import com.arrazyfathan.kbbi.feature.home.domain.usecase.AddSearchHistoryUseCase
 import com.arrazyfathan.kbbi.feature.home.domain.usecase.CheckWordSavedUseCase
 import com.arrazyfathan.kbbi.feature.home.domain.usecase.ClearSearchHistoryUseCase
@@ -50,6 +52,8 @@ val useCaseModule =
         factoryOf(::GetWordSuggestionsUseCase)
         factoryOf(::GetWordTranslationUseCase)
         factoryOf(::GetTopWordsUseCase)
+        factoryOf(::GetFiguresUseCase)
+        factoryOf(::GetFigureDetailUseCase)
         factoryOf(::GetListProverbsUseCase)
         factoryOf(::GetProverbMeaningUseCase)
     }

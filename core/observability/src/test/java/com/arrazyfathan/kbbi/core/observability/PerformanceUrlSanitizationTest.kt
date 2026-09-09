@@ -22,4 +22,20 @@ class PerformanceUrlSanitizationTest {
         assertEquals("https://api.example.com/proverb/_redacted_", sanitizePerformanceUrl("https://api.example.com/proverb/judul-rahasia"))
         assertEquals("https://api.example.com/unknown", sanitizePerformanceUrl("https://api.example.com/private/rahasia"))
     }
+
+    @Test
+    fun `preserves figure collection routes and redacts detail slugs`() {
+        assertEquals(
+            "https://api.example.com/api/v1/figure",
+            sanitizePerformanceUrl("https://api.example.com/api/v1/figure?page=1&limit=20"),
+        )
+        assertEquals(
+            "https://api.example.com/api/v1/figure/search",
+            sanitizePerformanceUrl("https://api.example.com/api/v1/figure/search?q=soekarno"),
+        )
+        assertEquals(
+            "https://api.example.com/api/v1/figure/_redacted_",
+            sanitizePerformanceUrl("https://api.example.com/api/v1/figure/Cut_Nyak_Dien"),
+        )
+    }
 }

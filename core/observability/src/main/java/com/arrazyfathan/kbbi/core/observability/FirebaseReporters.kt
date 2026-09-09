@@ -58,6 +58,8 @@ internal fun sanitizePerformanceUrl(url: String): String {
     val origin = "${uri.scheme ?: "https"}://${uri.rawAuthority ?: "invalid.invalid"}"
     val path = uri.path.orEmpty()
     val safePath = when {
+        path == "/api/v1/figure" || path == "/api/v1/figure/search" -> path
+        path.startsWith("/api/v1/figure/") -> "/api/v1/figure/_redacted_"
         path == "/proverb" || path == "/proverb/search" -> path
         path.startsWith("/search/") -> "/search/_redacted_"
         path.startsWith("/translate/") -> "/translate/_redacted_"
