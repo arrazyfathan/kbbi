@@ -67,6 +67,8 @@
     <string name="time_picker_minute_option">Menit %1$02d</string>
     <string name="bookmarks_screen_subtitle">Koleksi kata yang Anda simpan.</string>
     <string name="empty_bookmarks_message">Belum ada kata yang disimpan.</string>
+    <string name="bookmark_grid_view">Tampilan kisi</string>
+    <string name="bookmark_list_view">Tampilan daftar</string>
     <string name="copy">Salin</string>
     <string name="show_original">Tampilkan asli</string>
     <string name="show_english_translation">Tampilkan terjemahan Inggris</string>

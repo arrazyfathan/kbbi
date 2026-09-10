@@ -1,6 +1,7 @@
 package com.arrazyfathan.kbbi.ui
 
 import com.arrazyfathan.kbbi.core.domain.model.AppTheme
+import com.arrazyfathan.kbbi.feature.settings.domain.model.BookmarkLayout
 import com.arrazyfathan.kbbi.feature.settings.domain.model.UiPreferences
 import com.arrazyfathan.kbbi.feature.settings.domain.repository.UiPreferencesRepository
 import kotlinx.coroutines.Dispatchers
@@ -64,5 +65,9 @@ private class FakeUiPreferencesRepository : UiPreferencesRepository {
 
     override suspend fun setTheme(theme: AppTheme) {
         value = value.copy(theme = theme)
+    }
+
+    override suspend fun setBookmarkLayout(layout: BookmarkLayout) {
+        value = value.copy(bookmarkLayout = layout)
     }
 }

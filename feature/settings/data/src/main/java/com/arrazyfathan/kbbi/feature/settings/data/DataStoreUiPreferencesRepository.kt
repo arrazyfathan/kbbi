@@ -7,6 +7,7 @@ import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
 import com.arrazyfathan.kbbi.core.domain.model.AppTheme
+import com.arrazyfathan.kbbi.feature.settings.domain.model.BookmarkLayout
 import com.arrazyfathan.kbbi.feature.settings.domain.model.UiPreferences
 import com.arrazyfathan.kbbi.feature.settings.domain.repository.UiPreferencesRepository
 import kotlinx.coroutines.flow.Flow
@@ -31,13 +32,21 @@ class DataStoreUiPreferencesRepository(
             preferences[THEME] = theme.storageKey
         }
     }
+
+    override suspend fun setBookmarkLayout(layout: BookmarkLayout) {
+        context.uiPreferencesDataStore.edit { preferences ->
+            preferences[BOOKMARK_LAYOUT] = layout.storageKey
+        }
+    }
 }
 
 private val HAPTICS_ENABLED = booleanPreferencesKey("haptics_enabled")
 private val THEME = stringPreferencesKey("theme")
+private val BOOKMARK_LAYOUT = stringPreferencesKey("bookmark_layout")
 
 internal fun Preferences.toUiPreferences(): UiPreferences =
     UiPreferences(
         hapticsEnabled = this[HAPTICS_ENABLED] ?: true,
         theme = AppTheme.fromStorageKey(this[THEME]),
+        bookmarkLayout = BookmarkLayout.fromStorageKey(this[BOOKMARK_LAYOUT]),
     )

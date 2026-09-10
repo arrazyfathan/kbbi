@@ -35,6 +35,7 @@ dependencies {
     implementation(project(":core:observability"))
     implementation(project(":core:presentation:designsystem"))
     implementation(project(":feature:home:domain"))
+    implementation(project(":feature:settings:domain"))
 
     implementation(libs.androidx.lifecycle.viewmodel.ktx)
     implementation(libs.androidx.lifecycle.runtime.compose)
@@ -42,4 +43,12 @@ dependencies {
     implementation(libs.kotlinx.coroutines.android)
     implementation(libs.koin.androidx.compose)
     implementation(libs.lottie.compose)
+
+    testImplementation(libs.junit)
+    testImplementation(libs.kotlinx.coroutines.test)
+    androidTestImplementation(libs.androidx.junit)
+    androidTestImplementation(libs.androidx.espresso.core)
+    androidTestImplementation(libs.androidx.compose.ui.test.junit4)
+    debugImplementation(libs.androidx.compose.ui.tooling)
+    debugImplementation(libs.androidx.compose.ui.test.manifest)
 }

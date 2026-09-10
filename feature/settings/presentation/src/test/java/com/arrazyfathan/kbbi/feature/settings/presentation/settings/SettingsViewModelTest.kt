@@ -15,6 +15,7 @@ import com.arrazyfathan.kbbi.feature.home.domain.repository.SearchHistoryReposit
 import com.arrazyfathan.kbbi.feature.home.domain.usecase.ClearSearchHistoryUseCase
 import com.arrazyfathan.kbbi.feature.settings.domain.model.NotificationSettings
 import com.arrazyfathan.kbbi.feature.settings.domain.model.AppIcon
+import com.arrazyfathan.kbbi.feature.settings.domain.model.BookmarkLayout
 import com.arrazyfathan.kbbi.feature.settings.domain.model.ReminderPreference
 import com.arrazyfathan.kbbi.feature.settings.domain.model.ReminderTime
 import com.arrazyfathan.kbbi.feature.settings.domain.model.ReminderType
@@ -448,6 +449,10 @@ private class FakeUiPreferencesRepository : UiPreferencesRepository {
     override suspend fun setTheme(theme: AppTheme) {
         themeWrites++
         state.value = state.value.copy(theme = theme)
+    }
+
+    override suspend fun setBookmarkLayout(layout: BookmarkLayout) {
+        state.value = state.value.copy(bookmarkLayout = layout)
     }
 }
 

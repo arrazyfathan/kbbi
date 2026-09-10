@@ -68,6 +68,8 @@
     <string name="time_picker_minute_option">Minute %1$02d</string>
     <string name="bookmarks_screen_subtitle">Your saved word collection.</string>
     <string name="empty_bookmarks_message">No bookmarked words yet.</string>
+    <string name="bookmark_grid_view">Grid view</string>
+    <string name="bookmark_list_view">List view</string>
     <string name="copy">Copy</string>
     <string name="show_original">Show original</string>
     <string name="show_english_translation">Show English translation</string>
