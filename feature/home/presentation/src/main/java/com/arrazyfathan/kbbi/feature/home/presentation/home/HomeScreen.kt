@@ -4,7 +4,6 @@ import android.Manifest
 import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.RepeatMode
 import androidx.compose.animation.core.animateFloat
 import androidx.compose.animation.core.infiniteRepeatable
@@ -29,10 +28,12 @@ import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.staggeredgrid.LazyHorizontalStaggeredGrid
 import androidx.compose.foundation.lazy.staggeredgrid.StaggeredGridCells
 import androidx.compose.foundation.lazy.staggeredgrid.items
@@ -40,10 +41,10 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.Card
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -98,6 +99,7 @@ import com.arrazyfathan.kbbi.core.utils.VoiceRecognitionUtils
 import com.arrazyfathan.kbbi.feature.home.domain.model.HistoryModel
 import com.arrazyfathan.kbbi.feature.home.domain.model.ListWordModel
 import org.koin.androidx.compose.koinViewModel
+import androidx.compose.foundation.lazy.items as lazyItems
 
 private const val HOME_SEARCH_LOADING_SOURCE = "home_search"
 
@@ -294,10 +296,13 @@ fun HomeContent(
                             awaitFirstDown(requireUnconsumed = false)
                             var totalDragY = 0f
                             var isSwipeDetected = false
+                            var isGestureConsumed = false
                             do {
                                 val event = awaitPointerEvent()
                                 val dragChange = event.changes.firstOrNull()
-                                if (dragChange != null && dragChange.pressed) {
+                                if (dragChange?.isConsumed == true) {
+                                    isGestureConsumed = true
+                                } else if (!isGestureConsumed && dragChange != null && dragChange.pressed) {
                                     val deltaY = dragChange.position.y - dragChange.previousPosition.y
                                     totalDragY += deltaY
                                     if (totalDragY < -150f) { // Swipe up threshold
@@ -353,194 +358,204 @@ fun HomeContent(
 
             Spacer(modifier = Modifier.height(12.dp))
 
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(8.dp),
-                verticalAlignment = Alignment.CenterVertically,
+            Box(
+                modifier = Modifier.fillMaxWidth().weight(1f),
             ) {
-                Box(
-                    modifier = Modifier.weight(1f).height(55.dp),
-                    contentAlignment = Alignment.CenterEnd,
-                ) {
-                    TextField(
-                        value = state.searchQuery,
-                        onValueChange = { text ->
-                            onAction(HomeAction.OnSearchQueryChanged(text))
-                        },
-                        modifier = Modifier.fillMaxWidth().height(55.dp).focusRequester(searchFocusRequester),
-                        placeholder = {
-                            Text(
-                                text = stringResource(id = R.string.search_word_list_hint),
-                                fontFamily = InterFontFamily,
-                                fontWeight = FontWeight.Medium,
-                                fontSize = 14.sp,
-                                color = TextP,
-                            )
-                        },
-                        textStyle =
-                            TextStyle(
-                                fontFamily = InterFontFamily,
-                                fontWeight = FontWeight.Medium,
-                                fontSize = 14.sp,
-                                color = TextH1,
-                            ),
-                        keyboardOptions =
-                            KeyboardOptions(
-                                keyboardType = KeyboardType.Text,
-                                imeAction = ImeAction.Search,
-                            ),
-                        keyboardActions =
-                            KeyboardActions(
-                                onSearch = {
-                                    if (state.searchQuery.isNotBlank()) {
-                                        onAction(HomeAction.OnSearchSubmitted(state.searchQuery))
-                                        focusManager.clearFocus()
-                                    }
-                                },
-                            ),
-                        singleLine = true,
-                        shape = RoundedCornerShape(10.dp),
-                        colors =
-                            TextFieldDefaults.colors(
-                                focusedContainerColor = Color.White,
-                                unfocusedContainerColor = Color.White,
-                                focusedIndicatorColor = Color.Transparent,
-                                unfocusedIndicatorColor = Color.Transparent,
-                                focusedTextColor = TextH1,
-                                unfocusedTextColor = TextH1,
-                                cursorColor = MaterialTheme.colorScheme.primary,
-                            ),
-                    )
-
-                    this@Column.AnimatedVisibility(
-                        visible = state.searchQuery.length > 2,
-                        enter = slideInHorizontally(initialOffsetX = { it }) + fadeIn(),
-                        exit = slideOutHorizontally(targetOffsetX = { it }) + fadeOut(),
-                        modifier = Modifier.align(Alignment.CenterEnd),
+                Column(modifier = Modifier.fillMaxSize()) {
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(8.dp),
+                        verticalAlignment = Alignment.CenterVertically,
                     ) {
+                        Box(
+                            modifier = Modifier.weight(1f).height(55.dp),
+                            contentAlignment = Alignment.CenterEnd,
+                        ) {
+                            TextField(
+                                value = state.searchQuery,
+                                onValueChange = { text ->
+                                    onAction(HomeAction.OnSearchQueryChanged(text))
+                                },
+                                modifier = Modifier.fillMaxWidth().height(55.dp).focusRequester(searchFocusRequester),
+                                placeholder = {
+                                    Text(
+                                        text = stringResource(id = R.string.search_word_list_hint),
+                                        fontFamily = InterFontFamily,
+                                        fontWeight = FontWeight.Medium,
+                                        fontSize = 14.sp,
+                                        color = TextP,
+                                    )
+                                },
+                                textStyle =
+                                    TextStyle(
+                                        fontFamily = InterFontFamily,
+                                        fontWeight = FontWeight.Medium,
+                                        fontSize = 14.sp,
+                                        color = TextH1,
+                                    ),
+                                keyboardOptions =
+                                    KeyboardOptions(
+                                        keyboardType = KeyboardType.Text,
+                                        imeAction = ImeAction.Search,
+                                    ),
+                                keyboardActions =
+                                    KeyboardActions(
+                                        onSearch = {
+                                            if (state.searchQuery.isNotBlank()) {
+                                                onAction(HomeAction.OnSearchSubmitted(state.searchQuery))
+                                                focusManager.clearFocus()
+                                            }
+                                        },
+                                    ),
+                                singleLine = true,
+                                shape = RoundedCornerShape(10.dp),
+                                colors =
+                                    TextFieldDefaults.colors(
+                                        focusedContainerColor = Color.White,
+                                        unfocusedContainerColor = Color.White,
+                                        focusedIndicatorColor = Color.Transparent,
+                                        unfocusedIndicatorColor = Color.Transparent,
+                                        focusedTextColor = TextH1,
+                                        unfocusedTextColor = TextH1,
+                                        cursorColor = MaterialTheme.colorScheme.primary,
+                                    ),
+                            )
+
+                            androidx.compose.animation.AnimatedVisibility(
+                                visible = state.searchQuery.length > 2,
+                                enter = slideInHorizontally(initialOffsetX = { it }) + fadeIn(),
+                                exit = slideOutHorizontally(targetOffsetX = { it }) + fadeOut(),
+                                modifier = Modifier.align(Alignment.CenterEnd),
+                            ) {
+                                Surface(
+                                    onClick = {
+                                        if (state.searchQuery.isNotBlank()) {
+                                            onAction(HomeAction.OnSearchSubmitted(state.searchQuery))
+                                            focusManager.clearFocus()
+                                        }
+                                    },
+                                    modifier = Modifier.size(55.dp),
+                                    shape = RoundedCornerShape(10.dp),
+                                    color = MaterialTheme.colorScheme.secondary,
+                                ) {
+                                    Box(
+                                        modifier = Modifier.fillMaxSize(),
+                                        contentAlignment = Alignment.Center,
+                                    ) {
+                                        Icon(
+                                            painter = painterResource(id = R.drawable.ic_search),
+                                            contentDescription = stringResource(id = R.string.button_search),
+                                            tint = MaterialTheme.colorScheme.onSecondary,
+                                            modifier = Modifier.size(24.dp),
+                                        )
+                                    }
+                                }
+                            }
+                        }
+
                         Surface(
                             onClick = {
-                                if (state.searchQuery.isNotBlank()) {
-                                    onAction(HomeAction.OnSearchSubmitted(state.searchQuery))
-                                    focusManager.clearFocus()
-                                }
+                                showBottomSheet = false
+                                onVoiceSearchClick()
                             },
                             modifier = Modifier.size(55.dp),
                             shape = RoundedCornerShape(10.dp),
-                            color = MaterialTheme.colorScheme.secondary,
+                            color = if (state.isVoiceListening) MaterialTheme.colorScheme.secondary else Color.White,
                         ) {
                             Box(
                                 modifier = Modifier.fillMaxSize(),
                                 contentAlignment = Alignment.Center,
                             ) {
                                 Icon(
-                                    painter = painterResource(id = R.drawable.ic_search),
-                                    contentDescription = stringResource(id = R.string.button_search),
-                                    tint = MaterialTheme.colorScheme.onSecondary,
+                                    painter = painterResource(id = R.drawable.ic_microphone),
+                                    contentDescription = stringResource(id = R.string.button_voice_search),
+                                    tint =
+                                        if (state.isVoiceListening) {
+                                            MaterialTheme.colorScheme.onSecondary
+                                        } else {
+                                            MaterialTheme.colorScheme.primary
+                                        },
                                     modifier = Modifier.size(24.dp),
                                 )
                             }
                         }
                     }
-                }
 
-                Surface(
-                    onClick = {
-                        showBottomSheet = false
-                        onVoiceSearchClick()
-                    },
-                    modifier = Modifier.size(55.dp),
-                    shape = RoundedCornerShape(10.dp),
-                    color = if (state.isVoiceListening) MaterialTheme.colorScheme.secondary else Color.White,
-                ) {
-                    Box(
-                        modifier = Modifier.fillMaxSize(),
-                        contentAlignment = Alignment.Center,
-                    ) {
-                        Icon(
-                            painter = painterResource(id = R.drawable.ic_microphone),
-                            contentDescription = stringResource(id = R.string.button_voice_search),
-                            tint =
-                                if (state.isVoiceListening) {
-                                    MaterialTheme.colorScheme.onSecondary
-                                } else {
-                                    MaterialTheme.colorScheme.primary
-                                },
-                            modifier = Modifier.size(24.dp),
+                    Spacer(modifier = Modifier.height(12.dp))
+
+                    // History Section
+                    if (state.histories.isNotEmpty()) {
+                        Text(
+                            text = stringResource(id = R.string.history_label),
+                            color = MaterialTheme.colorScheme.onPrimary,
+                            fontSize = 14.sp,
+                            fontFamily = InterFontFamily,
+                            fontWeight = FontWeight.Medium,
                         )
-                    }
-                }
-            }
 
-            AnimatedVisibility(
-                visible = state.suggestions.isNotEmpty(),
-                enter = fadeIn(),
-                exit = fadeOut(),
-            ) {
-                SearchSuggestions(
-                    suggestions = state.suggestions,
-                    suggestionMode = state.suggestionMode,
-                    onSuggestionClick = { suggestion ->
-                        onAction(HomeAction.OnSuggestionClick(suggestion))
-                        focusManager.clearFocus()
-                    },
-                    modifier = Modifier.padding(top = 8.dp),
-                )
-            }
+                        Spacer(modifier = Modifier.height(12.dp))
 
-            Spacer(modifier = Modifier.height(12.dp))
-
-            // History Section
-            if (state.histories.isNotEmpty()) {
-                Text(
-                    text = stringResource(id = R.string.history_label),
-                    color = MaterialTheme.colorScheme.onPrimary,
-                    fontSize = 14.sp,
-                    fontFamily = InterFontFamily,
-                    fontWeight = FontWeight.Medium,
-                )
-
-                Spacer(modifier = Modifier.height(12.dp))
-
-                LazyHorizontalStaggeredGrid(
-                    rows = StaggeredGridCells.Fixed(2),
-                    modifier = Modifier.fillMaxWidth().height(84.dp),
-                    horizontalItemSpacing = 10.dp,
-                    verticalArrangement = Arrangement.spacedBy(10.dp),
-                ) {
-                    items(state.histories.take(5), key = { it.word }) { history ->
-                        Card(
-                            modifier =
-                                Modifier.clickable {
-                                    onAction(HomeAction.OnSearchSubmitted(history.word))
-                                },
-                            shape = RoundedCornerShape(32.dp),
-                            colors = CardDefaults.cardColors(containerColor = Color.Transparent),
-                            border = BorderStroke(1.dp, MaterialTheme.colorScheme.onPrimary),
-                            elevation = CardDefaults.cardElevation(0.dp),
+                        LazyHorizontalStaggeredGrid(
+                            rows = StaggeredGridCells.Fixed(2),
+                            modifier = Modifier.fillMaxWidth().height(84.dp),
+                            horizontalItemSpacing = 10.dp,
+                            verticalArrangement = Arrangement.spacedBy(10.dp),
                         ) {
-                            Row(
-                                modifier = Modifier.defaultMinSize(minHeight = 34.dp).padding(horizontal = 16.dp),
-                                horizontalArrangement = Arrangement.Center,
-                                verticalAlignment = Alignment.CenterVertically,
-                            ) {
-                                Icon(
-                                    painter = painterResource(id = R.drawable.ic_history),
-                                    contentDescription = null,
-                                    tint = MaterialTheme.colorScheme.onPrimary,
-                                    modifier = Modifier.size(18.dp),
-                                )
-                                Spacer(modifier = Modifier.width(8.dp))
-                                Text(
-                                    text = history.word,
-                                    color = MaterialTheme.colorScheme.onPrimary,
-                                    fontFamily = InterFontFamily,
-                                    fontWeight = FontWeight.Medium,
-                                    fontSize = 14.sp,
-                                )
+                            items(state.histories.take(5), key = { it.word }) { history ->
+                                Card(
+                                    modifier =
+                                        Modifier.clickable {
+                                            onAction(HomeAction.OnSearchSubmitted(history.word))
+                                        },
+                                    shape = RoundedCornerShape(32.dp),
+                                    colors = CardDefaults.cardColors(containerColor = Color.Transparent),
+                                    border = BorderStroke(1.dp, MaterialTheme.colorScheme.onPrimary),
+                                    elevation = CardDefaults.cardElevation(0.dp),
+                                ) {
+                                    Row(
+                                        modifier =
+                                            Modifier
+                                                .defaultMinSize(
+                                                    minHeight = 34.dp,
+                                                ).padding(horizontal = 16.dp),
+                                        horizontalArrangement = Arrangement.Center,
+                                        verticalAlignment = Alignment.CenterVertically,
+                                    ) {
+                                        Icon(
+                                            painter = painterResource(id = R.drawable.ic_history),
+                                            contentDescription = null,
+                                            tint = MaterialTheme.colorScheme.onPrimary,
+                                            modifier = Modifier.size(18.dp),
+                                        )
+                                        Spacer(modifier = Modifier.width(8.dp))
+                                        Text(
+                                            text = history.word,
+                                            color = MaterialTheme.colorScheme.onPrimary,
+                                            fontFamily = InterFontFamily,
+                                            fontWeight = FontWeight.Medium,
+                                            fontSize = 14.sp,
+                                        )
+                                    }
+                                }
                             }
                         }
                     }
+                }
+
+                androidx.compose.animation.AnimatedVisibility(
+                    visible = state.suggestions.isNotEmpty(),
+                    enter = fadeIn(),
+                    exit = fadeOut(),
+                    modifier = Modifier.align(Alignment.TopStart).padding(top = 63.dp),
+                ) {
+                    SearchSuggestions(
+                        suggestions = state.suggestions,
+                        suggestionMode = state.suggestionMode,
+                        onSuggestionClick = { suggestion ->
+                            onAction(HomeAction.OnSuggestionClick(suggestion))
+                            focusManager.clearFocus()
+                        },
+                    )
                 }
             }
         }
@@ -901,19 +916,27 @@ private fun SearchSuggestions(
         color = Color.White,
         shadowElevation = 4.dp,
     ) {
-        Column(modifier = Modifier.fillMaxWidth()) {
+        LazyColumn(modifier = Modifier.fillMaxWidth().heightIn(max = 320.dp)) {
             if (suggestionMode == HomeSuggestionMode.DidYouMean) {
-                Text(
-                    text = stringResource(id = R.string.did_you_mean_label),
-                    color = TextP,
-                    fontFamily = InterFontFamily,
-                    fontWeight = FontWeight.Medium,
-                    fontSize = 12.sp,
-                    modifier = Modifier.padding(start = 16.dp, top = 16.dp, end = 16.dp, bottom = 8.dp),
-                )
+                item {
+                    Text(
+                        text = stringResource(id = R.string.did_you_mean_label),
+                        color = TextP,
+                        fontFamily = InterFontFamily,
+                        fontWeight = FontWeight.Medium,
+                        fontSize = 12.sp,
+                        modifier =
+                            Modifier.padding(
+                                start = 16.dp,
+                                top = 16.dp,
+                                end = 16.dp,
+                                bottom = 8.dp,
+                            ),
+                    )
+                }
             }
 
-            suggestions.forEach { suggestion ->
+            lazyItems(suggestions, key = { it }) { suggestion ->
                 Row(
                     modifier =
                         Modifier
