@@ -1,11 +1,11 @@
 [versions]
-agp = "9.3.1"
-firebaseBom = "34.18.0"
+agp = "9.4.0"
+firebaseBom = "34.19.0"
 googleServices = "4.5.0"
 firebaseAppDistribution = "5.3.0"
 firebaseCrashlytics = "3.0.8"
-kotlin = "2.4.10"
-ksp = "2.3.10"
+kotlin = "2.4.20"
+ksp = "2.3.12"
 navgraph = "0.2.1"
 coreKtx = "1.19.0"
 appcompat = "1.8.0"
@@ -16,7 +16,7 @@ material = "1.14.0"
 nav3Core = "1.1.7"
 lifecycleViewmodelNav3 = "2.11.0"
 kotlinxSerializationCore = "1.11.0"
-room = "2.8.4"
+room = "2.8.5"
 ktor = "3.5.2"
 coroutines = "1.11.0"
 lifecycle = "2.11.0"
@@ -26,7 +26,7 @@ timber = "5.0.1"
 detekt = "1.23.8"
 ktlint = "14.2.0"
 kover = "0.9.9"
-composeBom = "2026.08.00"
+composeBom = "2026.09.00"
 paging = "3.5.1"
 datastore = "1.2.1"
 work = "2.11.2"
@@ -86,14 +86,14 @@ androidx-compose-ui-test-junit4 = { group = "androidx.compose.ui", name = "ui-te
 androidx-compose-ui-test-manifest = { group = "androidx.compose.ui", name = "ui-test-manifest" }
 androidx-compose-material3 = { group = "androidx.compose.material3", name = "material3" }
 koin-androidx-compose = { group = "io.insert-koin", name = "koin-androidx-compose", version.ref = "koin" }
-koin-androidx-workmanager = { group = "io.insert-koin", name = "koin-androidx-workmanager", version.ref = "koin" }
+# koin-androidx-workmanager = { group = "io.insert-koin", name = "koin-androidx-workmanager", version.ref = "koin" }
 lottie-compose = { group = "com.airbnb.android", name = "lottie-compose", version.ref = "lottie" }
 aboutlibraries-compose-m3 = { module = "com.mikepenz:aboutlibraries-compose-m3", version.ref = "aboutLibraries" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }
 android-library = { id = "com.android.library", version.ref = "agp" }
-kotlin-android = { id = "org.jetbrains.kotlin.android", version.ref = "kotlin" }
+# kotlin-android = { id = "org.jetbrains.kotlin.android", version.ref = "kotlin" }
 kotlin-jvm = { id = "org.jetbrains.kotlin.jvm", version.ref = "kotlin" }
 kotlin-parcelize = { id = "org.jetbrains.kotlin.plugin.parcelize", version.ref = "kotlin" }
 google-devtools-ksp = { id = "com.google.devtools.ksp", version.ref = "ksp" }
