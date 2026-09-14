@@ -9,9 +9,11 @@ import com.arrazyfathan.kbbi.feature.home.domain.model.ListWordModel
 fun DetailRoute(
     listWordModel: ListWordModel,
     onHaptic: (KBBIHapticType) -> Unit,
+    onNavigateToAiSettings: () -> Unit,
 ) {
     DetailScreen(
         listWordModel = listWordModel,
         onHaptic = onHaptic,
+        onNavigateToAiSettings = onNavigateToAiSettings,
     )
 }

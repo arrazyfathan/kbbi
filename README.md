@@ -1,6 +1,6 @@
 # KBBI
 
-KBBI is an unofficial Android dictionary for **Kamus Besar Bahasa Indonesia**, built for fast lookup, offline-friendly reading, proverbs, translations, bookmarks, and daily learning reminders.
+KBBI is an unofficial, AI-assisted Android dictionary for **Kamus Besar Bahasa Indonesia**, built for fast lookup, offline-friendly reading, word study, proverbs, translations, bookmarks, and daily learning reminders.
 
 <p align="center">
   <a href="https://github.com/arrazyfathan/kbbi/releases/download/5.15.1/kbbi-v5.15.1-release.apk"><strong>⬇ Download KBBI 5.15.1 APK</strong></a>
@@ -30,9 +30,9 @@ KBBI is an unofficial Android dictionary for **Kamus Besar Bahasa Indonesia**, b
 
 ## About the project
 
-This repository contains the Android client for KBBI. It combines a remote dictionary service with a bundled local word index and on-device Room caches. A successful lookup is cached so previously opened content can remain available when the network is unavailable.
+This repository contains the Android client for KBBI. It combines a remote dictionary service with a bundled local word index, on-device Room caches, and optional AI-assisted study tools. A successful lookup is cached so previously opened content can remain available when the network is unavailable.
 
-The app does not require an account. Bookmarks, search history, cached content, reminder preferences, language selection, and haptic preferences are stored locally on the device.
+The app does not require an account. Bookmarks, search history, cached content, AI provider configuration, reminder preferences, language selection, and haptic preferences are stored locally on the device. AI study is generated only when requested and can use either a provider managed by the KBBI backend or an OpenAI-compatible provider configured by the user.
 
 KBBI is an unofficial project and is not operated by or affiliated with the Indonesian government or the official KBBI publisher.
 
@@ -46,6 +46,15 @@ KBBI is an unofficial project and is not operated by or affiliated with the Indo
 - Use Android speech recognition for voice search.
 - Show optional word and meaning translations in the detail screen.
 - Copy or share formatted definitions through Android's share sheet.
+
+### AI-assisted word study
+
+- Turn an opened dictionary entry into a simpler explanation, natural examples, usage notes, and related words.
+- Generate study content in English or Indonesian while keeping the official dictionary definitions as the primary reference.
+- Use KBBI AI without entering personal provider credentials, subject to provider availability on the configured backend.
+- Optionally connect directly to one or more custom OpenAI-compatible providers and choose a model for each provider.
+- Test, select, edit, and remove custom provider configurations from **Settings → AI word study**.
+- Display an AI accuracy disclaimer and identify the provider and model used for generated content.
 
 ### Offline-friendly local data
 
@@ -74,6 +83,7 @@ KBBI is an unofficial project and is not operated by or affiliated with the Indo
 ### Settings and app experience
 
 - Choose English or Indonesian as the application language.
+- Choose a KBBI-managed AI provider and model, or configure custom OpenAI-compatible providers.
 - Configure reminder types and delivery times independently.
 - Enable or disable semantic haptic feedback across the application.
 - Check GitHub Releases for app updates and download a newer APK.
@@ -141,10 +151,10 @@ Presentation follows an MVI-style unidirectional flow with immutable screen stat
 │   └── utils/                      # System-bar and voice-recognition helpers
 ├── feature/
 │   ├── bookmark/presentation/      # Saved-word UI and deletion flow
-│   ├── detail/presentation/        # Meanings, translation, copy/share, bookmark state
+│   ├── detail/presentation/        # Meanings, translation, AI study, copy/share, bookmark state
 │   ├── home/
-│   │   ├── data/                   # Word Room DB, remote API, bundled catalog
-│   │   ├── domain/                 # Word/search/bookmark/translation contracts
+│   │   ├── data/                   # Word DB, remote APIs, AI configuration, bundled catalog
+│   │   ├── domain/                 # Word/search/bookmark/translation/AI study contracts
 │   │   └── presentation/           # Search, suggestions, history, voice input
 │   ├── proverb/
 │   │   ├── data/                   # Paging, remote source, Room cache
@@ -153,7 +163,7 @@ Presentation follows an MVI-style unidirectional flow with immutable screen stat
 │   ├── settings/
 │   │   ├── data/                   # DataStore preference implementations
 │   │   ├── domain/                 # Reminder and UI preference contracts
-│   │   └── presentation/           # Settings, language, legal documents
+│   │   └── presentation/           # Settings, AI providers, language, legal documents
 │   ├── splash/presentation/        # Animated startup screen
 │   └── words/presentation/         # Searchable local word list
 ├── .github/workflows/              # Validation and tagged release pipeline
@@ -183,9 +193,19 @@ The bundled asset contains word entries, not full definitions. A word must be op
 4. Cached pages are used when a remote page fails.
 5. Proverb details are remote-first and cached by slug for later fallback.
 
+### AI word study
+
+1. The detail screen builds a bounded request from the displayed headword, word classes, definitions, and selected output language.
+2. In **KBBI AI** mode, the app loads the backend provider catalog and sends generation requests through the configured KBBI API.
+3. In **Custom Provider** mode, the app sends the same study request directly to the selected OpenAI-compatible `/chat/completions` endpoint.
+4. The response is validated before its explanation, examples, usage notes, and related words are shown alongside an AI disclaimer.
+5. Custom mode never silently falls back to KBBI AI when its provider is unavailable or misconfigured.
+
+Custom provider API keys are encrypted with Android Keystore. Provider configuration is kept in app-local DataStore and excluded from Android cloud backup and device-to-device transfer. Custom provider requests, credentials, and provider details are excluded from app logging, analytics, and performance reporting. Users remain responsible for their selected provider's credentials, costs, terms, and data practices.
+
 ### Preferences and reminders
 
-- DataStore persists reminder configuration and haptic preferences.
+- DataStore persists reminder, haptic, and AI provider configuration.
 - WorkManager schedules unique periodic work for each enabled reminder type.
 - Notification taps route back into the appropriate word, proverb, or bookmark destination.
 - App language is stored through AndroidX per-app locale APIs.
@@ -197,7 +217,7 @@ The app uses the `:core:observability` module to provide opt-in usage and perfor
 - Firebase Crashlytics records crashes, selected non-fatal failures, warning/error breadcrumbs, and allowlisted diagnostic keys. Crash reporting is enabled by default.
 - Firebase Analytics records anonymous screen views and feature events when Usage analytics is enabled. It is disabled by default.
 - Firebase Performance records app performance data and sanitized HTTP timing metrics when Performance diagnostics is enabled. It is disabled by default and only eligible for production release builds.
-- Search terms, dictionary definitions, translations, and the dictionary visitor identifier are not sent to Firebase. Network performance URLs redact word, translation, and proverb identifiers.
+- Search terms, dictionary definitions, translations, generated AI study content, custom provider details, and the dictionary visitor identifier are not sent to Firebase. Network performance URLs redact word, translation, and proverb identifiers; backend AI traces contain no study content, and custom-provider requests are not reported.
 - Reporting choices are stored locally and can be changed independently under **Settings → Privacy & diagnostics**. Disabling crash reporting also deletes unsent Crashlytics reports; changes take effect fully after restarting the app.
 
 Firebase reporting requires the application's Firebase configuration. The implementation uses no-op reporters when a reporting channel is disabled, keeping feature code independent of the telemetry provider.
@@ -255,6 +275,8 @@ KBBI_BASE_URL=https://your-compatible-api.example/
 ```
 
 The build fails early when no API URL is configured. Keep private endpoints and credentials out of version control.
+
+For KBBI AI, the configured backend is expected to expose `GET /api/v1/ai/providers` and `POST /api/v1/ai/word-study`. A custom OpenAI-compatible provider can instead be configured at runtime under **Settings → AI word study**; no custom-provider API key is required at build time or should be added to project files.
 
 ### 3. Build or install the development variant
 
@@ -331,13 +353,13 @@ Generate Kover coverage for the application variant:
 
 The HTML report is written under `app/build/reports/kover/`.
 
-Tests cover domain use cases, remote and local data behavior, mapping, app updates, external intents, shortcuts, ViewModels, settings, Room, legal screens, and design-system components.
+Tests cover domain use cases, remote and local data behavior, AI request contracts and provider configuration, mapping, app updates, external intents, shortcuts, ViewModels, settings, Room, legal screens, and design-system components.
 
 ## Permissions
 
 | Permission | Purpose |
 |---|---|
-| Internet/network state | Dictionary, translation, proverb, and release requests |
+| Internet/network state | Dictionary, translation, proverb, AI study, and release requests |
 | Microphone | Voice search; requested when voice search is used |
 | Notifications | Daily reminders; requested when a reminder is enabled on Android 13+ |
 

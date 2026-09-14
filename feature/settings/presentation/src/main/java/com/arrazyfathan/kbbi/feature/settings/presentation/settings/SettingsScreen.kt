@@ -101,9 +101,9 @@ import androidx.core.os.LocaleListCompat
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.arrazyfathan.kbbi.core.R
 import com.arrazyfathan.kbbi.core.appupdate.presentation.AppUpdatePrompt
+import com.arrazyfathan.kbbi.core.domain.model.AppTheme
 import com.arrazyfathan.kbbi.core.observability.AnalyticsEvent
 import com.arrazyfathan.kbbi.core.observability.AnalyticsReporter
-import com.arrazyfathan.kbbi.core.domain.model.AppTheme
 import com.arrazyfathan.kbbi.core.presentation.designsystem.InterFontFamily
 import com.arrazyfathan.kbbi.core.presentation.designsystem.KBBIHapticType
 import com.arrazyfathan.kbbi.core.presentation.designsystem.KBBITheme
@@ -143,6 +143,7 @@ fun SettingsRoute(
     onOpenPrivacyPolicy: () -> Unit,
     onOpenTermsConditions: () -> Unit,
     onOpenSourceLicenses: () -> Unit,
+    onOpenAiSettings: () -> Unit,
 ) {
     val viewModel: SettingsViewModel = koinViewModel()
     val analyticsReporter: AnalyticsReporter = koinInject()
@@ -296,6 +297,7 @@ fun SettingsRoute(
                 context.startActivity(Intent(Intent.ACTION_VIEW, uri.toUri()))
             },
             onOpenSourceLicenses = onOpenSourceLicenses,
+            onOpenAiSettings = onOpenAiSettings,
         )
 
         if (isLanguageTransitionActive) {
@@ -320,6 +322,7 @@ fun SettingsScreen(
     onShareApp: () -> Unit = {},
     onOpenUri: (String) -> Unit = {},
     onOpenSourceLicenses: () -> Unit = {},
+    onOpenAiSettings: () -> Unit = {},
 ) {
     var timePickerType by remember { mutableStateOf<ReminderType?>(null) }
     var isLanguageSelectionInProgress by remember { mutableStateOf(false) }
@@ -356,6 +359,7 @@ fun SettingsScreen(
             ) {
                 PermissionBanner(onOpenSystemSettings = onOpenSystemSettings)
             }
+            AiAssistantSection(onOpenAiSettings)
             ReminderSection(
                 state = state,
                 onAction = onAction,
@@ -471,6 +475,18 @@ fun SettingsScreen(
         AppIconChangeBottomSheet(
             onDismissRequest = { onAction(SettingsAction.OnAppIconChangeDismissed) },
             onConfirm = { onAction(SettingsAction.OnAppIconChangeConfirmed) },
+        )
+    }
+}
+
+@Composable
+private fun AiAssistantSection(onOpenAiSettings: () -> Unit) {
+    SettingsSectionCard(title = stringResource(R.string.ai_settings_section_title)) {
+        SettingsMenuRow(
+            title = stringResource(R.string.ai_settings_title),
+            subtitle = stringResource(R.string.ai_settings_menu_subtitle),
+            icon = R.drawable.ic_auto_awesome,
+            onClick = onOpenAiSettings,
         )
     }
 }
@@ -732,7 +748,7 @@ private fun ThemeOption(
                             Modifier
                                 .offset(x = 18.dp)
                                 .size(28.dp)
-                                .background(palette.secondary, CircleShape)
+                                .background(palette.secondary, CircleShape),
                     )
                 }
                 if (selected) {

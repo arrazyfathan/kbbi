@@ -52,6 +52,18 @@ sealed interface AnalyticsEvent {
             )
     }
 
+    data class AiWordStudyGenerated(
+        val providerMode: AiProviderType,
+        val outcome: EventOutcome,
+    ) : AnalyticsEvent {
+        override val name = "ai_word_study_generated"
+        override val parameters =
+            mapOf(
+                "provider_mode" to providerMode.value,
+                "outcome" to outcome.value,
+            )
+    }
+
     data class ProverbOpened(
         val outcome: EventOutcome,
     ) : AnalyticsEvent {
@@ -107,6 +119,7 @@ enum class AnalyticsScreen(val value: String) {
     Proverbs("proverbs"),
     Bookmarks("bookmarks"),
     Settings("settings"),
+    AiSettings("ai_settings"),
     WordDetail("word_detail"),
     PrivacyPolicy("privacy_policy"),
     TermsConditions("terms_conditions"),
@@ -158,6 +171,11 @@ enum class BookmarkAction(val value: String) {
 enum class TranslationAction(val value: String) {
     Enabled("enabled"),
     Disabled("disabled"),
+}
+
+enum class AiProviderType(val value: String) {
+    Backend("backend"),
+    Custom("custom"),
 }
 
 enum class ReminderKind(val value: String) {

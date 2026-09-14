@@ -37,7 +37,9 @@ private const val HTTP_PAYLOAD_TOO_LARGE = 413
 private const val HTTP_TOO_MANY_REQUESTS = 429
 private const val HTTP_REQUEST_TIMEOUT = 408
 private const val HTTP_SERVER_ERROR_START = 500
+private const val HTTP_BAD_GATEWAY = 502
 private const val HTTP_SERVICE_UNAVAILABLE = 503
+private const val HTTP_GATEWAY_TIMEOUT = 504
 
 suspend inline fun <reified Response : Any> HttpClient.get(
     route: String,
@@ -208,7 +210,9 @@ internal fun Int.toDataError(): DataError =
         HTTP_PAYLOAD_TOO_LARGE -> DataError.PayloadTooLarge
         HTTP_TOO_MANY_REQUESTS -> DataError.TooManyRequests
         HTTP_REQUEST_TIMEOUT -> DataError.RequestTimeout
+        HTTP_BAD_GATEWAY -> DataError.ServiceUnavailable
         HTTP_SERVICE_UNAVAILABLE -> DataError.ServiceUnavailable
+        HTTP_GATEWAY_TIMEOUT -> DataError.RequestTimeout
         in HTTP_SERVER_ERROR_START..599 -> DataError.ServerError
         else -> DataError.Unknown
     }

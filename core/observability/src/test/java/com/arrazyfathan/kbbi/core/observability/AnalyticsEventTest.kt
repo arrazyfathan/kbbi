@@ -42,6 +42,7 @@ class AnalyticsEventTest {
                 AnalyticsEvent.ContentOpened(ContentType.Word, EventSource.WordList),
                 AnalyticsEvent.BookmarkChanged(BookmarkAction.Added, AnalyticsScreen.WordDetail),
                 AnalyticsEvent.TranslationChanged(TranslationAction.Enabled, EventOutcome.Success, false),
+                AnalyticsEvent.AiWordStudyGenerated(AiProviderType.Backend, EventOutcome.Success),
                 AnalyticsEvent.ProverbOpened(EventOutcome.Success),
                 AnalyticsEvent.ReminderChanged(ReminderKind.DailyWord, true),
                 AnalyticsEvent.NotificationOpened(ReminderKind.BookmarkReview),

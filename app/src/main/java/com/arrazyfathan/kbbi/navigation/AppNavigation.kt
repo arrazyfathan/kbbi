@@ -87,6 +87,7 @@ import com.arrazyfathan.kbbi.feature.detail.presentation.navigation.DetailRoute
 import com.arrazyfathan.kbbi.feature.home.domain.model.ListWordModel
 import com.arrazyfathan.kbbi.feature.home.presentation.navigation.HomeRoute
 import com.arrazyfathan.kbbi.feature.proverb.presentation.navigation.ProverbRoute
+import com.arrazyfathan.kbbi.feature.settings.presentation.ai.AiSettingsRoute
 import com.arrazyfathan.kbbi.feature.settings.presentation.legal.PrivacyPolicyScreen
 import com.arrazyfathan.kbbi.feature.settings.presentation.legal.TermsConditionsScreen
 import com.arrazyfathan.kbbi.feature.settings.presentation.settings.SettingsRoute
@@ -167,6 +168,9 @@ data object PrivacyPolicyRoute : NavKey
 
 @Serializable
 data object TermsConditionsRoute : NavKey
+
+@Serializable
+data object AiSettingsRouteKey : NavKey
 
 @Immutable
 internal data class MainAppLaunchRequests(
@@ -430,6 +434,9 @@ internal fun MainApp(
                         onOpenSourceLicenses = {
                             navigator.navigate(OpenSourceLicensesRoute)
                         },
+                        onOpenAiSettings = {
+                            navigator.navigate(AiSettingsRouteKey)
+                        },
                     )
                 }
                 entry<Screen.Bookmarks>(clazzContentKey = NavKey::toAppNavigationContentKey) {
@@ -450,6 +457,13 @@ internal fun MainApp(
                         }
                     DetailRoute(
                         listWordModel = listWordModel,
+                        onHaptic = performHaptic,
+                        onNavigateToAiSettings = { navigator.navigate(AiSettingsRouteKey) },
+                    )
+                }
+                entry<AiSettingsRouteKey>(clazzContentKey = NavKey::toAppNavigationContentKey) {
+                    AiSettingsRoute(
+                        onNavigateBack = { if (!isUiBlocked) navigator.goBack() },
                         onHaptic = performHaptic,
                     )
                 }
@@ -615,6 +629,7 @@ private fun NavKey.toAnalyticsScreen(): AnalyticsScreen? =
         is DetailNavRoute -> AnalyticsScreen.WordDetail
         PrivacyPolicyRoute -> AnalyticsScreen.PrivacyPolicy
         TermsConditionsRoute -> AnalyticsScreen.TermsConditions
+        AiSettingsRouteKey -> AnalyticsScreen.AiSettings
         OpenSourceLicensesRoute -> AnalyticsScreen.OpenSourceLicenses
         else -> null
     }

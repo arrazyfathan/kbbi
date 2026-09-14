@@ -10,15 +10,23 @@ import com.arrazyfathan.kbbi.feature.home.domain.usecase.AddSearchHistoryUseCase
 import com.arrazyfathan.kbbi.feature.home.domain.usecase.CheckWordSavedUseCase
 import com.arrazyfathan.kbbi.feature.home.domain.usecase.ClearSearchHistoryUseCase
 import com.arrazyfathan.kbbi.feature.home.domain.usecase.DeleteBookmarkUseCase
+import com.arrazyfathan.kbbi.feature.home.domain.usecase.GenerateWordStudyUseCase
+import com.arrazyfathan.kbbi.feature.home.domain.usecase.GetAiProvidersUseCase
 import com.arrazyfathan.kbbi.feature.home.domain.usecase.GetTopWordsUseCase
 import com.arrazyfathan.kbbi.feature.home.domain.usecase.GetWordEntriesUseCase
 import com.arrazyfathan.kbbi.feature.home.domain.usecase.GetWordSuggestionsUseCase
 import com.arrazyfathan.kbbi.feature.home.domain.usecase.GetWordTranslationUseCase
 import com.arrazyfathan.kbbi.feature.home.domain.usecase.ObserveBookmarksUseCase
 import com.arrazyfathan.kbbi.feature.home.domain.usecase.ObserveSearchHistoryUseCase
+import com.arrazyfathan.kbbi.feature.home.domain.usecase.RemoveAiConfigurationUseCase
+import com.arrazyfathan.kbbi.feature.home.domain.usecase.SaveAiConfigurationUseCase
 import com.arrazyfathan.kbbi.feature.home.domain.usecase.SaveBookmarkUseCase
 import com.arrazyfathan.kbbi.feature.home.domain.usecase.SearchWordUseCase
 import com.arrazyfathan.kbbi.feature.home.domain.usecase.SearchWordWithHistoryUseCase
+import com.arrazyfathan.kbbi.feature.home.domain.usecase.SelectAiProviderModeUseCase
+import com.arrazyfathan.kbbi.feature.home.domain.usecase.SelectBackendAiProviderUseCase
+import com.arrazyfathan.kbbi.feature.home.domain.usecase.SelectCustomAiProviderUseCase
+import com.arrazyfathan.kbbi.feature.home.domain.usecase.TestAiConnectionUseCase
 import com.arrazyfathan.kbbi.feature.home.presentation.home.HomeViewModel
 import com.arrazyfathan.kbbi.feature.proverb.domain.usecase.GetListProverbsUseCase
 import com.arrazyfathan.kbbi.feature.proverb.domain.usecase.GetProverbMeaningUseCase
@@ -52,6 +60,14 @@ val useCaseModule =
         factoryOf(::GetWordSuggestionsUseCase)
         factoryOf(::GetWordTranslationUseCase)
         factoryOf(::GetTopWordsUseCase)
+        factoryOf(::GenerateWordStudyUseCase)
+        factoryOf(::GetAiProvidersUseCase)
+        factoryOf(::SaveAiConfigurationUseCase)
+        factoryOf(::SelectAiProviderModeUseCase)
+        factoryOf(::SelectBackendAiProviderUseCase)
+        factoryOf(::SelectCustomAiProviderUseCase)
+        factoryOf(::RemoveAiConfigurationUseCase)
+        factoryOf(::TestAiConnectionUseCase)
         factoryOf(::GetFiguresUseCase)
         factoryOf(::GetFigureDetailUseCase)
         factoryOf(::GetListProverbsUseCase)
