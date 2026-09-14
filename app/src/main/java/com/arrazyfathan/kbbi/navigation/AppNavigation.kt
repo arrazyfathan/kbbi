@@ -3,13 +3,12 @@ package com.arrazyfathan.kbbi.navigation
 import android.app.Activity
 import android.content.Context
 import android.content.ContextWrapper
-import androidx.compose.animation.ContentTransform
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
-import androidx.compose.animation.slideInHorizontally
-import androidx.compose.animation.slideOutHorizontally
-import androidx.compose.animation.togetherWith
+import androidx.compose.animation.slideInVertically
+import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
@@ -49,7 +48,6 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.navigation3.rememberViewModelStoreNavEntryDecorator
@@ -102,9 +100,11 @@ import kotlinx.serialization.json.Json
 import org.koin.androidx.compose.koinViewModel
 import org.koin.compose.koinInject
 
-private const val IOS_NAVIGATION_TRANSITION_DURATION_MILLIS = 350
-private const val IOS_NAVIGATION_PARALLAX_DIVISOR = 3
-private const val BOTTOM_NAVIGATION_TRANSITION_DURATION_MILLIS = 220
+private const val BOTTOM_BAR_ENTER_DURATION_MILLIS = 200
+private const val BOTTOM_BAR_ENTER_DELAY_MILLIS = 80
+private const val BOTTOM_BAR_EXIT_DURATION_MILLIS = 140
+private const val BOTTOM_BAR_FADE_IN_DURATION_MILLIS = 160
+private const val BOTTOM_BAR_FADE_OUT_DURATION_MILLIS = 100
 
 sealed interface Screen : NavKey {
     @NavGraphRoot
@@ -361,7 +361,7 @@ internal fun MainApp(
     val entries =
         navigationState.toEntries(
             entryProvider {
-                entry<Screen.Home> {
+                entry<Screen.Home>(clazzContentKey = NavKey::toAppNavigationContentKey) {
                     HomeRoute(
                         onHaptic = performHaptic,
                         externalSearchQuery = effectiveExternalSearchQuery,
@@ -399,7 +399,7 @@ internal fun MainApp(
                         },
                     )
                 }
-                entry<Screen.WordList> {
+                entry<Screen.WordList>(clazzContentKey = NavKey::toAppNavigationContentKey) {
                     WordsRoute(
                         onHaptic = performHaptic,
                         onNavigateToDetail = { word ->
@@ -407,7 +407,7 @@ internal fun MainApp(
                         },
                     )
                 }
-                entry<Screen.Proverb> {
+                entry<Screen.Proverb>(clazzContentKey = NavKey::toAppNavigationContentKey) {
                     ProverbRoute(
                         onHaptic = performHaptic,
                         onNavigateBack = {
@@ -417,7 +417,7 @@ internal fun MainApp(
                         },
                     )
                 }
-                entry<Screen.Settings> {
+                entry<Screen.Settings>(clazzContentKey = NavKey::toAppNavigationContentKey) {
                     SettingsRoute(
                         onHaptic = performHaptic,
                         onNavigateBack = { if (!isUiBlocked) navigator.goBack() },
@@ -432,7 +432,7 @@ internal fun MainApp(
                         },
                     )
                 }
-                entry<Screen.Bookmarks> {
+                entry<Screen.Bookmarks>(clazzContentKey = NavKey::toAppNavigationContentKey) {
                     BookmarkRoute(
                         onHaptic = performHaptic,
                         onNavigateToDetail = { word ->
@@ -443,7 +443,7 @@ internal fun MainApp(
                         },
                     )
                 }
-                entry<DetailNavRoute> { route ->
+                entry<DetailNavRoute>(clazzContentKey = NavKey::toAppNavigationContentKey) { route ->
                     val listWordModel =
                         remember(route.dataJson) {
                             routeJson.decodeFromString<ListWordModel>(route.dataJson)
@@ -453,17 +453,17 @@ internal fun MainApp(
                         onHaptic = performHaptic,
                     )
                 }
-                entry<OpenSourceLicensesRoute> {
+                entry<OpenSourceLicensesRoute>(clazzContentKey = NavKey::toAppNavigationContentKey) {
                     OpenSourceLicensesScreen(
                         onNavigateBack = { if (!isUiBlocked) navigator.goBack() },
                     )
                 }
-                entry<PrivacyPolicyRoute> {
+                entry<PrivacyPolicyRoute>(clazzContentKey = NavKey::toAppNavigationContentKey) {
                     PrivacyPolicyScreen(
                         onNavigateBack = { if (!isUiBlocked) navigator.goBack() },
                     )
                 }
-                entry<TermsConditionsRoute> {
+                entry<TermsConditionsRoute>(clazzContentKey = NavKey::toAppNavigationContentKey) {
                     TermsConditionsScreen(
                         onNavigateBack = { if (!isUiBlocked) navigator.goBack() },
                     )
@@ -481,16 +481,69 @@ internal fun MainApp(
                     }
                 },
                 modifier = Modifier.fillMaxSize(),
-                transitionSpec = { appNavigationTransition(showBottomNavigation) },
-                popTransitionSpec = { appPopNavigationTransition(showBottomNavigation) },
-                predictivePopTransitionSpec = { appPopNavigationTransition(showBottomNavigation) },
+                transitionSpec = {
+                    appNavigationTransition(
+                        motion =
+                            resolveAppNavigationMotion(
+                                initialContentKey = initialState.entries.lastOrNull()?.contentKey,
+                                targetContentKey = targetState.entries.lastOrNull()?.contentKey,
+                                isPop = false,
+                            ),
+                    )
+                },
+                popTransitionSpec = {
+                    appNavigationTransition(
+                        motion =
+                            resolveAppNavigationMotion(
+                                initialContentKey = initialState.entries.lastOrNull()?.contentKey,
+                                targetContentKey = targetState.entries.lastOrNull()?.contentKey,
+                                isPop = true,
+                            ),
+                    )
+                },
+                predictivePopTransitionSpec = {
+                    appNavigationTransition(
+                        motion =
+                            resolveAppNavigationMotion(
+                                initialContentKey = initialState.entries.lastOrNull()?.contentKey,
+                                targetContentKey = targetState.entries.lastOrNull()?.contentKey,
+                                isPop = true,
+                            ),
+                    )
+                },
             )
 
-            if (showBottomNavigation) {
+            AnimatedVisibility(
+                visible = showBottomNavigation,
+                modifier = Modifier.align(Alignment.BottomCenter).fillMaxWidth(),
+                enter =
+                    slideInVertically(
+                        animationSpec =
+                            tween(
+                                durationMillis = BOTTOM_BAR_ENTER_DURATION_MILLIS,
+                                delayMillis = BOTTOM_BAR_ENTER_DELAY_MILLIS,
+                            ),
+                        initialOffsetY = { height -> height },
+                    ) +
+                        fadeIn(
+                            animationSpec =
+                                tween(
+                                    durationMillis = BOTTOM_BAR_FADE_IN_DURATION_MILLIS,
+                                    delayMillis = BOTTOM_BAR_ENTER_DELAY_MILLIS,
+                                ),
+                        ),
+                exit =
+                    slideOutVertically(
+                        animationSpec = tween(durationMillis = BOTTOM_BAR_EXIT_DURATION_MILLIS),
+                        targetOffsetY = { height -> height },
+                    ) +
+                        fadeOut(
+                            animationSpec = tween(durationMillis = BOTTOM_BAR_FADE_OUT_DURATION_MILLIS),
+                        ),
+            ) {
                 Row(
                     modifier =
                         Modifier
-                            .align(Alignment.BottomCenter)
                             .fillMaxWidth()
                             .height(70.dp)
                             .shadow(elevation = 16.dp)
@@ -705,49 +758,3 @@ private tailrec fun Context.findActivity(): Activity? =
         is ContextWrapper -> baseContext.findActivity()
         else -> null
     }
-
-private fun appNavigationTransition(showBottomNavigation: Boolean): ContentTransform =
-    if (showBottomNavigation) {
-        bottomNavigationTransition()
-    } else {
-        iosNavigationTransition()
-    }
-
-private fun appPopNavigationTransition(showBottomNavigation: Boolean): ContentTransform =
-    if (showBottomNavigation) {
-        bottomNavigationTransition()
-    } else {
-        iosPopNavigationTransition()
-    }
-
-private fun bottomNavigationTransition(): ContentTransform {
-    val animationSpec = tween<Float>(durationMillis = BOTTOM_NAVIGATION_TRANSITION_DURATION_MILLIS)
-
-    return fadeIn(animationSpec = animationSpec) togetherWith fadeOut(animationSpec = animationSpec)
-}
-
-private fun iosNavigationTransition(): ContentTransform {
-    val animationSpec = tween<IntOffset>(durationMillis = IOS_NAVIGATION_TRANSITION_DURATION_MILLIS)
-
-    return slideInHorizontally(
-        animationSpec = animationSpec,
-        initialOffsetX = { fullWidth -> fullWidth },
-    ) togetherWith
-        slideOutHorizontally(
-            animationSpec = animationSpec,
-            targetOffsetX = { fullWidth -> -fullWidth / IOS_NAVIGATION_PARALLAX_DIVISOR },
-        )
-}
-
-private fun iosPopNavigationTransition(): ContentTransform {
-    val animationSpec = tween<IntOffset>(durationMillis = IOS_NAVIGATION_TRANSITION_DURATION_MILLIS)
-
-    return slideInHorizontally(
-        animationSpec = animationSpec,
-        initialOffsetX = { fullWidth -> -fullWidth / IOS_NAVIGATION_PARALLAX_DIVISOR },
-    ) togetherWith
-        slideOutHorizontally(
-            animationSpec = animationSpec,
-            targetOffsetX = { fullWidth -> fullWidth },
-        )
-}
