@@ -4,6 +4,10 @@ import android.app.Activity
 import android.content.Context
 import android.content.ContextWrapper
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.Spring
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.animateIntOffsetAsState
+import androidx.compose.animation.core.spring
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
@@ -12,19 +16,26 @@ import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.interaction.collectIsPressedAsState
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.offset
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.ripple
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.Immutable
@@ -40,15 +51,23 @@ import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.compose.runtime.toMutableStateList
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.navigation3.rememberViewModelStoreNavEntryDecorator
 import androidx.navigation3.runtime.NavBackStack
@@ -78,6 +97,7 @@ import com.arrazyfathan.kbbi.core.observability.EventSource
 import com.arrazyfathan.kbbi.core.observability.ReminderKind
 import com.arrazyfathan.kbbi.core.observability.WidgetKind
 import com.arrazyfathan.kbbi.core.presentation.designsystem.KBBIHapticType
+import com.arrazyfathan.kbbi.core.presentation.designsystem.KBBITheme
 import com.arrazyfathan.kbbi.core.presentation.designsystem.perform
 import com.arrazyfathan.kbbi.core.presentation.ui.LocalAppLoadingController
 import com.arrazyfathan.kbbi.core.presentation.ui.rememberAppLoadingController
@@ -87,11 +107,11 @@ import com.arrazyfathan.kbbi.feature.detail.presentation.navigation.DetailRoute
 import com.arrazyfathan.kbbi.feature.home.domain.model.ListWordModel
 import com.arrazyfathan.kbbi.feature.home.presentation.navigation.HomeRoute
 import com.arrazyfathan.kbbi.feature.proverb.presentation.navigation.ProverbRoute
-import com.arrazyfathan.kbbi.feature.wordstudy.presentation.ai.AiSettingsRoute
 import com.arrazyfathan.kbbi.feature.settings.presentation.legal.PrivacyPolicyScreen
 import com.arrazyfathan.kbbi.feature.settings.presentation.legal.TermsConditionsScreen
 import com.arrazyfathan.kbbi.feature.settings.presentation.settings.SettingsRoute
 import com.arrazyfathan.kbbi.feature.words.presentation.navigation.WordsRoute
+import com.arrazyfathan.kbbi.feature.wordstudy.presentation.ai.AiSettingsRoute
 import com.arrazyfathan.kbbi.intent.NotificationLaunchRequest
 import com.arrazyfathan.kbbi.ui.AppUiViewModel
 import com.arrazyfathan.kbbi.widgets.WidgetLaunchRequest
@@ -107,6 +127,158 @@ private const val BOTTOM_BAR_EXIT_DURATION_MILLIS = 140
 private const val BOTTOM_BAR_FADE_IN_DURATION_MILLIS = 160
 private const val BOTTOM_BAR_FADE_OUT_DURATION_MILLIS = 100
 
+@Composable
+private fun BottomNavigation(
+    selectedScreen: Screen?,
+    isUiBlocked: Boolean,
+    onScreenSelected: (Screen) -> Unit,
+) {
+    val screens = mainNavigationScreens
+    val selectedIndex = selectedScreen?.let(screens::indexOf)?.coerceAtLeast(0) ?: 0
+
+    BoxWithConstraints(
+        modifier =
+            Modifier
+                .fillMaxWidth()
+                .height(80.dp)
+                .shadow(elevation = 50.dp)
+                .background(MaterialTheme.colorScheme.surface)
+    ) {
+        BoxWithConstraints(
+            modifier =
+                Modifier
+                    .fillMaxSize(),
+        ) {
+            val itemWidth = maxWidth / screens.size
+            val density = LocalDensity.current
+            val selectedOffset =
+                animateIntOffsetAsState(
+                    targetValue =
+                        with(density) {
+                            IntOffset(
+                                x = (itemWidth * selectedIndex).roundToPx(),
+                                y = 0,
+                            )
+                        },
+                    animationSpec =
+                        spring(
+                            dampingRatio = Spring.DampingRatioNoBouncy,
+                            stiffness = Spring.StiffnessMedium,
+                        ),
+                    label = "bottomNavigationIndicator",
+                )
+
+            Box(
+                modifier =
+                    Modifier
+                        .offset { selectedOffset.value }
+                        .width(itemWidth)
+                        .fillMaxHeight(),
+                contentAlignment = Alignment.TopCenter,
+            ) {
+                Box(
+                    modifier =
+                        Modifier
+                            .fillMaxSize()
+                            .background(
+                                brush =
+                                    Brush.verticalGradient(
+                                        colors =
+                                            listOf(
+                                                MaterialTheme.colorScheme.primary.copy(alpha = 0.12f),
+                                                MaterialTheme.colorScheme.primary.copy(alpha = 0.03f),
+                                                Color.Transparent,
+                                            ),
+                                    ),
+                            ),
+                )
+                Box(
+                    modifier =
+                        Modifier
+                            .fillMaxWidth()
+                            .height(4.dp)
+                            .background(
+                                color = MaterialTheme.colorScheme.primary,
+                                shape = RoundedCornerShape(50),
+                            ),
+                )
+            }
+
+            Row(
+                modifier = Modifier.fillMaxSize(),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                screens.forEach { screen ->
+                    val isSelected = screen == selectedScreen
+                    val interactionSource = remember { MutableInteractionSource() }
+                    val isPressed by interactionSource.collectIsPressedAsState()
+                    val iconScale by animateFloatAsState(
+                        targetValue = if (isPressed) 0.88f else 1f,
+                        animationSpec =
+                            spring(
+                                dampingRatio = Spring.DampingRatioNoBouncy,
+                                stiffness = Spring.StiffnessMedium,
+                            ),
+                        label = "bottomNavigationIconPress",
+                    )
+                    Box(
+                        modifier =
+                            Modifier.weight(1f).fillMaxHeight().clickable(
+                                interactionSource = interactionSource,
+                                indication = null,
+                            ) {
+                                if (!isUiBlocked && !isSelected) {
+                                    onScreenSelected(screen)
+                                }
+                            },
+                        contentAlignment = Alignment.Center,
+                    ) {
+                        Column(
+                            horizontalAlignment = Alignment.CenterHorizontally,
+                            verticalArrangement = Arrangement.Center,
+                        ) {
+                            Icon(
+                                modifier =
+                                    Modifier.size(if (isSelected) 24.dp else 22.dp).graphicsLayer {
+                                        scaleX = iconScale
+                                        scaleY = iconScale
+                                    },
+                                painter =
+                                    painterResource(
+                                        id = if (isSelected) screen.iconSelectedResId else screen.iconResId,
+                                    ),
+                                contentDescription = null,
+                                tint =
+                                    if (isSelected) {
+                                        MaterialTheme.colorScheme.primary
+                                    } else {
+                                        Color.Gray
+                                    },
+                            )
+                            Text(
+                                modifier = Modifier.padding(top = 8.dp, bottom = 8.dp),
+                                text = stringResource(screen.titleResId),
+                                color =
+                                    if (isSelected) {
+                                        MaterialTheme.colorScheme.onSurface
+                                    } else {
+                                        Color.Gray
+                                    },
+                                style =
+                                    MaterialTheme.typography.labelLarge.copy(
+                                        fontSize = if (isSelected) 13.sp else 12.sp,
+                                        fontWeight = if (isSelected) FontWeight.SemiBold else FontWeight.Normal,
+                                    ),
+                            )
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+@Immutable
 sealed interface Screen : NavKey {
     @NavGraphRoot
     @Serializable
@@ -124,6 +296,13 @@ sealed interface Screen : NavKey {
     @Serializable
     data object Bookmarks : Screen
 }
+
+private val mainNavigationScreens =
+    listOf(
+        Screen.Home,
+        Screen.WordList,
+        Screen.Bookmarks,
+    )
 
 private val Screen.titleResId: Int
     get() =
@@ -207,7 +386,9 @@ internal fun MainApp(
     val widgetSearchQuery =
         when (widgetRequest) {
             is WidgetLaunchRequest.WordOfDay -> widgetRequest.word
+
             is WidgetLaunchRequest.SavedWord -> widgetRequest.word
+
             WidgetLaunchRequest.QuickSearch,
             null,
             -> null
@@ -217,12 +398,7 @@ internal fun MainApp(
         if (externalSearchQuery != null) externalSearchRequestKey else widgetRequestKey
     val context = LocalContext.current
     val platformHapticFeedback = LocalHapticFeedback.current
-    val screens =
-        listOf(
-            Screen.Home,
-            Screen.WordList,
-            Screen.Bookmarks,
-        )
+    val screens = mainNavigationScreens
     val navigationState =
         rememberNavigationState(
             startRoute = Screen.Home,
@@ -263,26 +439,38 @@ internal fun MainApp(
 
     LaunchedEffect(widgetRequestKey) {
         when (widgetRequest) {
-            WidgetLaunchRequest.QuickSearch ->
+            WidgetLaunchRequest.QuickSearch -> {
                 analyticsReporter.log(
                     AnalyticsEvent.WidgetOpened(WidgetKind.QuickSearch),
                 )
-            is WidgetLaunchRequest.WordOfDay ->
+            }
+
+            is WidgetLaunchRequest.WordOfDay -> {
                 analyticsReporter.log(
                     AnalyticsEvent.WidgetOpened(WidgetKind.WordOfDay),
                 )
-            is WidgetLaunchRequest.SavedWord ->
+            }
+
+            is WidgetLaunchRequest.SavedWord -> {
                 analyticsReporter.log(
                     AnalyticsEvent.WidgetOpened(WidgetKind.SavedWord),
                 )
-            null -> Unit
+            }
+
+            null -> {
+                Unit
+            }
         }
         when (widgetRequest) {
-            WidgetLaunchRequest.QuickSearch -> navigator.navigateToRoot(Screen.Home)
+            WidgetLaunchRequest.QuickSearch -> {
+                navigator.navigateToRoot(Screen.Home)
+            }
+
             is WidgetLaunchRequest.WordOfDay -> {
                 navigator.navigateToRoot(Screen.Home)
                 if (widgetRequest.word == null) onWidgetRequestConsumed()
             }
+
             is WidgetLaunchRequest.SavedWord -> {
                 if (widgetRequest.word == null) {
                     navigator.navigateToRoot(Screen.Bookmarks)
@@ -291,6 +479,7 @@ internal fun MainApp(
                     navigator.navigateToRoot(Screen.Home)
                 }
             }
+
             null -> {}
         }
     }
@@ -333,7 +522,9 @@ internal fun MainApp(
                 onNotificationRequestConsumed()
             }
 
-            null -> return@LaunchedEffect
+            null -> {
+                return@LaunchedEffect
+            }
         }
     }
 
@@ -555,51 +746,11 @@ internal fun MainApp(
                             animationSpec = tween(durationMillis = BOTTOM_BAR_FADE_OUT_DURATION_MILLIS),
                         ),
             ) {
-                Row(
-                    modifier =
-                        Modifier
-                            .fillMaxWidth()
-                            .height(70.dp)
-                            .shadow(elevation = 16.dp)
-                            .background(MaterialTheme.colorScheme.surface),
-                    verticalAlignment = Alignment.CenterVertically,
-                ) {
-                    screens.forEach { screen ->
-                        val isSelected = navigationState.topLevelRoute == screen
-                        Box(
-                            modifier =
-                                Modifier.weight(1f).fillMaxHeight().clickable(
-                                    interactionSource = remember { MutableInteractionSource() },
-                                    indication =
-                                        ripple(
-                                            bounded = false,
-                                            radius = 24.dp,
-                                            color = MaterialTheme.colorScheme.primary,
-                                        ),
-                                ) {
-                                    if (!isUiBlocked && !isSelected) {
-                                        navigator.navigate(screen)
-                                    }
-                                },
-                            contentAlignment = Alignment.Center,
-                        ) {
-                            Icon(
-                                modifier = Modifier.size(24.dp),
-                                painter =
-                                    painterResource(
-                                        id = if (isSelected) screen.iconSelectedResId else screen.iconResId,
-                                    ),
-                                contentDescription = stringResource(screen.titleResId),
-                                tint =
-                                    if (isSelected) {
-                                        MaterialTheme.colorScheme.primary
-                                    } else {
-                                        MaterialTheme.colorScheme.primary.copy(alpha = 0.55f)
-                                    },
-                            )
-                        }
-                    }
-                }
+                BottomNavigation(
+                    selectedScreen = navigationState.topLevelRoute as? Screen,
+                    isUiBlocked = isUiBlocked,
+                    onScreenSelected = navigator::navigate,
+                )
             }
 
             appUpdateState.availableUpdate?.let { update ->
@@ -773,3 +924,22 @@ private tailrec fun Context.findActivity(): Activity? =
         is ContextWrapper -> baseContext.findActivity()
         else -> null
     }
+
+@Preview(showBackground = true)
+@Composable
+private fun BottomNavigationPreview() {
+    var selectedScreen by remember { mutableStateOf<Screen>(Screen.Home) }
+
+    KBBITheme {
+        Box(
+            modifier = Modifier.fillMaxSize().background(MaterialTheme.colorScheme.background),
+            contentAlignment = Alignment.BottomCenter,
+        ) {
+            BottomNavigation(
+                selectedScreen = selectedScreen,
+                isUiBlocked = false,
+                onScreenSelected = { selectedScreen = it },
+            )
+        }
+    }
+}

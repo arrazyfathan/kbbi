@@ -2,9 +2,9 @@
     <string name="app_name">KBBI</string>
     <string name="logo_desc">Logo KBBI</string>
     <string name="home_title">Beranda</string>
-    <string name="word_list_tab_title">Daftar Kata</string>
+    <string name="word_list_tab_title">Kata</string>
     <string name="proverb_title">Peribahasa</string>
-    <string name="bookmarks_title">Tersimpan</string>
+    <string name="bookmarks_title">Bookmarks</string>
     <string name="welcome_text">Selamat datang\ndi KBBI</string>
     <string name="subtitle_text">Temukan definisi kata dari\nKamus Besar Bahasa Indonesia.</string>
     <string name="search_in_kbbi">Cari di KBBI</string>
