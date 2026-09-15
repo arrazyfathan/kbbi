@@ -19,6 +19,8 @@ import com.arrazyfathan.kbbi.feature.settings.data.di.settingsDataModule
 import com.arrazyfathan.kbbi.feature.settings.domain.service.NotificationPermissionGateway
 import com.arrazyfathan.kbbi.feature.settings.domain.service.ReminderScheduler
 import com.arrazyfathan.kbbi.feature.settings.presentation.di.settingsPresentationModule
+import com.arrazyfathan.kbbi.feature.wordstudy.data.di.wordStudyDataModule
+import com.arrazyfathan.kbbi.feature.wordstudy.presentation.di.wordStudyPresentationModule
 import com.arrazyfathan.kbbi.notifications.AndroidNotificationPermissionGateway
 import com.arrazyfathan.kbbi.notifications.WorkManagerReminderScheduler
 import com.arrazyfathan.kbbi.widgets.BookmarkWidgetCoordinator
@@ -59,6 +61,8 @@ class BaseApplication : Application() {
                         useCaseModule,
                         settingsDataModule,
                         settingsPresentationModule,
+                        wordStudyDataModule,
+                        wordStudyPresentationModule,
                         observabilityModule(
                             AppBuildInfo(
                                 flavor = BuildConfig.FLAVOR,

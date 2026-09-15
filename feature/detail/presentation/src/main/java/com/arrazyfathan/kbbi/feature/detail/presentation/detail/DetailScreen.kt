@@ -80,14 +80,14 @@ import com.arrazyfathan.kbbi.core.presentation.ui.AppAlertState
 import com.arrazyfathan.kbbi.core.presentation.ui.AppAlertType
 import com.arrazyfathan.kbbi.core.presentation.ui.AppTopAlert
 import com.arrazyfathan.kbbi.core.presentation.ui.UiText
-import com.arrazyfathan.kbbi.feature.home.domain.model.AiProviderMode
 import com.arrazyfathan.kbbi.feature.home.domain.model.ListWordModel
 import com.arrazyfathan.kbbi.feature.home.domain.model.MeaningModel
 import com.arrazyfathan.kbbi.feature.home.domain.model.TranslateModel
 import com.arrazyfathan.kbbi.feature.home.domain.model.TranslatedMeaningModel
 import com.arrazyfathan.kbbi.feature.home.domain.model.TranslatedWordModel
 import com.arrazyfathan.kbbi.feature.home.domain.model.WordModel
-import com.arrazyfathan.kbbi.feature.home.domain.model.WordStudyModel
+import com.arrazyfathan.kbbi.feature.wordstudy.domain.model.AiProviderMode
+import com.arrazyfathan.kbbi.feature.wordstudy.domain.model.WordStudyModel
 import kotlinx.coroutines.delay
 import org.koin.androidx.compose.koinViewModel
 import kotlin.time.Duration.Companion.milliseconds

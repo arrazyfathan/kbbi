@@ -16,18 +16,18 @@ import com.arrazyfathan.kbbi.core.observability.BookmarkAction
 import com.arrazyfathan.kbbi.core.observability.EventOutcome
 import com.arrazyfathan.kbbi.core.observability.NoOpAnalyticsReporter
 import com.arrazyfathan.kbbi.core.observability.TranslationAction
-import com.arrazyfathan.kbbi.feature.home.domain.model.AiConfigurationModel
-import com.arrazyfathan.kbbi.feature.home.domain.model.AiProviderMode
 import com.arrazyfathan.kbbi.feature.home.domain.model.ListWordModel
 import com.arrazyfathan.kbbi.feature.home.domain.model.TranslateModel
 import com.arrazyfathan.kbbi.feature.home.domain.model.WordModel
-import com.arrazyfathan.kbbi.feature.home.domain.model.WordStudyModel
-import com.arrazyfathan.kbbi.feature.home.domain.repository.AiConfigurationRepository
 import com.arrazyfathan.kbbi.feature.home.domain.usecase.CheckWordSavedUseCase
 import com.arrazyfathan.kbbi.feature.home.domain.usecase.DeleteBookmarkUseCase
-import com.arrazyfathan.kbbi.feature.home.domain.usecase.GenerateWordStudyUseCase
 import com.arrazyfathan.kbbi.feature.home.domain.usecase.GetWordTranslationUseCase
 import com.arrazyfathan.kbbi.feature.home.domain.usecase.SaveBookmarkUseCase
+import com.arrazyfathan.kbbi.feature.wordstudy.domain.model.AiConfigurationModel
+import com.arrazyfathan.kbbi.feature.wordstudy.domain.model.AiProviderMode
+import com.arrazyfathan.kbbi.feature.wordstudy.domain.model.WordStudyModel
+import com.arrazyfathan.kbbi.feature.wordstudy.domain.repository.AiConfigurationRepository
+import com.arrazyfathan.kbbi.feature.wordstudy.domain.usecase.GenerateWordStudyUseCase
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -198,7 +198,7 @@ class DetailViewModel(
             if (configuration.providerMode == AiProviderMode.BACKEND) AiProviderType.Backend else AiProviderType.Custom
         wordStudyJob =
             viewModelScope.launch {
-                when (val result = generateWordStudyUseCase(word, currentLanguage)) {
+                when (val result = generateWordStudyUseCase(word.toWordStudySourceModel(), currentLanguage)) {
                     is com.arrazyfathan.kbbi.core.domain.model.AppResult.Success -> {
                         analyticsReporter.log(AnalyticsEvent.AiWordStudyGenerated(providerType, EventOutcome.Success))
                         _state.update {

@@ -87,7 +87,7 @@ import com.arrazyfathan.kbbi.feature.detail.presentation.navigation.DetailRoute
 import com.arrazyfathan.kbbi.feature.home.domain.model.ListWordModel
 import com.arrazyfathan.kbbi.feature.home.presentation.navigation.HomeRoute
 import com.arrazyfathan.kbbi.feature.proverb.presentation.navigation.ProverbRoute
-import com.arrazyfathan.kbbi.feature.settings.presentation.ai.AiSettingsRoute
+import com.arrazyfathan.kbbi.feature.wordstudy.presentation.ai.AiSettingsRoute
 import com.arrazyfathan.kbbi.feature.settings.presentation.legal.PrivacyPolicyScreen
 import com.arrazyfathan.kbbi.feature.settings.presentation.legal.TermsConditionsScreen
 import com.arrazyfathan.kbbi.feature.settings.presentation.settings.SettingsRoute

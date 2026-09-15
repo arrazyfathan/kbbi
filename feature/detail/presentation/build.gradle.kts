@@ -37,6 +37,7 @@ dependencies {
     implementation(project(":core:presentation:designsystem"))
     implementation(project(":core:presentation:ui"))
     implementation(project(":feature:home:domain"))
+    implementation(project(":feature:wordstudy:domain"))
 
     implementation(libs.androidx.lifecycle.viewmodel.ktx)
     implementation(libs.androidx.lifecycle.runtime.compose)

@@ -151,10 +151,10 @@ Presentation follows an MVI-style unidirectional flow with immutable screen stat
 │   └── utils/                      # System-bar and voice-recognition helpers
 ├── feature/
 │   ├── bookmark/presentation/      # Saved-word UI and deletion flow
-│   ├── detail/presentation/        # Meanings, translation, AI study, copy/share, bookmark state
+│   ├── detail/presentation/        # Meanings, translation, study-card state, copy/share, bookmarks
 │   ├── home/
-│   │   ├── data/                   # Word DB, remote APIs, AI configuration, bundled catalog
-│   │   ├── domain/                 # Word/search/bookmark/translation/AI study contracts
+│   │   ├── data/                   # Word DB, remote APIs, bundled catalog
+│   │   ├── domain/                 # Word/search/bookmark/translation contracts
 │   │   └── presentation/           # Search, suggestions, history, voice input
 │   ├── proverb/
 │   │   ├── data/                   # Paging, remote source, Room cache
@@ -163,7 +163,11 @@ Presentation follows an MVI-style unidirectional flow with immutable screen stat
 │   ├── settings/
 │   │   ├── data/                   # DataStore preference implementations
 │   │   ├── domain/                 # Reminder and UI preference contracts
-│   │   └── presentation/           # Settings, AI providers, language, legal documents
+│   │   └── presentation/           # Settings, language, legal documents
+│   ├── wordstudy/
+│   │   ├── domain/                 # AI provider/configuration and word-study contracts/use cases
+│   │   ├── data/                   # Backend/custom AI sources, encrypted configuration, DTOs
+│   │   └── presentation/           # AI provider settings screen and ViewModel
 │   ├── splash/presentation/        # Animated startup screen
 │   └── words/presentation/         # Searchable local word list
 ├── .github/workflows/              # Validation and tagged release pipeline
@@ -195,7 +199,7 @@ The bundled asset contains word entries, not full definitions. A word must be op
 
 ### AI word study
 
-1. The detail screen builds a bounded request from the displayed headword, word classes, definitions, and selected output language.
+1. The detail screen maps its displayed Home word model to the Word Study source model, which builds a bounded request from the headword, word classes, definitions, and selected output language.
 2. In **KBBI AI** mode, the app loads the backend provider catalog and sends generation requests through the configured KBBI API.
 3. In **Custom Provider** mode, the app sends the same study request directly to the selected OpenAI-compatible `/chat/completions` endpoint.
 4. The response is validated before its explanation, examples, usage notes, and related words are shown alongside an AI disclaimer.

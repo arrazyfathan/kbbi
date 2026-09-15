@@ -251,6 +251,9 @@ dependencies {
     implementation(project(":feature:settings:data"))
     implementation(project(":feature:settings:domain"))
     implementation(project(":feature:settings:presentation"))
+    implementation(project(":feature:wordstudy:data"))
+    implementation(project(":feature:wordstudy:domain"))
+    implementation(project(":feature:wordstudy:presentation"))
 
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.appcompat)

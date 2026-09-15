@@ -46,6 +46,10 @@
             <option value="$PROJECT_DIR$/feature/splash/presentation" />
             <option value="$PROJECT_DIR$/feature/words" />
             <option value="$PROJECT_DIR$/feature/words/presentation" />
+            <option value="$PROJECT_DIR$/feature/wordstudy" />
+            <option value="$PROJECT_DIR$/feature/wordstudy/data" />
+            <option value="$PROJECT_DIR$/feature/wordstudy/domain" />
+            <option value="$PROJECT_DIR$/feature/wordstudy/presentation" />
           </set>
         </option>
       </GradleProjectSettings>
