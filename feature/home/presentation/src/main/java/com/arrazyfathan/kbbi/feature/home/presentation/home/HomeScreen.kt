@@ -7,10 +7,14 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.core.RepeatMode
 import androidx.compose.animation.core.animateFloat
 import androidx.compose.animation.core.infiniteRepeatable
+import androidx.compose.animation.core.LinearOutSlowInEasing
 import androidx.compose.animation.core.rememberInfiniteTransition
+import androidx.compose.animation.core.FastOutLinearInEasing
 import androidx.compose.animation.core.tween
+import androidx.compose.animation.expandVertically
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
+import androidx.compose.animation.shrinkVertically
 import androidx.compose.animation.slideInHorizontally
 import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.foundation.BorderStroke
@@ -33,7 +37,10 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.wrapContentSize
+import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.staggeredgrid.LazyHorizontalStaggeredGrid
 import androidx.compose.foundation.lazy.staggeredgrid.StaggeredGridCells
 import androidx.compose.foundation.lazy.staggeredgrid.items
@@ -99,7 +106,8 @@ import com.arrazyfathan.kbbi.core.utils.VoiceRecognitionUtils
 import com.arrazyfathan.kbbi.feature.home.domain.model.HistoryModel
 import com.arrazyfathan.kbbi.feature.home.domain.model.ListWordModel
 import org.koin.androidx.compose.koinViewModel
-import androidx.compose.foundation.lazy.items as lazyItems
+import androidx.compose.foundation.lazy.items as lazyColumnItems
+import androidx.compose.foundation.lazy.items as lazyRowItems
 
 private const val HOME_SEARCH_LOADING_SOURCE = "home_search"
 
@@ -330,12 +338,13 @@ fun HomeContent(
 
         // Main Content Container
         Column(
-            modifier = Modifier.fillMaxSize().padding(horizontal = 16.dp),
+            modifier = Modifier.fillMaxSize(),
         ) {
             Spacer(modifier = Modifier.height(50.dp))
 
             // Welcome Text
             Text(
+                modifier = Modifier.padding(horizontal = 16.dp),
                 text = stringResource(id = R.string.welcome_text),
                 color = MaterialTheme.colorScheme.onPrimary,
                 fontSize = 28.sp,
@@ -348,6 +357,7 @@ fun HomeContent(
 
             // Subtitle
             Text(
+                modifier = Modifier.padding(horizontal = 16.dp),
                 text = stringResource(id = R.string.subtitle_text),
                 color = MaterialTheme.colorScheme.onPrimary,
                 fontSize = 14.sp,
@@ -363,7 +373,7 @@ fun HomeContent(
             ) {
                 Column(modifier = Modifier.fillMaxSize()) {
                     Row(
-                        modifier = Modifier.fillMaxWidth(),
+                        modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp),
                         horizontalArrangement = Arrangement.spacedBy(8.dp),
                         verticalAlignment = Alignment.CenterVertically,
                     ) {
@@ -481,60 +491,127 @@ fun HomeContent(
                         }
                     }
 
-                    Spacer(modifier = Modifier.height(12.dp))
+                    Spacer(modifier = Modifier.height(8.dp))
 
-                    // History Section
                     if (state.histories.isNotEmpty()) {
-                        Text(
-                            text = stringResource(id = R.string.history_label),
-                            color = MaterialTheme.colorScheme.onPrimary,
-                            fontSize = 14.sp,
-                            fontFamily = InterFontFamily,
-                            fontWeight = FontWeight.Medium,
-                        )
-
-                        Spacer(modifier = Modifier.height(12.dp))
-
-                        LazyHorizontalStaggeredGrid(
-                            rows = StaggeredGridCells.Fixed(2),
-                            modifier = Modifier.fillMaxWidth().height(84.dp),
-                            horizontalItemSpacing = 10.dp,
-                            verticalArrangement = Arrangement.spacedBy(10.dp),
+                        Box(
+                            modifier = Modifier.fillMaxWidth().height(40.dp),
                         ) {
-                            items(state.histories.take(5), key = { it.word }) { history ->
-                                Card(
-                                    modifier =
-                                        Modifier.clickable {
-                                            onAction(HomeAction.OnSearchSubmitted(history.word))
-                                        },
-                                    shape = RoundedCornerShape(32.dp),
-                                    colors = CardDefaults.cardColors(containerColor = Color.Transparent),
-                                    border = BorderStroke(1.dp, MaterialTheme.colorScheme.onPrimary),
-                                    elevation = CardDefaults.cardElevation(0.dp),
-                                ) {
-                                    Row(
+                            LazyRow(
+                                modifier = Modifier.wrapContentWidth(),
+                                horizontalArrangement = Arrangement.spacedBy(4.dp),
+                            ) {
+                                lazyRowItems(state.histories.take(3), key = { it.word }) { history ->
+                                    val firstIndex = state.histories.indexOf(history) == 0
+                                    val paddingStart = if (firstIndex) 16.dp else 0.dp
+                                    Card(
                                         modifier =
                                             Modifier
-                                                .defaultMinSize(
-                                                    minHeight = 34.dp,
-                                                ).padding(horizontal = 16.dp),
-                                        horizontalArrangement = Arrangement.Center,
-                                        verticalAlignment = Alignment.CenterVertically,
+                                                .clickable {
+                                                    onAction(HomeAction.OnSearchSubmitted(history.word))
+                                                }.padding(start = paddingStart),
+                                        shape = RoundedCornerShape(100.dp),
+                                        colors = CardDefaults.cardColors(containerColor = Color.White),
+                                        border = BorderStroke(0.dp, Color.Transparent),
+                                        elevation = CardDefaults.cardElevation(4.dp),
                                     ) {
-                                        Icon(
-                                            painter = painterResource(id = R.drawable.ic_history),
-                                            contentDescription = null,
-                                            tint = MaterialTheme.colorScheme.onPrimary,
-                                            modifier = Modifier.size(18.dp),
-                                        )
-                                        Spacer(modifier = Modifier.width(8.dp))
-                                        Text(
-                                            text = history.word,
-                                            color = MaterialTheme.colorScheme.onPrimary,
-                                            fontFamily = InterFontFamily,
-                                            fontWeight = FontWeight.Medium,
-                                            fontSize = 14.sp,
-                                        )
+                                        Row(
+                                            modifier =
+                                                Modifier
+                                                    .wrapContentSize()
+                                                    .padding(horizontal = 10.dp, vertical = 6.dp),
+                                            horizontalArrangement = Arrangement.Center,
+                                            verticalAlignment = Alignment.CenterVertically,
+                                        ) {
+                                            Icon(
+                                                painter = painterResource(id = R.drawable.ic_history),
+                                                contentDescription = null,
+                                                tint = MaterialTheme.colorScheme.primary.copy(alpha = 0.7f),
+                                                modifier = Modifier.size(14.dp),
+                                            )
+                                            Spacer(modifier = Modifier.width(6.dp))
+                                            Text(
+                                                text = history.word,
+                                                color = MaterialTheme.colorScheme.primary.copy(alpha = 0.7f),
+                                                fontFamily = InterFontFamily,
+                                                fontWeight = FontWeight.Medium,
+                                                fontSize = 13.sp,
+                                            )
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+
+                    androidx.compose.animation.AnimatedVisibility(
+                        visible = state.topWords.isNotEmpty(),
+                        enter =
+                            expandVertically(
+                                animationSpec = tween(durationMillis = 280, easing = LinearOutSlowInEasing),
+                                expandFrom = Alignment.Top,
+                            ) + fadeIn(animationSpec = tween(durationMillis = 220, easing = LinearOutSlowInEasing)),
+                        exit =
+                            shrinkVertically(
+                                animationSpec = tween(durationMillis = 180, easing = FastOutLinearInEasing),
+                                shrinkTowards = Alignment.Top,
+                            ) + fadeOut(animationSpec = tween(durationMillis = 160, easing = FastOutLinearInEasing)),
+                    ) {
+                        Column(modifier = Modifier.fillMaxWidth()) {
+                            Spacer(modifier = Modifier.height(8.dp))
+
+                            Text(
+                                modifier = Modifier.padding(horizontal = 16.dp),
+                                text = stringResource(id = R.string.top_words_label),
+                                color = MaterialTheme.colorScheme.onPrimary,
+                                fontSize = 14.sp,
+                                fontFamily = InterFontFamily,
+                                fontWeight = FontWeight.Medium,
+                            )
+
+                            Spacer(modifier = Modifier.height(12.dp))
+
+                            LazyHorizontalStaggeredGrid(
+                                rows = StaggeredGridCells.Fixed(2),
+                                modifier = Modifier.fillMaxWidth().height(70.dp).padding(horizontal = 16.dp),
+                                horizontalItemSpacing = 6.dp,
+                                verticalArrangement = Arrangement.spacedBy(6.dp),
+                            ) {
+                                items(state.topWords, key = { "${it.rank}-${it.word}" }) { topWord ->
+                                    Card(
+                                        modifier =
+                                            Modifier.clickable {
+                                                onAction(HomeAction.OnTopWordClick(topWord.word))
+                                            },
+                                        shape = RoundedCornerShape(32.dp),
+                                        colors = CardDefaults.cardColors(containerColor = Color.Transparent),
+                                        border = BorderStroke(1.dp, MaterialTheme.colorScheme.onPrimary),
+                                        elevation = CardDefaults.cardElevation(0.dp),
+                                    ) {
+                                        Row(
+                                            modifier =
+                                                Modifier
+                                                    .defaultMinSize(minHeight = 34.dp)
+                                                    .padding(horizontal = 16.dp),
+                                            horizontalArrangement = Arrangement.Center,
+                                            verticalAlignment = Alignment.CenterVertically,
+                                        ) {
+                                            Text(
+                                                text = "${topWord.rank}.",
+                                                color = MaterialTheme.colorScheme.onPrimary,
+                                                fontFamily = InterFontFamily,
+                                                fontWeight = FontWeight.Bold,
+                                                fontSize = 13.sp,
+                                            )
+                                            Spacer(modifier = Modifier.width(8.dp))
+                                            Text(
+                                                text = topWord.word,
+                                                color = MaterialTheme.colorScheme.onPrimary,
+                                                fontFamily = InterFontFamily,
+                                                fontWeight = FontWeight.Medium,
+                                                fontSize = 14.sp,
+                                            )
+                                        }
                                     }
                                 }
                             }
@@ -546,7 +623,7 @@ fun HomeContent(
                     visible = state.suggestions.isNotEmpty(),
                     enter = fadeIn(),
                     exit = fadeOut(),
-                    modifier = Modifier.align(Alignment.TopStart).padding(top = 63.dp),
+                    modifier = Modifier.align(Alignment.TopStart).padding(top = 63.dp, start = 16.dp, end = 16.dp),
                 ) {
                     SearchSuggestions(
                         suggestions = state.suggestions,
@@ -936,7 +1013,7 @@ private fun SearchSuggestions(
                 }
             }
 
-            lazyItems(suggestions, key = { it }) { suggestion ->
+            lazyColumnItems(suggestions, key = { it }) { suggestion ->
                 Row(
                     modifier =
                         Modifier
@@ -981,6 +1058,14 @@ fun HomeContentPreview() {
                             HistoryModel("Pintar"),
                             HistoryModel("Belajar"),
                             HistoryModel("Membaca"),
+                        ),
+                    topWords =
+                        listOf(
+                            TopWordUi(1, "hati"),
+                            TopWordUi(2, "aturan"),
+                            TopWordUi(3, "abah"),
+                            TopWordUi(4, "audio"),
+                            TopWordUi(5, "bahagia"),
                         ),
                 ),
             onNavigateToProverb = {},

@@ -34,6 +34,7 @@
     <string name="voice_search_failed">Pencarian suara gagal. Silakan coba lagi.</string>
     <string name="navigate_back">Kembali</string>
     <string name="history_label">Pencarian Terbaru</string>
+    <string name="top_words_label">Kata Teratas</string>
     <string name="home_menu_title">Menu</string>
     <string name="home_menu_subtitle">Temukan fitur lainnya</string>
     <string name="proverb_menu_title">Peribahasa</string>

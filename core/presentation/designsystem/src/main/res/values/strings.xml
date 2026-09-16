@@ -35,6 +35,7 @@
     <string name="voice_search_failed">Voice search failed. Please try again.</string>
     <string name="navigate_back">Back</string>
     <string name="history_label">Recent Searches</string>
+    <string name="top_words_label">Top Words</string>
     <string name="home_menu_title">Menu</string>
     <string name="home_menu_subtitle">Discover more features</string>
     <string name="proverb_menu_title">Proverbs</string>

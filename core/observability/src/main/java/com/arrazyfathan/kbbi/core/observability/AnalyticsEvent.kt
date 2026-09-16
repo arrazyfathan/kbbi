@@ -137,6 +137,7 @@ enum class EventSource(val value: String) {
     Bookmarks("bookmarks"),
     ExternalIntent("external_intent"),
     Shortcut("shortcut"),
+    TopWords("top_words"),
     Notification("notification"),
     WidgetQuickSearch("widget_quick_search"),
     WidgetWordOfDay("widget_word_of_day"),

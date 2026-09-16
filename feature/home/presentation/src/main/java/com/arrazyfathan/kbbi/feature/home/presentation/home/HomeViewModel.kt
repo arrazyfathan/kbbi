@@ -18,6 +18,7 @@ import com.arrazyfathan.kbbi.core.observability.NoOpAnalyticsReporter
 import com.arrazyfathan.kbbi.core.utils.VoiceRecognitionError
 import com.arrazyfathan.kbbi.feature.home.domain.model.HistoryModel
 import com.arrazyfathan.kbbi.feature.home.domain.model.ListWordModel
+import com.arrazyfathan.kbbi.feature.home.domain.usecase.GetTopWordsUseCase
 import com.arrazyfathan.kbbi.feature.home.domain.usecase.GetWordEntriesUseCase
 import com.arrazyfathan.kbbi.feature.home.domain.usecase.GetWordSuggestionsUseCase
 import com.arrazyfathan.kbbi.feature.home.domain.usecase.ObserveSearchHistoryUseCase
@@ -30,6 +31,8 @@ import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
+private const val TOP_WORDS_LIMIT = 5
+
 /**
  * Created by Ar Razy Fathan Rabbani on 19/01/23.
  */
@@ -37,11 +40,17 @@ import kotlinx.coroutines.launch
 data class HomeState(
     val searchQuery: String = "",
     val histories: List<HistoryModel> = emptyList(),
+    val topWords: List<TopWordUi> = emptyList(),
     val suggestions: List<String> = emptyList(),
     val suggestionMode: HomeSuggestionMode = HomeSuggestionMode.Search,
     val isLoading: Boolean = false,
     val isVoiceListening: Boolean = false,
     val voicePartialText: String = "",
+)
+
+data class TopWordUi(
+    val rank: Int,
+    val word: String,
 )
 
 enum class HomeSuggestionMode {
@@ -62,6 +71,10 @@ sealed interface HomeAction {
     ) : HomeAction
 
     data class OnSuggestionClick(
+        val word: String,
+    ) : HomeAction
+
+    data class OnTopWordClick(
         val word: String,
     ) : HomeAction
 
@@ -108,6 +121,7 @@ class HomeViewModel(
     private val observeSearchHistory: ObserveSearchHistoryUseCase,
     private val getWordEntries: GetWordEntriesUseCase,
     private val getWordSuggestions: GetWordSuggestionsUseCase,
+    private val getTopWords: GetTopWordsUseCase,
     private val analyticsReporter: AnalyticsReporter = NoOpAnalyticsReporter,
 ) : ViewModel() {
     private val _state = MutableStateFlow(HomeState())
@@ -119,6 +133,7 @@ class HomeViewModel(
     private var historiesJob: Job? = null
     private var searchJob: Job? = null
     private var wordEntriesJob: Job? = null
+    private var topWordsJob: Job? = null
     private var wordEntries: List<String> = emptyList()
     private var pendingInputMethod = InputMethod.Text
 
@@ -127,6 +142,7 @@ class HomeViewModel(
             HomeAction.OnStarted -> {
                 observeHistories()
                 loadWordEntries()
+                loadTopWords()
             }
 
             is HomeAction.OnSearchQueryChanged -> {
@@ -140,6 +156,10 @@ class HomeViewModel(
 
             is HomeAction.OnSuggestionClick -> {
                 search(action.word, EventSource.Suggestion, InputMethod.Text, suggestionUsed = true)
+            }
+
+            is HomeAction.OnTopWordClick -> {
+                search(action.word, EventSource.TopWords, InputMethod.System)
             }
 
             HomeAction.OnRandomWordRequested -> {
@@ -210,6 +230,29 @@ class HomeViewModel(
                 wordEntries = getWordEntries()
                 _state.update {
                     it.copy(suggestions = getWordSuggestions(it.searchQuery, wordEntries))
+                }
+            }
+    }
+
+    private fun loadTopWords() {
+        if (topWordsJob != null) return
+        topWordsJob =
+            viewModelScope.launch {
+                when (val result = getTopWords(limit = TOP_WORDS_LIMIT)) {
+                    is AppResult.Success -> {
+                        _state.update {
+                            it.copy(
+                                topWords =
+                                    result.data
+                                        .take(TOP_WORDS_LIMIT)
+                                        .mapIndexed { index, topWord ->
+                                            TopWordUi(rank = index + 1, word = topWord.word)
+                                        },
+                            )
+                        }
+                    }
+
+                    is AppResult.Error -> Unit
                 }
             }
     }
