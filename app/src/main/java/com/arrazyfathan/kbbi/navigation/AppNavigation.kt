@@ -126,6 +126,7 @@ private const val BOTTOM_BAR_ENTER_DELAY_MILLIS = 80
 private const val BOTTOM_BAR_EXIT_DURATION_MILLIS = 140
 private const val BOTTOM_BAR_FADE_IN_DURATION_MILLIS = 160
 private const val BOTTOM_BAR_FADE_OUT_DURATION_MILLIS = 100
+private const val BOTTOM_NAVIGATION_HEIGHT_DP = 80
 
 @Composable
 private fun BottomNavigation(
@@ -140,9 +141,9 @@ private fun BottomNavigation(
         modifier =
             Modifier
                 .fillMaxWidth()
-                .height(80.dp)
+                .height(BOTTOM_NAVIGATION_HEIGHT_DP.dp)
                 .shadow(elevation = 50.dp)
-                .background(MaterialTheme.colorScheme.surface)
+                .background(MaterialTheme.colorScheme.surface),
     ) {
         BoxWithConstraints(
             modifier =
@@ -408,6 +409,7 @@ internal fun MainApp(
     val currentRoute = navigationState.currentRoute
     val isDetailVisible = currentRoute is DetailNavRoute
     val showBottomNavigation = screens.any { screen -> currentRoute == screen }
+    val selectedScreen = navigationState.topLevelRoute as? Screen
     val loadingController = rememberAppLoadingController()
     val routeJson =
         remember {
@@ -747,7 +749,7 @@ internal fun MainApp(
                         ),
             ) {
                 BottomNavigation(
-                    selectedScreen = navigationState.topLevelRoute as? Screen,
+                    selectedScreen = selectedScreen,
                     isUiBlocked = isUiBlocked,
                     onScreenSelected = navigator::navigate,
                 )

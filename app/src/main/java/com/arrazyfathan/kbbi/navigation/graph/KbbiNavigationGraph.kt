@@ -29,7 +29,7 @@ import com.github.skydoves.navgraph.annotations.NavPreview
 import kotlinx.coroutines.flow.MutableStateFlow
 
 @NavEdge(to = DetailNavRoute::class, label = "search result")
-@NavEdge(to = Screen.Proverb::class, label = "proverb menu")
+@NavEdge(to = Screen.Proverb::class, label = "explore menu")
 @NavEdge(to = Screen.WordList::class, label = "bottom nav")
 @NavEdge(to = Screen.Bookmarks::class, label = "bottom nav")
 @NavDestination(route = Screen.Home::class)
@@ -48,8 +48,9 @@ fun GraphHomeScreen() {
                         ),
                     suggestions = listOf("bahasa", "berbahasa", "kebahasaan"),
                 ),
-            onNavigateToProverb = {},
             onAction = {},
+            onNavigateToProverb = {},
+            onNavigateToSettings = {},
         )
     }
 }

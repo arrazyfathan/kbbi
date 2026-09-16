@@ -2,14 +2,23 @@ package com.arrazyfathan.kbbi.feature.home.presentation.home
 
 import android.Manifest
 import android.widget.Toast
+import androidx.activity.compose.BackHandler
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.compose.animation.core.RepeatMode
-import androidx.compose.animation.core.animateFloat
-import androidx.compose.animation.core.infiniteRepeatable
-import androidx.compose.animation.core.LinearOutSlowInEasing
-import androidx.compose.animation.core.rememberInfiniteTransition
+import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.SizeTransform
+import androidx.compose.animation.togetherWith
 import androidx.compose.animation.core.FastOutLinearInEasing
+import androidx.compose.animation.core.LinearOutSlowInEasing
+import androidx.compose.animation.core.RepeatMode
+import androidx.compose.animation.core.Spring
+import androidx.compose.animation.core.animateDpAsState
+import androidx.compose.animation.core.animateFloat
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.infiniteRepeatable
+import androidx.compose.animation.core.rememberInfiniteTransition
+import androidx.compose.animation.core.spring
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.expandVertically
 import androidx.compose.animation.fadeIn
@@ -19,9 +28,11 @@ import androidx.compose.animation.slideInHorizontally
 import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.LocalIndication
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.gestures.awaitFirstDown
+import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.interaction.collectIsPressedAsState
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -33,6 +44,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
@@ -68,29 +80,30 @@ import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.rotate
+import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
-import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.semantics.stateDescription
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.airbnb.lottie.compose.LottieAnimation
-import com.airbnb.lottie.compose.LottieCompositionSpec
-import com.airbnb.lottie.compose.LottieConstants
-import com.airbnb.lottie.compose.rememberLottieComposition
 import com.arrazyfathan.kbbi.core.R
 import com.arrazyfathan.kbbi.core.observability.EventSource
 import com.arrazyfathan.kbbi.core.presentation.designsystem.InterFontFamily
@@ -105,11 +118,19 @@ import com.arrazyfathan.kbbi.core.utils.VoiceRecognitionController
 import com.arrazyfathan.kbbi.core.utils.VoiceRecognitionUtils
 import com.arrazyfathan.kbbi.feature.home.domain.model.HistoryModel
 import com.arrazyfathan.kbbi.feature.home.domain.model.ListWordModel
+import kotlin.math.roundToInt
 import org.koin.androidx.compose.koinViewModel
 import androidx.compose.foundation.lazy.items as lazyColumnItems
 import androidx.compose.foundation.lazy.items as lazyRowItems
 
 private const val HOME_SEARCH_LOADING_SOURCE = "home_search"
+private const val EXPLORE_TOGGLE_BOTTOM_OFFSET_DP = 96
+private const val EXPLORE_TOGGLE_HORIZONTAL_MARGIN_DP = 16
+private const val EXPLORE_TOGGLE_CHEVRON_DURATION_MILLIS = 240
+private const val EXPLORE_TOGGLE_CONTENT_ENTER_DURATION_MILLIS = 260
+private const val EXPLORE_TOGGLE_CONTENT_EXIT_DURATION_MILLIS = 200
+private const val EXPLORE_TOGGLE_FLOAT_AMPLITUDE_DP = 5
+private const val EXPLORE_TOGGLE_FLOAT_DURATION_MILLIS = 1500
 
 @Composable
 fun HomeScreen(
@@ -123,7 +144,7 @@ fun HomeScreen(
     onShortcutConsumed: () -> Unit = {},
     onNavigateToDetail: (ListWordModel) -> Unit,
     onNavigateToProverb: () -> Unit,
-    onNavigateToSettings: () -> Unit = {},
+    onNavigateToSettings: () -> Unit,
 ) {
     val viewModel: HomeViewModel = koinViewModel()
     val context = LocalContext.current
@@ -241,8 +262,6 @@ fun HomeScreen(
         state = state,
         focusSearchRequestKey = focusSearchRequestKey,
         onSearchFocusConsumed = onShortcutConsumed,
-        onNavigateToProverb = onNavigateToProverb,
-        onNavigateToSettings = onNavigateToSettings,
         onVoiceSearchClick = ::startVoiceSearch,
         onVoiceSearchCancel = {
             ignoreNextVoiceError = true
@@ -253,6 +272,8 @@ fun HomeScreen(
         },
         onAction = viewModel::onAction,
         onHaptic = onHaptic,
+        onNavigateToProverb = onNavigateToProverb,
+        onNavigateToSettings = onNavigateToSettings,
         modifier = modifier,
     )
 }
@@ -264,19 +285,22 @@ fun HomeContent(
     state: HomeState,
     focusSearchRequestKey: Long = 0L,
     onSearchFocusConsumed: () -> Unit = {},
-    onNavigateToProverb: () -> Unit,
-    onNavigateToSettings: () -> Unit = {},
     onVoiceSearchClick: () -> Unit = {},
     onVoiceSearchCancel: () -> Unit = {},
     onAction: (HomeAction) -> Unit,
     onHaptic: (KBBIHapticType) -> Unit = {},
+    onNavigateToProverb: () -> Unit = {},
+    onNavigateToSettings: () -> Unit = {},
 ) {
     val focusManager = LocalFocusManager.current
     val searchFocusRequester = remember { FocusRequester() }
-    var showBottomSheet by remember { mutableStateOf(false) }
+    var showExploreMenu by remember { mutableStateOf(false) }
 
-    val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
     val voiceSheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+
+    BackHandler(enabled = showExploreMenu) {
+        showExploreMenu = false
+    }
 
     LaunchedEffect(focusSearchRequestKey) {
         if (focusSearchRequestKey <= 0L) return@LaunchedEffect
@@ -297,36 +321,7 @@ fun HomeContent(
                                     MaterialTheme.colorScheme.secondary,
                                 ),
                         ),
-                ).statusBarsPadding()
-                .pointerInput(Unit) {
-                    awaitPointerEventScope {
-                        while (true) {
-                            awaitFirstDown(requireUnconsumed = false)
-                            var totalDragY = 0f
-                            var isSwipeDetected = false
-                            var isGestureConsumed = false
-                            do {
-                                val event = awaitPointerEvent()
-                                val dragChange = event.changes.firstOrNull()
-                                if (dragChange?.isConsumed == true) {
-                                    isGestureConsumed = true
-                                } else if (!isGestureConsumed && dragChange != null && dragChange.pressed) {
-                                    val deltaY = dragChange.position.y - dragChange.previousPosition.y
-                                    totalDragY += deltaY
-                                    if (totalDragY < -150f) { // Swipe up threshold
-                                        isSwipeDetected = true
-                                        dragChange.consume()
-                                    }
-                                }
-                            } while (event.changes.any { it.pressed } && !isSwipeDetected)
-
-                            if (isSwipeDetected) {
-                                onHaptic(KBBIHapticType.GestureThreshold)
-                                showBottomSheet = true
-                            }
-                        }
-                    }
-                },
+                ).statusBarsPadding(),
     ) {
         // Hero Image at Bottom-Right
         Image(
@@ -465,7 +460,6 @@ fun HomeContent(
 
                         Surface(
                             onClick = {
-                                showBottomSheet = false
                                 onVoiceSearchClick()
                             },
                             modifier = Modifier.size(55.dp),
@@ -637,97 +631,29 @@ fun HomeContent(
             }
         }
 
-        // Swipe Up Prompter at the bottom
-        Column(
+        ExploreToggle(
+            isExpanded = showExploreMenu,
+            onToggle = {
+                onHaptic(if (showExploreMenu) KBBIHapticType.ToggleOff else KBBIHapticType.ToggleOn)
+                showExploreMenu = !showExploreMenu
+            },
+            onNavigateToProverb = {
+                showExploreMenu = false
+                onNavigateToProverb()
+            },
+            onNavigateToSettings = {
+                showExploreMenu = false
+                onNavigateToSettings()
+            },
             modifier =
                 Modifier
                     .align(Alignment.BottomCenter)
-                    .clickable {
-                        showBottomSheet = true
-                    }.padding(bottom = 86.dp),
-            horizontalAlignment = Alignment.CenterHorizontally,
-        ) {
-            val swipeComposition by rememberLottieComposition(LottieCompositionSpec.RawRes(R.raw.swipeblue))
-            LottieAnimation(
-                composition = swipeComposition,
-                iterations = LottieConstants.IterateForever,
-                modifier = Modifier.size(50.dp),
-            )
-
-            Text(
-                text = stringResource(id = R.string.swipe_label),
-                color = MaterialTheme.colorScheme.onPrimary,
-                fontSize = 12.sp,
-                fontFamily = InterFontFamily,
-                fontWeight = FontWeight.Normal,
-            )
-        }
-
-        // Modal Bottom Sheet Menu
-        if (showBottomSheet) {
-            ModalBottomSheet(
-                onDismissRequest = { showBottomSheet = false },
-                sheetState = sheetState,
-                containerColor = Color.White,
-                shape = RoundedCornerShape(topStart = 10.dp, topEnd = 10.dp),
-            ) {
-                Column(
-                    modifier =
-                        Modifier
-                            .fillMaxWidth()
-                            .padding(horizontal = 16.dp, vertical = 8.dp)
-                            .padding(bottom = 32.dp),
-                ) {
-                    Text(
-                        text = stringResource(id = R.string.home_menu_title),
-                        color = TextH1,
-                        fontSize = 20.sp,
-                        fontFamily = InterFontFamily,
-                        fontWeight = FontWeight.Bold,
-                    )
-
-                    Spacer(modifier = Modifier.height(4.dp))
-
-                    Text(
-                        text = stringResource(id = R.string.home_menu_subtitle),
-                        color = TextP,
-                        fontSize = 14.sp,
-                        fontFamily = InterFontFamily,
-                        fontWeight = FontWeight.Normal,
-                    )
-
-                    Spacer(modifier = Modifier.height(24.dp))
-
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.spacedBy(8.dp),
-                    ) {
-                        HomeMenuCard(
-                            icon = R.drawable.ic_proverb,
-                            title = stringResource(id = R.string.proverb_menu_title),
-                            subtitle = stringResource(id = R.string.proverb_menu_subtitle),
-                            onClick = {
-                                showBottomSheet = false
-                                onNavigateToProverb()
-                            },
-                            modifier = Modifier.weight(1f),
-                        )
-
-                        HomeMenuCard(
-                            icon = R.drawable.settings,
-                            title = stringResource(id = R.string.settings_menu_title),
-                            subtitle = stringResource(id = R.string.settings_menu_subtitle),
-                            onClick = {
-                                showBottomSheet = false
-                                onNavigateToSettings()
-                            },
-                            modifier = Modifier.weight(1f),
-                        )
-                        HomeMenuPlaceholderCard(modifier = Modifier.weight(1f))
-                    }
-                }
-            }
-        }
+                    .padding(
+                        start = EXPLORE_TOGGLE_HORIZONTAL_MARGIN_DP.dp,
+                        end = EXPLORE_TOGGLE_HORIZONTAL_MARGIN_DP.dp,
+                        bottom = EXPLORE_TOGGLE_BOTTOM_OFFSET_DP.dp,
+                    ),
+        )
 
         if (state.isVoiceListening) {
             ModalBottomSheet(
@@ -741,6 +667,190 @@ fun HomeContent(
                     onCancel = onVoiceSearchCancel,
                     modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp).padding(bottom = 32.dp),
                 )
+            }
+        }
+    }
+}
+
+@Composable
+private fun ExploreToggle(
+    isExpanded: Boolean,
+    onToggle: () -> Unit,
+    onNavigateToProverb: () -> Unit,
+    onNavigateToSettings: () -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    val interactionSource = remember { MutableInteractionSource() }
+    val isPressed by interactionSource.collectIsPressedAsState()
+    val pressScale by animateFloatAsState(
+        targetValue = if (isPressed) 0.97f else 1f,
+        animationSpec =
+            spring(
+                dampingRatio = Spring.DampingRatioNoBouncy,
+                stiffness = Spring.StiffnessMedium,
+            ),
+        label = "exploreTogglePress",
+    )
+    val chevronRotation by animateFloatAsState(
+        targetValue = if (isExpanded) 180f else 0f,
+        animationSpec = tween(durationMillis = EXPLORE_TOGGLE_CHEVRON_DURATION_MILLIS),
+        label = "exploreToggleChevron",
+    )
+    val floatTransition = rememberInfiniteTransition(label = "exploreToggleFloat")
+    val floatProgress by floatTransition.animateFloat(
+        initialValue = 0f,
+        targetValue = 1f,
+        animationSpec =
+            infiniteRepeatable(
+                animation =
+                    tween(
+                        durationMillis = EXPLORE_TOGGLE_FLOAT_DURATION_MILLIS,
+                        easing = LinearOutSlowInEasing,
+                    ),
+                repeatMode = RepeatMode.Reverse,
+            ),
+        label = "exploreToggleFloatProgress",
+    )
+    val floatFactor by animateFloatAsState(
+        targetValue = if (isExpanded) 0f else 1f,
+        animationSpec = tween(durationMillis = EXPLORE_TOGGLE_CONTENT_ENTER_DURATION_MILLIS),
+        label = "exploreToggleFloatFactor",
+    )
+    val cornerPercent by animateFloatAsState(
+        targetValue = if (isExpanded) 8f else 50f,
+        animationSpec =
+            spring(
+                dampingRatio = Spring.DampingRatioNoBouncy,
+                stiffness = Spring.StiffnessMediumLow,
+            ),
+        label = "exploreToggleCorner",
+    )
+    val toggleStateDescription =
+        stringResource(
+            if (isExpanded) {
+                R.string.explore_toggle_state_expanded
+            } else {
+                R.string.explore_toggle_state_collapsed
+            },
+        )
+
+    val toggleShape = RoundedCornerShape(percent = cornerPercent.roundToInt())
+    val toggleElevation by animateDpAsState(
+        targetValue = if (isExpanded) 12.dp else 2.dp,
+        animationSpec =
+            spring(
+                dampingRatio = Spring.DampingRatioNoBouncy,
+                stiffness = Spring.StiffnessMediumLow,
+            ),
+        label = "exploreToggleElevation",
+    )
+
+    Box(
+        modifier = modifier.fillMaxWidth(),
+        contentAlignment = Alignment.BottomCenter,
+    ) {
+        Box(
+            modifier =
+                Modifier
+                    .offset {
+                        IntOffset(
+                            x = 0,
+                            y =
+                                (
+                                    (floatProgress - 0.5f) *
+                                        floatFactor *
+                                        EXPLORE_TOGGLE_FLOAT_AMPLITUDE_DP *
+                                        2
+                                ).dp.roundToPx(),
+                        )
+                    }
+                    .wrapContentWidth()
+                    .shadow(elevation = toggleElevation, shape = toggleShape, clip = false)
+                    .clip(toggleShape)
+                    .background(MaterialTheme.colorScheme.surface),
+        ) {
+            Column(
+                modifier = Modifier.wrapContentWidth(),
+                horizontalAlignment = Alignment.CenterHorizontally,
+            ) {
+                AnimatedContent(
+                    targetState = isExpanded,
+                    transitionSpec = {
+                        fadeIn(
+                            animationSpec = tween(durationMillis = EXPLORE_TOGGLE_CONTENT_ENTER_DURATION_MILLIS),
+                        ) togetherWith
+                            fadeOut(
+                                animationSpec = tween(durationMillis = EXPLORE_TOGGLE_CONTENT_EXIT_DURATION_MILLIS),
+                            ) using
+                            SizeTransform(clip = false) { _, _ ->
+                                spring(
+                                    dampingRatio = Spring.DampingRatioNoBouncy,
+                                    stiffness = Spring.StiffnessMediumLow,
+                                )
+                            }
+                    },
+                    contentAlignment = Alignment.BottomCenter,
+                    label = "exploreToggleContent",
+                ) { expanded ->
+                    if (expanded) {
+                        ExploreMenuContent(
+                            onNavigateToProverb = onNavigateToProverb,
+                            onNavigateToSettings = onNavigateToSettings,
+                        )
+                    } else {
+                        Spacer(modifier = Modifier)
+                    }
+                }
+
+                Row(
+                    modifier =
+                        Modifier
+                            .clickable(
+                                interactionSource = interactionSource,
+                                indication = LocalIndication.current,
+                                onClick = onToggle,
+                            ).graphicsLayer {
+                                scaleX = pressScale
+                                scaleY = pressScale
+                            }.defaultMinSize(minHeight = 18.dp)
+                            .padding(horizontal = 8.dp, vertical = 6.dp)
+                            .semantics {
+                                stateDescription = toggleStateDescription
+                            },
+                    horizontalArrangement = Arrangement.Center,
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    Icon(
+                        painter =
+                            painterResource(
+                                id = if (isExpanded) R.drawable.ic_explore_selected else R.drawable.ic_explore,
+                            ),
+                        contentDescription = null,
+                        tint = MaterialTheme.colorScheme.primary,
+                        modifier = Modifier.size(20.dp),
+                    )
+
+                    Spacer(modifier = Modifier.width(8.dp))
+
+                    Text(
+                        text = stringResource(id = R.string.explore_title),
+                        color = TextH1,
+                        fontFamily = InterFontFamily,
+                        fontWeight = FontWeight.SemiBold,
+                        fontSize = 14.sp,
+                    )
+
+                    Spacer(modifier = Modifier.width(4.dp))
+
+                    Icon(
+                        painter = painterResource(id = R.drawable.ic_chevron_down),
+                        contentDescription = null,
+                        tint = TextP,
+                        modifier = Modifier.size(16.dp).rotate(chevronRotation),
+                    )
+                }
+
+                if (isExpanded) Spacer(modifier = Modifier.height(12.dp))
             }
         }
     }
@@ -910,77 +1020,6 @@ private fun VoiceListeningAnimation(modifier: Modifier = Modifier) {
 }
 
 @Composable
-private fun HomeMenuCard(
-    icon: Int,
-    title: String,
-    subtitle: String,
-    onClick: () -> Unit,
-    modifier: Modifier = Modifier,
-) {
-    Card(
-        modifier = modifier.height(120.dp).clickable(onClick = onClick),
-        shape = RoundedCornerShape(10.dp),
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.background),
-        elevation = CardDefaults.cardElevation(0.dp),
-    ) {
-        Column(
-            modifier = Modifier.fillMaxSize().padding(12.dp),
-            verticalArrangement = Arrangement.Center,
-        ) {
-            Surface(
-                modifier = Modifier.size(36.dp),
-                shape = RoundedCornerShape(10.dp),
-                color = Color.White,
-            ) {
-                Box(
-                    modifier = Modifier.fillMaxSize(),
-                    contentAlignment = Alignment.Center,
-                ) {
-                    Icon(
-                        painter = painterResource(id = icon),
-                        contentDescription = null,
-                        tint = MaterialTheme.colorScheme.primary,
-                        modifier = Modifier.size(20.dp),
-                    )
-                }
-            }
-
-            Spacer(modifier = Modifier.height(10.dp))
-
-            Text(
-                text = title,
-                color = TextH1,
-                fontSize = 13.sp,
-                fontFamily = InterFontFamily,
-                fontWeight = FontWeight.Bold,
-                lineHeight = 16.sp,
-            )
-
-            Spacer(modifier = Modifier.height(2.dp))
-
-            Text(
-                text = subtitle,
-                color = TextP,
-                fontSize = 11.sp,
-                fontFamily = InterFontFamily,
-                fontWeight = FontWeight.Normal,
-                lineHeight = 14.sp,
-            )
-        }
-    }
-}
-
-@Composable
-private fun HomeMenuPlaceholderCard(modifier: Modifier = Modifier) {
-    Card(
-        modifier = modifier.height(120.dp),
-        shape = RoundedCornerShape(10.dp),
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.background),
-        elevation = CardDefaults.cardElevation(0.dp),
-    ) {}
-}
-
-@Composable
 private fun SearchSuggestions(
     suggestions: List<String>,
     suggestionMode: HomeSuggestionMode,
@@ -1068,7 +1107,6 @@ fun HomeContentPreview() {
                             TopWordUi(5, "bahagia"),
                         ),
                 ),
-            onNavigateToProverb = {},
             onAction = {},
         )
     }
@@ -1080,7 +1118,6 @@ fun HomeContentLoadingPreview() {
     KBBITheme {
         HomeContent(
             state = HomeState(searchQuery = "Belajar", isLoading = true),
-            onNavigateToProverb = {},
             onAction = {},
         )
     }
@@ -1096,7 +1133,6 @@ fun HomeContentSuggestionsPreview() {
                     searchQuery = "bel",
                     suggestions = listOf("belajar", "belakang", "belanja", "pembelajaran"),
                 ),
-            onNavigateToProverb = {},
             onAction = {},
         )
     }

@@ -5,6 +5,9 @@
     <string name="word_list_tab_title">Kata</string>
     <string name="proverb_title">Peribahasa</string>
     <string name="bookmarks_title">Bookmarks</string>
+    <string name="explore_title">Jelajahi</string>
+    <string name="explore_toggle_state_collapsed">Menu tertutup</string>
+    <string name="explore_toggle_state_expanded">Menu terbuka</string>
     <string name="welcome_text">Selamat datang\ndi KBBI</string>
     <string name="subtitle_text">Temukan definisi kata dari\nKamus Besar Bahasa Indonesia.</string>
     <string name="search_in_kbbi">Cari di KBBI</string>
@@ -16,7 +19,6 @@
     <string name="shortcut_proverbs_long_label">Buka peribahasa</string>
     <string name="shortcut_random_word_label">Kata acak</string>
     <string name="shortcut_random_word_long_label">Kata acak</string>
-    <string name="swipe_label">Geser ke atas</string>
     <string name="hero_image_text">Ilustrasi beranda</string>
     <string name="search_word_list_hint">Cari daftar kata …</string>
     <string name="did_you_mean_label">Mungkin maksud Anda?</string>
@@ -35,8 +37,8 @@
     <string name="navigate_back">Kembali</string>
     <string name="history_label">Pencarian Terbaru</string>
     <string name="top_words_label">Kata Teratas</string>
-    <string name="home_menu_title">Menu</string>
-    <string name="home_menu_subtitle">Temukan fitur lainnya</string>
+    <string name="explore_menu_title">Menu</string>
+    <string name="explore_menu_subtitle">Temukan fitur lainnya</string>
     <string name="proverb_menu_title">Peribahasa</string>
     <string name="proverb_menu_subtitle">Daftar peribahasa</string>
     <string name="proverb_screen_title">Peribahasa</string>

@@ -12,7 +12,7 @@ fun HomeRoute(
     modifier: Modifier = Modifier,
     onNavigateToDetail: (ListWordModel) -> Unit,
     onNavigateToProverb: () -> Unit,
-    onNavigateToSettings: () -> Unit = {},
+    onNavigateToSettings: () -> Unit,
     externalSearchQuery: String? = null,
     externalSearchRequestKey: Long = 0L,
     onExternalSearchConsumed: () -> Unit = {},

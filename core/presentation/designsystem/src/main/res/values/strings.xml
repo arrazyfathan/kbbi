@@ -6,6 +6,9 @@
     <string name="word_list_tab_title">Words</string>
     <string name="proverb_title">Proverb</string>
     <string name="bookmarks_title">Bookmarks</string>
+    <string name="explore_title">Explore</string>
+    <string name="explore_toggle_state_collapsed">Menu collapsed</string>
+    <string name="explore_toggle_state_expanded">Menu expanded</string>
     <string name="welcome_text">Welcome\nto KBBI</string>
     <string name="subtitle_text">Find word definitions from the\nGreat Dictionary of the Indonesian Language.</string>
     <string name="search_in_kbbi">Search in KBBI</string>
@@ -17,7 +20,6 @@
     <string name="shortcut_proverbs_long_label">Open proverbs</string>
     <string name="shortcut_random_word_label">Random word</string>
     <string name="shortcut_random_word_long_label">Random word</string>
-    <string name="swipe_label">Swipe up</string>
     <string name="hero_image_text">Home hero image</string>
     <string name="search_word_list_hint">Search word list …</string>
     <string name="did_you_mean_label">Did you mean?</string>
@@ -36,8 +38,8 @@
     <string name="navigate_back">Back</string>
     <string name="history_label">Recent Searches</string>
     <string name="top_words_label">Top Words</string>
-    <string name="home_menu_title">Menu</string>
-    <string name="home_menu_subtitle">Discover more features</string>
+    <string name="explore_menu_title">Menu</string>
+    <string name="explore_menu_subtitle">Discover more features</string>
     <string name="proverb_menu_title">Proverbs</string>
     <string name="proverb_menu_subtitle">Proverb list</string>
     <string name="proverb_screen_title">Proverbs</string>
