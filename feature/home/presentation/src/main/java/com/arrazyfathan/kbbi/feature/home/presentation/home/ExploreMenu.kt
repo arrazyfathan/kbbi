@@ -90,7 +90,7 @@ internal fun ExploreMenuContent(
             ExploreMenuPlaceholderCard(modifier = Modifier.weight(1f))
         }
         
-        Spacer(modifier = Modifier.height(50.dp))
+        Spacer(modifier = Modifier.height(24.dp))
     }
 }
 

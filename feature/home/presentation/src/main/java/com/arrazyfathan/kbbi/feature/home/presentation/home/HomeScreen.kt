@@ -1,6 +1,7 @@
 package com.arrazyfathan.kbbi.feature.home.presentation.home
 
 import android.Manifest
+import android.os.Build
 import android.widget.Toast
 import androidx.activity.compose.BackHandler
 import androidx.activity.compose.rememberLauncherForActivityResult
@@ -8,7 +9,7 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.SizeTransform
-import androidx.compose.animation.togetherWith
+import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.FastOutLinearInEasing
 import androidx.compose.animation.core.LinearOutSlowInEasing
 import androidx.compose.animation.core.RepeatMode
@@ -17,6 +18,7 @@ import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.core.animateFloat
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.infiniteRepeatable
+import androidx.compose.animation.core.keyframes
 import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.animation.core.spring
 import androidx.compose.animation.core.tween
@@ -26,6 +28,7 @@ import androidx.compose.animation.fadeOut
 import androidx.compose.animation.shrinkVertically
 import androidx.compose.animation.slideInHorizontally
 import androidx.compose.animation.slideOutHorizontally
+import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.LocalIndication
@@ -85,8 +88,11 @@ import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
+import androidx.compose.ui.graphics.BlurEffect
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.RenderEffect
+import androidx.compose.ui.graphics.TileMode
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
@@ -118,8 +124,8 @@ import com.arrazyfathan.kbbi.core.utils.VoiceRecognitionController
 import com.arrazyfathan.kbbi.core.utils.VoiceRecognitionUtils
 import com.arrazyfathan.kbbi.feature.home.domain.model.HistoryModel
 import com.arrazyfathan.kbbi.feature.home.domain.model.ListWordModel
-import kotlin.math.roundToInt
 import org.koin.androidx.compose.koinViewModel
+import kotlin.math.roundToInt
 import androidx.compose.foundation.lazy.items as lazyColumnItems
 import androidx.compose.foundation.lazy.items as lazyRowItems
 
@@ -131,6 +137,10 @@ private const val EXPLORE_TOGGLE_CONTENT_ENTER_DURATION_MILLIS = 260
 private const val EXPLORE_TOGGLE_CONTENT_EXIT_DURATION_MILLIS = 200
 private const val EXPLORE_TOGGLE_FLOAT_AMPLITUDE_DP = 5
 private const val EXPLORE_TOGGLE_FLOAT_DURATION_MILLIS = 1500
+private const val EXPLORE_TOGGLE_MOTION_BLUR_DURATION_MILLIS = 320
+private const val EXPLORE_TOGGLE_MOTION_BLUR_MAX_STRETCH = 0.06f
+private const val EXPLORE_TOGGLE_MOTION_BLUR_ALPHA_DROP = 0.08f
+private const val EXPLORE_TOGGLE_MOTION_BLUR_MAX_RADIUS_PX = 14f
 
 @Composable
 fun HomeScreen(
@@ -745,8 +755,47 @@ private fun ExploreToggle(
         label = "exploreToggleElevation",
     )
 
+    // Motion blur: a short pulse fired on every morph.
+    // Peaks early (front-loaded velocity), then eases back to crisp at rest.
+    val motionBlur = remember { Animatable(0f) }
+    LaunchedEffect(isExpanded) {
+        motionBlur.snapTo(0f)
+        motionBlur.animateTo(
+            targetValue = 0f,
+            animationSpec =
+                keyframes {
+                    durationMillis = EXPLORE_TOGGLE_MOTION_BLUR_DURATION_MILLIS
+                    0f at 0
+                    1f at EXPLORE_TOGGLE_MOTION_BLUR_DURATION_MILLIS / 3
+                    0f at EXPLORE_TOGGLE_MOTION_BLUR_DURATION_MILLIS using LinearOutSlowInEasing
+                },
+        )
+    }
+    val motionBlurStrength = motionBlur.value
+    val supportsBlurEffect = Build.VERSION.SDK_INT >= Build.VERSION_CODES.S
+
     Box(
-        modifier = modifier.fillMaxWidth(),
+        modifier =
+            modifier
+                .fillMaxWidth()
+                .graphicsLayer {
+                    if (motionBlurStrength > 0.001f) {
+                        // Fake directional motion blur along the vertical morph axis:
+                        // stretch + slight fade read as motion without a heavy filter.
+                        scaleX = 1f + (EXPLORE_TOGGLE_MOTION_BLUR_MAX_STRETCH * motionBlurStrength)
+                        scaleY = 1f - (EXPLORE_TOGGLE_MOTION_BLUR_MAX_STRETCH * 0.5f * motionBlurStrength)
+                        alpha = 1f - (EXPLORE_TOGGLE_MOTION_BLUR_ALPHA_DROP * motionBlurStrength)
+                        if (supportsBlurEffect) {
+                            val radius = EXPLORE_TOGGLE_MOTION_BLUR_MAX_RADIUS_PX * motionBlurStrength
+                            renderEffect = BlurEffect(radius, radius, TileMode.Clamp)
+                        }
+                    } else {
+                        scaleX = 1f
+                        scaleY = 1f
+                        alpha = 1f
+                        renderEffect = null
+                    }
+                },
         contentAlignment = Alignment.BottomCenter,
     ) {
         Box(
@@ -763,8 +812,7 @@ private fun ExploreToggle(
                                         2
                                 ).dp.roundToPx(),
                         )
-                    }
-                    .wrapContentWidth()
+                    }.wrapContentWidth()
                     .shadow(elevation = toggleElevation, shape = toggleShape, clip = false)
                     .clip(toggleShape)
                     .background(MaterialTheme.colorScheme.surface),
