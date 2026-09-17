@@ -7,7 +7,6 @@ import androidx.activity.compose.BackHandler
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.AnimatedContent
-import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.SizeTransform
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.FastOutLinearInEasing
@@ -26,8 +25,6 @@ import androidx.compose.animation.expandVertically
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.shrinkVertically
-import androidx.compose.animation.slideInHorizontally
-import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
@@ -91,14 +88,15 @@ import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.BlurEffect
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.RenderEffect
 import androidx.compose.ui.graphics.TileMode
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.semantics.stateDescription
 import androidx.compose.ui.text.TextStyle
@@ -138,9 +136,63 @@ private const val EXPLORE_TOGGLE_CONTENT_EXIT_DURATION_MILLIS = 200
 private const val EXPLORE_TOGGLE_FLOAT_AMPLITUDE_DP = 5
 private const val EXPLORE_TOGGLE_FLOAT_DURATION_MILLIS = 1500
 private const val EXPLORE_TOGGLE_MOTION_BLUR_DURATION_MILLIS = 320
-private const val EXPLORE_TOGGLE_MOTION_BLUR_MAX_STRETCH = 0.06f
-private const val EXPLORE_TOGGLE_MOTION_BLUR_ALPHA_DROP = 0.08f
-private const val EXPLORE_TOGGLE_MOTION_BLUR_MAX_RADIUS_PX = 14f
+private const val MORPH_MOTION_BLUR_DURATION_MILLIS = 300
+private const val MORPH_MOTION_BLUR_MAX_STRETCH = 0.06f
+private const val MORPH_MOTION_BLUR_ALPHA_DROP = 0.08f
+private const val MORPH_MOTION_BLUR_MAX_RADIUS_PX = 14f
+
+/**
+ * A short, front-loaded "velocity" pulse (0 -> 1 -> 0) that plays whenever [isActive] changes.
+ * 0 means crisp at rest, 1 means peak motion. Used to drive [morphMotionBlur].
+ */
+@Composable
+private fun rememberMorphMotionBlur(
+    isActive: Boolean,
+    blurDurationMillis: Int = MORPH_MOTION_BLUR_DURATION_MILLIS,
+): Float {
+    val motionBlur = remember { Animatable(0f) }
+    LaunchedEffect(isActive) {
+        motionBlur.snapTo(0f)
+        motionBlur.animateTo(
+            targetValue = 0f,
+            animationSpec =
+                keyframes {
+                    durationMillis = blurDurationMillis
+                    0f at 0
+                    1f at blurDurationMillis / 3
+                    0f at blurDurationMillis using LinearOutSlowInEasing
+                },
+        )
+    }
+    return motionBlur.value
+}
+
+/**
+ * Fake directional motion blur along the horizontal axis: a horizontal stretch plus a slight
+ * fade, upgraded to a real GPU [BlurEffect] on API 31+. [strength] must be 0f..1f.
+ */
+private fun Modifier.morphMotionBlur(
+    strength: Float,
+    maxStretch: Float = MORPH_MOTION_BLUR_MAX_STRETCH,
+    maxRadiusPx: Float = MORPH_MOTION_BLUR_MAX_RADIUS_PX,
+    alphaDrop: Float = MORPH_MOTION_BLUR_ALPHA_DROP,
+): Modifier =
+    graphicsLayer {
+        if (strength > 0.001f) {
+            scaleX = 1f + (maxStretch * strength)
+            scaleY = 1f - (maxStretch * 0.5f * strength)
+            alpha = 1f - (alphaDrop * strength)
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+                val radius = maxRadiusPx * strength
+                renderEffect = BlurEffect(radius, radius, TileMode.Clamp)
+            }
+        } else {
+            scaleX = 1f
+            scaleY = 1f
+            alpha = 1f
+            renderEffect = null
+        }
+    }
 
 @Composable
 fun HomeScreen(
@@ -435,61 +487,73 @@ fun HomeContent(
                                         cursorColor = MaterialTheme.colorScheme.primary,
                                     ),
                             )
-
-                            androidx.compose.animation.AnimatedVisibility(
-                                visible = state.searchQuery.length > 2,
-                                enter = slideInHorizontally(initialOffsetX = { it }) + fadeIn(),
-                                exit = slideOutHorizontally(targetOffsetX = { it }) + fadeOut(),
-                                modifier = Modifier.align(Alignment.CenterEnd),
-                            ) {
-                                Surface(
-                                    onClick = {
-                                        if (state.searchQuery.isNotBlank()) {
-                                            onAction(HomeAction.OnSearchSubmitted(state.searchQuery))
-                                            focusManager.clearFocus()
-                                        }
-                                    },
-                                    modifier = Modifier.size(55.dp),
-                                    shape = RoundedCornerShape(10.dp),
-                                    color = MaterialTheme.colorScheme.secondary,
-                                ) {
-                                    Box(
-                                        modifier = Modifier.fillMaxSize(),
-                                        contentAlignment = Alignment.Center,
-                                    ) {
-                                        Icon(
-                                            painter = painterResource(id = R.drawable.ic_search),
-                                            contentDescription = stringResource(id = R.string.button_search),
-                                            tint = MaterialTheme.colorScheme.onSecondary,
-                                            modifier = Modifier.size(24.dp),
-                                        )
-                                    }
-                                }
-                            }
                         }
+
+                        val hasQuery = state.searchQuery.isNotBlank()
+                        val searchWordContentDescription = stringResource(id = R.string.button_search)
+                        val voiceSearchContentDescription = stringResource(id = R.string.button_voice_search)
+
+                        val iconMorph by animateFloatAsState(
+                            targetValue = if (hasQuery) 1f else 0f,
+                            animationSpec =
+                                spring(
+                                    dampingRatio = Spring.DampingRatioNoBouncy,
+                                    stiffness = Spring.StiffnessMediumLow,
+                                ),
+                            label = "searchVoiceButtonIconMorph",
+                        )
 
                         Surface(
                             onClick = {
-                                onVoiceSearchClick()
+                                if (hasQuery) {
+                                    onAction(HomeAction.OnSearchSubmitted(state.searchQuery))
+                                    focusManager.clearFocus()
+                                } else {
+                                    onVoiceSearchClick()
+                                }
                             },
-                            modifier = Modifier.size(55.dp),
+                            modifier =
+                                Modifier
+                                    .size(55.dp)
+                                    .semantics {
+                                        contentDescription =
+                                            if (hasQuery) {
+                                                searchWordContentDescription
+                                            } else {
+                                                voiceSearchContentDescription
+                                            }
+                                    },
                             shape = RoundedCornerShape(10.dp),
-                            color = if (state.isVoiceListening) MaterialTheme.colorScheme.secondary else Color.White,
+                            color = Color.White,
                         ) {
                             Box(
-                                modifier = Modifier.fillMaxSize(),
+                                modifier = Modifier.fillMaxSize().clip(RoundedCornerShape(10.dp)),
                                 contentAlignment = Alignment.Center,
                             ) {
+                                val wheelOffsetPx = with(LocalDensity.current) { 28.dp.toPx() }
                                 Icon(
                                     painter = painterResource(id = R.drawable.ic_microphone),
-                                    contentDescription = stringResource(id = R.string.button_voice_search),
-                                    tint =
-                                        if (state.isVoiceListening) {
-                                            MaterialTheme.colorScheme.onSecondary
-                                        } else {
-                                            MaterialTheme.colorScheme.primary
-                                        },
-                                    modifier = Modifier.size(24.dp),
+                                    contentDescription = null,
+                                    tint = MaterialTheme.colorScheme.primary,
+                                    modifier =
+                                        Modifier
+                                            .size(24.dp)
+                                            .graphicsLayer {
+                                                translationY = -wheelOffsetPx * iconMorph
+                                                alpha = (1f - iconMorph).coerceIn(0f, 1f)
+                                            },
+                                )
+                                Icon(
+                                    painter = painterResource(id = R.drawable.ic_search),
+                                    contentDescription = null,
+                                    tint = MaterialTheme.colorScheme.primary,
+                                    modifier =
+                                        Modifier
+                                            .size(18.dp)
+                                            .graphicsLayer {
+                                                translationY = wheelOffsetPx * (1f - iconMorph)
+                                                alpha = iconMorph.coerceIn(0f, 1f)
+                                            },
                                 )
                             }
                         }
@@ -517,7 +581,7 @@ fun HomeContent(
                                         shape = RoundedCornerShape(100.dp),
                                         colors = CardDefaults.cardColors(containerColor = Color.White),
                                         border = BorderStroke(0.dp, Color.Transparent),
-                                        elevation = CardDefaults.cardElevation(4.dp),
+                                        elevation = CardDefaults.cardElevation(0.dp),
                                     ) {
                                         Row(
                                             modifier =
@@ -757,45 +821,17 @@ private fun ExploreToggle(
 
     // Motion blur: a short pulse fired on every morph.
     // Peaks early (front-loaded velocity), then eases back to crisp at rest.
-    val motionBlur = remember { Animatable(0f) }
-    LaunchedEffect(isExpanded) {
-        motionBlur.snapTo(0f)
-        motionBlur.animateTo(
-            targetValue = 0f,
-            animationSpec =
-                keyframes {
-                    durationMillis = EXPLORE_TOGGLE_MOTION_BLUR_DURATION_MILLIS
-                    0f at 0
-                    1f at EXPLORE_TOGGLE_MOTION_BLUR_DURATION_MILLIS / 3
-                    0f at EXPLORE_TOGGLE_MOTION_BLUR_DURATION_MILLIS using LinearOutSlowInEasing
-                },
+    val motionBlurStrength =
+        rememberMorphMotionBlur(
+            isActive = isExpanded,
+            blurDurationMillis = EXPLORE_TOGGLE_MOTION_BLUR_DURATION_MILLIS,
         )
-    }
-    val motionBlurStrength = motionBlur.value
-    val supportsBlurEffect = Build.VERSION.SDK_INT >= Build.VERSION_CODES.S
 
     Box(
         modifier =
             modifier
                 .fillMaxWidth()
-                .graphicsLayer {
-                    if (motionBlurStrength > 0.001f) {
-                        // Fake directional motion blur along the vertical morph axis:
-                        // stretch + slight fade read as motion without a heavy filter.
-                        scaleX = 1f + (EXPLORE_TOGGLE_MOTION_BLUR_MAX_STRETCH * motionBlurStrength)
-                        scaleY = 1f - (EXPLORE_TOGGLE_MOTION_BLUR_MAX_STRETCH * 0.5f * motionBlurStrength)
-                        alpha = 1f - (EXPLORE_TOGGLE_MOTION_BLUR_ALPHA_DROP * motionBlurStrength)
-                        if (supportsBlurEffect) {
-                            val radius = EXPLORE_TOGGLE_MOTION_BLUR_MAX_RADIUS_PX * motionBlurStrength
-                            renderEffect = BlurEffect(radius, radius, TileMode.Clamp)
-                        }
-                    } else {
-                        scaleX = 1f
-                        scaleY = 1f
-                        alpha = 1f
-                        renderEffect = null
-                    }
-                },
+                .morphMotionBlur(strength = motionBlurStrength),
         contentAlignment = Alignment.BottomCenter,
     ) {
         Box(

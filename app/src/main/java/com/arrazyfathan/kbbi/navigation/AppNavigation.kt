@@ -51,7 +51,6 @@ import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.compose.runtime.toMutableStateList
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
@@ -146,9 +145,7 @@ private fun BottomNavigation(
                 .background(MaterialTheme.colorScheme.surface),
     ) {
         BoxWithConstraints(
-            modifier =
-                Modifier
-                    .fillMaxSize(),
+            modifier = Modifier.fillMaxSize(),
         ) {
             val itemWidth = maxWidth / screens.size
             val density = LocalDensity.current
@@ -170,38 +167,29 @@ private fun BottomNavigation(
                 )
 
             Box(
-                modifier =
-                    Modifier
-                        .offset { selectedOffset.value }
-                        .width(itemWidth)
-                        .fillMaxHeight(),
+                modifier = Modifier.offset { selectedOffset.value }.width(itemWidth).fillMaxHeight(),
                 contentAlignment = Alignment.TopCenter,
             ) {
                 Box(
                     modifier =
-                        Modifier
-                            .fillMaxSize()
-                            .background(
-                                brush =
-                                    Brush.verticalGradient(
-                                        colors =
-                                            listOf(
-                                                MaterialTheme.colorScheme.primary.copy(alpha = 0.12f),
-                                                MaterialTheme.colorScheme.primary.copy(alpha = 0.03f),
-                                                Color.Transparent,
-                                            ),
-                                    ),
-                            ),
+                        Modifier.fillMaxSize().background(
+                            brush =
+                                Brush.verticalGradient(
+                                    colors =
+                                        listOf(
+                                            MaterialTheme.colorScheme.primary.copy(alpha = 0.12f),
+                                            MaterialTheme.colorScheme.primary.copy(alpha = 0.03f),
+                                            Color.Transparent,
+                                        ),
+                                ),
+                        ),
                 )
                 Box(
                     modifier =
-                        Modifier
-                            .fillMaxWidth()
-                            .height(4.dp)
-                            .background(
-                                color = MaterialTheme.colorScheme.primary,
-                                shape = RoundedCornerShape(50),
-                            ),
+                        Modifier.fillMaxWidth().height(4.dp).background(
+                            color = MaterialTheme.colorScheme.primary,
+                            shape = RoundedCornerShape(50),
+                        ),
                 )
             }
 
@@ -929,7 +917,7 @@ private tailrec fun Context.findActivity(): Activity? =
 
 @Preview(showBackground = true)
 @Composable
-private fun BottomNavigationPreview() {
+fun BottomNavigationPreview() {
     var selectedScreen by remember { mutableStateOf<Screen>(Screen.Home) }
 
     KBBITheme {
