@@ -153,7 +153,14 @@ private fun rememberMorphMotionBlur(
     blurDurationMillis: Int = MORPH_MOTION_BLUR_DURATION_MILLIS,
 ): Float {
     val motionBlur = remember { Animatable(0f) }
+    // Skips the very first composition so entering the screen (e.g. re-navigating to Home) does not
+    // fire a spurious blur pulse; only real toggles animate.
+    var isFirstComposition by remember { mutableStateOf(true) }
     LaunchedEffect(isActive) {
+        if (isFirstComposition) {
+            isFirstComposition = false
+            return@LaunchedEffect
+        }
         motionBlur.snapTo(0f)
         motionBlur.animateTo(
             targetValue = 0f,
