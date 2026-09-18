@@ -4,7 +4,11 @@ import android.app.Activity
 import android.content.Context
 import android.content.ContextWrapper
 import android.content.Intent
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
+import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.interaction.collectIsPressedAsState
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -23,6 +27,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
@@ -35,14 +40,28 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.drawBehind
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.geometry.Size
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.graphics.lerp
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.ProgressBarRangeInfo
+import androidx.compose.ui.semantics.clearAndSetSemantics
+import androidx.compose.ui.semantics.progressBarRangeInfo
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
@@ -294,17 +313,108 @@ fun AppUpdatePromptContent(
 
         Spacer(modifier = Modifier.height(16.dp))
 
-        Button(
-            modifier = Modifier.fillMaxWidth().height(48.dp),
+        UpdateDownloadButton(
+            update = update,
+            downloadState = downloadState,
             onClick = if (update.downloadUrl == null) onOpenRelease else onDownload,
-            enabled = !isDownloading,
-            shape = RoundedCornerShape(12.dp),
-            colors =
-                ButtonDefaults.buttonColors(
-                    containerColor = MaterialTheme.colorScheme.primary,
-                    contentColor = MaterialTheme.colorScheme.onPrimary,
-                ),
+        )
+    }
+}
+
+@Composable
+private fun UpdateDownloadButton(
+    update: AppUpdate,
+    downloadState: AppUpdateDownloadState,
+    onClick: () -> Unit,
+) {
+    val downloading = downloadState as? AppUpdateDownloadState.Downloading
+    val interactionSource = remember { MutableInteractionSource() }
+    val isPressed by interactionSource.collectIsPressedAsState()
+    val pressed = isPressed && downloading == null
+    val pressScale =
+        animateFloatAsState(
+            targetValue = if (pressed) 0.97f else 1f,
+            animationSpec = tween(durationMillis = if (pressed) 100 else 180),
+            label = "Update button press",
+        )
+    val progress = downloading?.progressPercent?.coerceIn(0, 100)?.div(100f)
+    val animatedProgress =
+        animateFloatAsState(
+            targetValue = if (downloadState is AppUpdateDownloadState.Ready) 1f else progress ?: 0f,
+            animationSpec = tween(durationMillis = 350),
+            label = "Update download progress",
+        )
+    val primary = MaterialTheme.colorScheme.primary
+    val foreground = MaterialTheme.colorScheme.onPrimary
+    val gradient =
+        Brush.horizontalGradient(
+            listOf(lerp(primary, Color.Black, 0.18f), primary),
+        )
+    val shape = RoundedCornerShape(16.dp)
+
+    Button(
+        modifier =
+            Modifier
+                .fillMaxWidth()
+                .heightIn(min = 52.dp)
+                .graphicsLayer {
+                    scaleX = pressScale.value
+                    scaleY = pressScale.value
+                }.clip(shape)
+                .background(gradient)
+                .drawBehind {
+                    if (downloading != null && progress != null) {
+                        val remainingWidth = size.width * (1f - animatedProgress.value)
+                        drawRect(
+                            color = Color.Black.copy(alpha = 0.22f),
+                            topLeft =
+                                Offset(
+                                    x = if (layoutDirection == LayoutDirection.Ltr) size.width - remainingWidth else 0f,
+                                    y = 0f,
+                                ),
+                            size = Size(remainingWidth, size.height),
+                        )
+                    }
+                }.semantics {
+                    if (downloading != null) {
+                        progressBarRangeInfo = progress?.let { ProgressBarRangeInfo(it, 0f..1f) }
+                            ?: ProgressBarRangeInfo.Indeterminate
+                    }
+                },
+        onClick = onClick,
+        enabled = downloading == null,
+        interactionSource = interactionSource,
+        shape = shape,
+        colors =
+            ButtonDefaults.buttonColors(
+                containerColor = Color.Transparent,
+                contentColor = foreground,
+                disabledContainerColor = Color.Transparent,
+                disabledContentColor = foreground,
+            ),
+    ) {
+        Row(
+            horizontalArrangement = Arrangement.spacedBy(10.dp, Alignment.CenterHorizontally),
+            verticalAlignment = Alignment.CenterVertically,
         ) {
+            if (downloading != null) {
+                val indicatorModifier = Modifier.size(18.dp).clearAndSetSemantics { }
+                if (progress == null) {
+                    CircularProgressIndicator(
+                        modifier = indicatorModifier,
+                        color = foreground,
+                        strokeWidth = 2.dp,
+                    )
+                } else {
+                    CircularProgressIndicator(
+                        progress = { animatedProgress.value },
+                        modifier = indicatorModifier,
+                        color = foreground,
+                        trackColor = foreground.copy(alpha = 0.25f),
+                        strokeWidth = 2.dp,
+                    )
+                }
+            }
             Text(
                 text =
                     stringResource(
@@ -314,6 +424,7 @@ fun AppUpdatePromptContent(
                 fontFamily = InterFontFamily,
                 fontWeight = FontWeight.SemiBold,
                 fontSize = 15.sp,
+                textAlign = TextAlign.Center,
             )
         }
     }
