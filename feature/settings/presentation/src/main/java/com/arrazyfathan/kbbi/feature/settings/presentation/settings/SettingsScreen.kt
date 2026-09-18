@@ -744,11 +744,7 @@ private fun ThemeOption(
                         modifier = Modifier.size(28.dp).background(palette.primary, CircleShape),
                     )
                     Box(
-                        modifier =
-                            Modifier
-                                .offset(x = 18.dp)
-                                .size(28.dp)
-                                .background(palette.secondary, CircleShape),
+                        modifier = Modifier.offset(x = 18.dp).size(28.dp).background(palette.secondary, CircleShape),
                     )
                 }
                 if (selected) {
@@ -1141,8 +1137,13 @@ private fun SettingsMenuRow(
                 fontWeight = FontWeight.Bold,
                 modifier =
                     Modifier
-                        .background(MaterialTheme.colorScheme.primary, RoundedCornerShape(50))
-                        .padding(horizontal = 8.dp, vertical = 4.dp),
+                        .background(
+                            brush =
+                                Brush.verticalGradient(
+                                    listOf(MaterialTheme.colorScheme.secondary, MaterialTheme.colorScheme.primary),
+                                ),
+                            RoundedCornerShape(50),
+                        ).padding(horizontal = 8.dp, vertical = 4.dp),
             )
             Spacer(Modifier.width(10.dp))
         }

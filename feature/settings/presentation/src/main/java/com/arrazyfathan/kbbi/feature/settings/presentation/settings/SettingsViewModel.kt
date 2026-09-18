@@ -170,6 +170,8 @@ class SettingsViewModel(
     private val _events = Channel<SettingsEvent>(Channel.BUFFERED)
     val events = _events.receiveAsFlow()
 
+    private var showUpdateCheckResult = false
+
     init {
         _state.update {
             it.copy(
@@ -211,7 +213,7 @@ class SettingsViewModel(
             is SettingsAction.OnStarted -> {
                 _state.update { it.copy(selectedLanguage = action.currentLanguage) }
                 reconcilePermission()
-                checkForUpdate(force = false, showResult = false)
+                checkForUpdate(showResult = false)
             }
 
             SettingsAction.OnLanguageClick -> {
@@ -227,7 +229,7 @@ class SettingsViewModel(
             }
 
             SettingsAction.OnCheckForUpdate -> {
-                checkForUpdate(force = true, showResult = true)
+                checkForUpdate(showResult = true)
             }
 
             SettingsAction.OnUpdatePromptDismissed -> {
@@ -296,24 +298,27 @@ class SettingsViewModel(
         }
     }
 
-    private fun checkForUpdate(
-        force: Boolean,
-        showResult: Boolean,
-    ) {
-        if (!force && !appUpdateConfig.isUpdateCheckEnabled) return
+    private fun checkForUpdate(showResult: Boolean) {
+        if (state.value.isCheckingUpdate) {
+            showUpdateCheckResult = showUpdateCheckResult || showResult
+            return
+        }
+        showUpdateCheckResult = showResult
+        _state.update { it.copy(isCheckingUpdate = true) }
 
         viewModelScope.launch {
-            _state.update { it.copy(isCheckingUpdate = true) }
-            when (val result = appUpdateRepository.checkForUpdate(appUpdateConfig.currentVersion, force)) {
+            // Settings needs a fresh result even after the startup check consumes the automatic cadence.
+            when (val result = appUpdateRepository.checkForUpdate(appUpdateConfig.currentVersion, force = true)) {
                 is AppResult.Success -> {
                     _state.update {
                         it.copy(
                             isCheckingUpdate = false,
                             availableUpdate = result.data,
-                            isUpdatePromptVisible = showResult && result.data != null,
+                            isUpdatePromptVisible =
+                                (it.isUpdatePromptVisible || showUpdateCheckResult) && result.data != null,
                         )
                     }
-                    if (showResult && result.data == null) {
+                    if (showUpdateCheckResult && result.data == null) {
                         _events.send(
                             SettingsEvent.ShowMessage(UiText.StringResource(R.string.app_update_up_to_date)),
                         )
@@ -322,7 +327,7 @@ class SettingsViewModel(
 
                 is AppResult.Error -> {
                     _state.update { it.copy(isCheckingUpdate = false) }
-                    if (showResult) {
+                    if (showUpdateCheckResult) {
                         _events.send(
                             SettingsEvent.ShowMessage(
                                 message = UiText.StringResource(R.string.update_check_failed),

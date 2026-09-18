@@ -346,11 +346,13 @@ private fun UpdateDownloadButton(
         )
     val primary = MaterialTheme.colorScheme.primary
     val foreground = MaterialTheme.colorScheme.onPrimary
+    val secondary = MaterialTheme.colorScheme.secondary
     val gradient =
-        Brush.horizontalGradient(
-            listOf(lerp(primary, Color.Black, 0.18f), primary),
+        Brush.verticalGradient(
+            listOf(lerp(secondary, primary, 0.18f), primary),
         )
-    val shape = RoundedCornerShape(16.dp)
+
+    val shape = RoundedCornerShape(100.dp)
 
     Button(
         modifier =
@@ -542,12 +544,21 @@ private fun VersionPill(
     version: String,
     emphasized: Boolean = false,
 ) {
-    val containerColor = if (emphasized) MaterialTheme.colorScheme.primary else Color.White
+    val primary = MaterialTheme.colorScheme.primary
+    val secondary = MaterialTheme.colorScheme.secondary
+    val gradient = if (emphasized)
+        Brush.verticalGradient(
+            listOf(lerp(secondary, primary, 0.18f), primary),
+        )
+     else
+        Brush.verticalGradient(
+            listOf(Color.White, Color.White),
+        )
 
     Column(
         modifier =
             modifier
-                .background(color = containerColor, shape = RoundedCornerShape(10.dp))
+                .background(brush = gradient, shape = RoundedCornerShape(10.dp))
                 .padding(horizontal = 12.dp, vertical = 10.dp),
     ) {
         Text(

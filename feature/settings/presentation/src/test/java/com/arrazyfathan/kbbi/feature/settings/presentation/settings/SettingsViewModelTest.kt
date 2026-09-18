@@ -192,7 +192,58 @@ class SettingsViewModelTest {
 
         assertEquals(update, viewModel.state.value.availableUpdate)
         assertFalse(viewModel.state.value.isUpdatePromptVisible)
-        assertEquals(false, updateRepository.lastForce)
+        assertEquals(true, updateRepository.lastForce)
+        assertEquals(null, withTimeoutOrNull(100) { viewModel.events.first() })
+    }
+
+    @Test
+    fun `opening settings checks even when startup checks are disabled`() = runTest(dispatcher) {
+        val update = AppUpdate("2.0.0", "https://example.com/release", null, null)
+        val updateRepository = FakeAppUpdateRepository(AppResult.Success(update))
+        val viewModel = createViewModel(updateRepository = updateRepository, isUpdateCheckEnabled = false)
+
+        viewModel.onAction(SettingsAction.OnStarted(AppLanguage.ENGLISH))
+
+        assertEquals(update, viewModel.state.value.availableUpdate)
+        assertEquals(true, updateRepository.lastForce)
+        assertFalse(viewModel.state.value.isUpdatePromptVisible)
+        assertFalse(viewModel.state.value.isCheckingUpdate)
+    }
+
+    @Test
+    fun `automatic failure stays silent and preserves known update`() = runTest(dispatcher) {
+        val update = AppUpdate("2.0.0", "https://example.com/release", null, null)
+        val updateRepository = FakeAppUpdateRepository(AppResult.Success(update))
+        val viewModel = createViewModel(updateRepository = updateRepository)
+        viewModel.onAction(SettingsAction.OnStarted(AppLanguage.ENGLISH))
+        updateRepository.result = AppResult.Error(DataError.NoInternet)
+
+        viewModel.onAction(SettingsAction.OnStarted(AppLanguage.ENGLISH))
+
+        assertEquals(update, viewModel.state.value.availableUpdate)
+        assertFalse(viewModel.state.value.isCheckingUpdate)
+        assertFalse(viewModel.state.value.isUpdatePromptVisible)
+        assertEquals(null, withTimeoutOrNull(100) { viewModel.events.first() })
+    }
+
+    @Test
+    fun `manual tap during automatic check reuses request and opens result`() = runTest(dispatcher) {
+        val pending = kotlinx.coroutines.CompletableDeferred<Unit>()
+        val update = AppUpdate("2.0.0", "https://example.com/release", null, null)
+        val updateRepository = FakeAppUpdateRepository(AppResult.Success(update), beforeResult = { pending.await() })
+        val viewModel = createViewModel(updateRepository = updateRepository)
+
+        viewModel.onAction(SettingsAction.OnStarted(AppLanguage.ENGLISH))
+        viewModel.onAction(SettingsAction.OnStarted(AppLanguage.ENGLISH))
+        viewModel.onAction(SettingsAction.OnCheckForUpdate)
+
+        assertTrue(viewModel.state.value.isCheckingUpdate)
+        assertEquals(1, updateRepository.checkCount)
+        pending.complete(Unit)
+
+        assertEquals(update, viewModel.state.value.availableUpdate)
+        assertTrue(viewModel.state.value.isUpdatePromptVisible)
+        assertFalse(viewModel.state.value.isCheckingUpdate)
     }
 
     @Test
@@ -498,14 +549,18 @@ private class FakeScheduler : ReminderScheduler {
 
 private class FakeAppUpdateRepository(
     var result: AppResult<AppUpdate?, DataError> = AppResult.Success(null),
+    private val beforeResult: suspend () -> Unit = {},
 ) : AppUpdateRepository {
     var lastForce: Boolean? = null
+    var checkCount = 0
 
     override suspend fun checkForUpdate(
         currentVersion: String,
         force: Boolean,
     ): AppResult<AppUpdate?, DataError> {
         lastForce = force
+        checkCount++
+        beforeResult()
         return result
     }
 }
