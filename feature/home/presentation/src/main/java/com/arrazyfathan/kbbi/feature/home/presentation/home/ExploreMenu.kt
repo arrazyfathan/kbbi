@@ -1,6 +1,14 @@
 package com.arrazyfathan.kbbi.feature.home.presentation.home
 
+import android.widget.Toast
+import androidx.compose.animation.core.Spring
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.spring
+import androidx.compose.animation.core.tween
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.interaction.collectIsPressedAsState
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -11,6 +19,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -19,10 +28,14 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.blur
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
@@ -41,29 +54,74 @@ internal fun ExploreMenuContent(
     onNavigateToSettings: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
+    val comingSoonMessage = stringResource(id = R.string.coming_soon)
+    val context = LocalContext.current
+    val showComingSoon =
+        remember(context, comingSoonMessage) {
+            {
+                Toast.makeText(context, comingSoonMessage, Toast.LENGTH_SHORT).show()
+            }
+        }
+
+    val menuItems =
+        listOf(
+            ExploreMenuItem(
+                icon = R.drawable.ic_proverb,
+                title = stringResource(id = R.string.proverb_menu_title),
+                subtitle = stringResource(id = R.string.proverb_menu_subtitle),
+                onClick = onNavigateToProverb,
+            ),
+            ExploreMenuItem(
+                icon = R.drawable.ic_figure,
+                title = stringResource(id = R.string.figure_menu_title),
+                subtitle = stringResource(id = R.string.figure_menu_subtitle),
+                onClick = showComingSoon,
+            ),
+            ExploreMenuItem(
+                icon = R.drawable.ic_auto_awesome,
+                title = stringResource(id = R.string.ai_menu_title),
+                subtitle = stringResource(id = R.string.ai_menu_subtitle),
+                onClick = showComingSoon,
+            ),
+        )
+
     Column(
         modifier =
             modifier
                 .fillMaxWidth()
                 .padding(start = 16.dp, end = 16.dp, top = 16.dp),
     ) {
-        Text(
-            text = stringResource(id = R.string.explore_menu_title),
-            color = TextH1,
-            fontSize = 20.sp,
-            fontFamily = InterFontFamily,
-            fontWeight = FontWeight.Bold,
-        )
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            verticalAlignment = Alignment.Top,
+        ) {
+            Column(modifier = Modifier.weight(1f)) {
+                Text(
+                    text = stringResource(id = R.string.explore_menu_title),
+                    color = TextH1,
+                    fontSize = 20.sp,
+                    fontFamily = InterFontFamily,
+                    fontWeight = FontWeight.Bold,
+                )
 
-        Spacer(modifier = Modifier.height(4.dp))
+                Spacer(modifier = Modifier.height(4.dp))
 
-        Text(
-            text = stringResource(id = R.string.explore_menu_subtitle),
-            color = TextP,
-            fontSize = 14.sp,
-            fontFamily = InterFontFamily,
-            fontWeight = FontWeight.Normal,
-        )
+                Text(
+                    text = stringResource(id = R.string.explore_menu_subtitle),
+                    color = TextP,
+                    fontSize = 14.sp,
+                    fontFamily = InterFontFamily,
+                    fontWeight = FontWeight.Normal,
+                )
+            }
+
+            Spacer(modifier = Modifier.width(12.dp))
+
+            ExploreSettingsButton(
+                onClick = onNavigateToSettings,
+                modifier = Modifier.align(Alignment.CenterVertically),
+            )
+        }
 
         Spacer(modifier = Modifier.height(16.dp))
 
@@ -71,26 +129,86 @@ internal fun ExploreMenuContent(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.spacedBy(8.dp),
         ) {
-            ExploreMenuCard(
-                icon = R.drawable.ic_proverb,
-                title = stringResource(id = R.string.proverb_menu_title),
-                subtitle = stringResource(id = R.string.proverb_menu_subtitle),
-                onClick = onNavigateToProverb,
-                modifier = Modifier.weight(1f),
-            )
-
-            ExploreMenuCard(
-                icon = R.drawable.settings,
-                title = stringResource(id = R.string.settings_menu_title),
-                subtitle = stringResource(id = R.string.settings_menu_subtitle),
-                onClick = onNavigateToSettings,
-                modifier = Modifier.weight(1f),
-            )
-
-            ExploreMenuPlaceholderCard(modifier = Modifier.weight(1f))
+            menuItems.forEach { item ->
+                ExploreMenuCard(
+                    icon = item.icon,
+                    title = item.title,
+                    subtitle = item.subtitle,
+                    onClick = item.onClick,
+                    modifier = Modifier.weight(1f),
+                )
+            }
         }
-        
+
         Spacer(modifier = Modifier.height(24.dp))
+    }
+}
+
+private data class ExploreMenuItem(
+    val icon: Int,
+    val title: String,
+    val subtitle: String,
+    val onClick: () -> Unit,
+)
+
+@Composable
+private fun ExploreSettingsButton(
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    val interactionSource = remember { MutableInteractionSource() }
+    val isPressed by interactionSource.collectIsPressedAsState()
+    val pressScale by animateFloatAsState(
+        targetValue = if (isPressed) 0.94f else 1f,
+        animationSpec =
+            spring(
+                dampingRatio = Spring.DampingRatioNoBouncy,
+                stiffness = Spring.StiffnessMedium,
+            ),
+        label = "exploreSettingsButtonPress",
+    )
+    val pressAlpha by animateFloatAsState(
+        targetValue = if (isPressed) 0.85f else 1f,
+        animationSpec = tween(durationMillis = 120),
+        label = "exploreSettingsButtonAlpha",
+    )
+
+    Surface(
+        onClick = onClick,
+        modifier =
+            modifier
+                .graphicsLayer {
+                    scaleX = pressScale
+                    scaleY = pressScale
+                    alpha = pressAlpha
+                },
+        shape = RoundedCornerShape(100.dp),
+        color = Color.White,
+        border = BorderStroke(1.5.dp, MaterialTheme.colorScheme.primary.copy(alpha = 0.7f)),
+        interactionSource = interactionSource,
+    ) {
+        Row(
+            modifier = Modifier.padding(horizontal = 16.dp, vertical = 10.dp),
+            horizontalArrangement = Arrangement.Center,
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Icon(
+                painter = painterResource(id = R.drawable.settings),
+                contentDescription = null,
+                tint = MaterialTheme.colorScheme.primary,
+                modifier = Modifier.size(18.dp),
+            )
+
+            Spacer(modifier = Modifier.width(8.dp))
+
+            Text(
+                text = stringResource(id = R.string.settings_menu_title),
+                color = TextH1,
+                fontFamily = InterFontFamily,
+                fontWeight = FontWeight.SemiBold,
+                fontSize = 13.sp,
+            )
+        }
     }
 }
 
@@ -102,9 +220,31 @@ private fun ExploreMenuCard(
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
+    val interactionSource = remember { MutableInteractionSource() }
+    val isPressed by interactionSource.collectIsPressedAsState()
+    val pressScale by animateFloatAsState(
+        targetValue = if (isPressed) 0.96f else 1f,
+        animationSpec =
+            spring(
+                dampingRatio = Spring.DampingRatioNoBouncy,
+                stiffness = Spring.StiffnessMedium,
+            ),
+        label = "exploreMenuCardPress",
+    )
+
     Card(
-        modifier = modifier.height(120.dp).clickable(onClick = onClick),
-        shape = RoundedCornerShape(10.dp),
+        modifier =
+            modifier
+                .height(120.dp)
+                .graphicsLayer {
+                    scaleX = pressScale
+                    scaleY = pressScale
+                }.clickable(
+                    interactionSource = interactionSource,
+                    indication = null,
+                    onClick = onClick,
+                ),
+        shape = RoundedCornerShape(16.dp),
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.background),
         elevation = CardDefaults.cardElevation(0.dp),
     ) {
@@ -113,11 +253,12 @@ private fun ExploreMenuCard(
                 Modifier
                     .fillMaxSize()
                     .padding(12.dp),
-            verticalArrangement = Arrangement.Center,
+            verticalArrangement = Arrangement.Top,
+            horizontalAlignment = Alignment.Start,
         ) {
             Surface(
                 modifier = Modifier.size(36.dp),
-                shape = RoundedCornerShape(10.dp),
+                shape = RoundedCornerShape(16.dp),
                 color = Color.White,
             ) {
                 Box(
@@ -156,16 +297,6 @@ private fun ExploreMenuCard(
             )
         }
     }
-}
-
-@Composable
-private fun ExploreMenuPlaceholderCard(modifier: Modifier = Modifier) {
-    Card(
-        modifier = modifier.height(120.dp),
-        shape = RoundedCornerShape(10.dp),
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.background),
-        elevation = CardDefaults.cardElevation(0.dp),
-    ) {}
 }
 
 @Preview(showBackground = true, widthDp = 390)

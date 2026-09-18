@@ -131,6 +131,8 @@ private const val HOME_SEARCH_LOADING_SOURCE = "home_search"
 private const val EXPLORE_TOGGLE_BOTTOM_OFFSET_DP = 96
 private const val EXPLORE_TOGGLE_HORIZONTAL_MARGIN_DP = 16
 private const val EXPLORE_TOGGLE_CHEVRON_DURATION_MILLIS = 240
+private const val EXPLORE_TOGGLE_ICON_ROTATION_DURATION_MILLIS = 520
+private const val EXPLORE_TOGGLE_ICON_ROTATION_DEGREES = 180f
 private const val EXPLORE_TOGGLE_CONTENT_ENTER_DURATION_MILLIS = 260
 private const val EXPLORE_TOGGLE_CONTENT_EXIT_DURATION_MILLIS = 200
 private const val EXPLORE_TOGGLE_FLOAT_AMPLITUDE_DP = 5
@@ -513,16 +515,14 @@ fun HomeContent(
                                 }
                             },
                             modifier =
-                                Modifier
-                                    .size(55.dp)
-                                    .semantics {
-                                        contentDescription =
-                                            if (hasQuery) {
-                                                searchWordContentDescription
-                                            } else {
-                                                voiceSearchContentDescription
-                                            }
-                                    },
+                                Modifier.size(55.dp).semantics {
+                                    contentDescription =
+                                        if (hasQuery) {
+                                            searchWordContentDescription
+                                        } else {
+                                            voiceSearchContentDescription
+                                        }
+                                },
                             shape = RoundedCornerShape(10.dp),
                             color = Color.White,
                         ) {
@@ -536,24 +536,20 @@ fun HomeContent(
                                     contentDescription = null,
                                     tint = MaterialTheme.colorScheme.primary,
                                     modifier =
-                                        Modifier
-                                            .size(24.dp)
-                                            .graphicsLayer {
-                                                translationY = -wheelOffsetPx * iconMorph
-                                                alpha = (1f - iconMorph).coerceIn(0f, 1f)
-                                            },
+                                        Modifier.size(24.dp).graphicsLayer {
+                                            translationY = -wheelOffsetPx * iconMorph
+                                            alpha = (1f - iconMorph).coerceIn(0f, 1f)
+                                        },
                                 )
                                 Icon(
                                     painter = painterResource(id = R.drawable.ic_search),
                                     contentDescription = null,
                                     tint = MaterialTheme.colorScheme.primary,
                                     modifier =
-                                        Modifier
-                                            .size(18.dp)
-                                            .graphicsLayer {
-                                                translationY = wheelOffsetPx * (1f - iconMorph)
-                                                alpha = iconMorph.coerceIn(0f, 1f)
-                                            },
+                                        Modifier.size(18.dp).graphicsLayer {
+                                            translationY = wheelOffsetPx * (1f - iconMorph)
+                                            alpha = iconMorph.coerceIn(0f, 1f)
+                                        },
                                 )
                             }
                         }
@@ -720,13 +716,11 @@ fun HomeContent(
                 onNavigateToSettings()
             },
             modifier =
-                Modifier
-                    .align(Alignment.BottomCenter)
-                    .padding(
-                        start = EXPLORE_TOGGLE_HORIZONTAL_MARGIN_DP.dp,
-                        end = EXPLORE_TOGGLE_HORIZONTAL_MARGIN_DP.dp,
-                        bottom = EXPLORE_TOGGLE_BOTTOM_OFFSET_DP.dp,
-                    ),
+                Modifier.align(Alignment.BottomCenter).padding(
+                    start = EXPLORE_TOGGLE_HORIZONTAL_MARGIN_DP.dp,
+                    end = EXPLORE_TOGGLE_HORIZONTAL_MARGIN_DP.dp,
+                    bottom = EXPLORE_TOGGLE_BOTTOM_OFFSET_DP.dp,
+                ),
         )
 
         if (state.isVoiceListening) {
@@ -769,6 +763,15 @@ private fun ExploreToggle(
         targetValue = if (isExpanded) 180f else 0f,
         animationSpec = tween(durationMillis = EXPLORE_TOGGLE_CHEVRON_DURATION_MILLIS),
         label = "exploreToggleChevron",
+    )
+    val exploreIconRotation by animateFloatAsState(
+        targetValue = if (isExpanded) EXPLORE_TOGGLE_ICON_ROTATION_DEGREES else 0f,
+        animationSpec =
+            tween(
+                durationMillis = EXPLORE_TOGGLE_ICON_ROTATION_DURATION_MILLIS,
+                easing = LinearOutSlowInEasing,
+            ),
+        label = "exploreToggleIconRotation",
     )
     val floatTransition = rememberInfiniteTransition(label = "exploreToggleFloat")
     val floatProgress by floatTransition.animateFloat(
@@ -828,10 +831,7 @@ private fun ExploreToggle(
         )
 
     Box(
-        modifier =
-            modifier
-                .fillMaxWidth()
-                .morphMotionBlur(strength = motionBlurStrength),
+        modifier = modifier.fillMaxWidth().morphMotionBlur(strength = motionBlurStrength),
         contentAlignment = Alignment.BottomCenter,
     ) {
         Box(
@@ -841,12 +841,9 @@ private fun ExploreToggle(
                         IntOffset(
                             x = 0,
                             y =
-                                (
-                                    (floatProgress - 0.5f) *
-                                        floatFactor *
-                                        EXPLORE_TOGGLE_FLOAT_AMPLITUDE_DP *
-                                        2
-                                ).dp.roundToPx(),
+                                ((floatProgress - 0.5f) * floatFactor * EXPLORE_TOGGLE_FLOAT_AMPLITUDE_DP * 2)
+                                    .dp
+                                    .roundToPx(),
                         )
                     }.wrapContentWidth()
                     .shadow(elevation = toggleElevation, shape = toggleShape, clip = false)
@@ -911,7 +908,7 @@ private fun ExploreToggle(
                             ),
                         contentDescription = null,
                         tint = MaterialTheme.colorScheme.primary,
-                        modifier = Modifier.size(20.dp),
+                        modifier = Modifier.size(20.dp).rotate(exploreIconRotation),
                     )
 
                     Spacer(modifier = Modifier.width(8.dp))

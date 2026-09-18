@@ -1,4 +1,8 @@
 <resources>
     <string name="settings_menu_title">Pengaturan</string>
     <string name="settings_menu_subtitle">Sesuaikan pengalaman Anda</string>
+    <string name="figure_menu_title">Tokoh</string>
+    <string name="figure_menu_subtitle">Tokoh di Indonesia</string>
+    <string name="ai_menu_title">AI</string>
+    <string name="ai_menu_subtitle">Atur AI</string>
 </resources>
