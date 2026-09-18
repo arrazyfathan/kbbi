@@ -56,6 +56,7 @@ import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.staggeredgrid.LazyHorizontalStaggeredGrid
 import androidx.compose.foundation.lazy.staggeredgrid.StaggeredGridCells
 import androidx.compose.foundation.lazy.staggeredgrid.items
+import androidx.compose.foundation.lazy.staggeredgrid.itemsIndexed
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
@@ -142,6 +143,12 @@ private const val MORPH_MOTION_BLUR_DURATION_MILLIS = 300
 private const val MORPH_MOTION_BLUR_MAX_STRETCH = 0.06f
 private const val MORPH_MOTION_BLUR_ALPHA_DROP = 0.08f
 private const val MORPH_MOTION_BLUR_MAX_RADIUS_PX = 14f
+private const val TOP_WORD_ANIMATE_IN_DURATION_MILLIS = 260
+private const val TOP_WORD_ANIMATE_OUT_DURATION_MILLIS = 180
+private const val TOP_WORD_ENTER_DURATION_MILLIS = 380
+private const val TOP_WORD_STAGGER_DELAY_MILLIS = 70
+private const val MAX_TOP_WORD_STAGGER_STEPS = 8
+private const val TOP_WORD_ENTER_OFFSET_DP = 18
 
 /**
  * A short, front-loaded "velocity" pulse (0 -> 1 -> 0) that plays whenever [isActive] changes.
@@ -642,50 +649,11 @@ fun HomeContent(
 
                             Spacer(modifier = Modifier.height(12.dp))
 
-                            LazyHorizontalStaggeredGrid(
-                                rows = StaggeredGridCells.Fixed(2),
+                            TopWordsGrid(
+                                topWords = state.topWords,
+                                onTopWordClick = { word -> onAction(HomeAction.OnTopWordClick(word)) },
                                 modifier = Modifier.fillMaxWidth().height(70.dp).padding(horizontal = 16.dp),
-                                horizontalItemSpacing = 6.dp,
-                                verticalArrangement = Arrangement.spacedBy(6.dp),
-                            ) {
-                                items(state.topWords, key = { "${it.rank}-${it.word}" }) { topWord ->
-                                    Card(
-                                        modifier =
-                                            Modifier.clickable {
-                                                onAction(HomeAction.OnTopWordClick(topWord.word))
-                                            },
-                                        shape = RoundedCornerShape(32.dp),
-                                        colors = CardDefaults.cardColors(containerColor = Color.Transparent),
-                                        border = BorderStroke(1.dp, MaterialTheme.colorScheme.onPrimary),
-                                        elevation = CardDefaults.cardElevation(0.dp),
-                                    ) {
-                                        Row(
-                                            modifier =
-                                                Modifier
-                                                    .defaultMinSize(minHeight = 34.dp)
-                                                    .padding(horizontal = 16.dp),
-                                            horizontalArrangement = Arrangement.Center,
-                                            verticalAlignment = Alignment.CenterVertically,
-                                        ) {
-                                            Text(
-                                                text = "${topWord.rank}.",
-                                                color = MaterialTheme.colorScheme.onPrimary,
-                                                fontFamily = InterFontFamily,
-                                                fontWeight = FontWeight.Bold,
-                                                fontSize = 13.sp,
-                                            )
-                                            Spacer(modifier = Modifier.width(8.dp))
-                                            Text(
-                                                text = topWord.word,
-                                                color = MaterialTheme.colorScheme.onPrimary,
-                                                fontFamily = InterFontFamily,
-                                                fontWeight = FontWeight.Medium,
-                                                fontSize = 14.sp,
-                                            )
-                                        }
-                                    }
-                                }
-                            }
+                            )
                         }
                     }
                 }
@@ -743,6 +711,119 @@ fun HomeContent(
                     modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp).padding(bottom = 32.dp),
                 )
             }
+        }
+    }
+}
+
+@Composable
+private fun TopWordsGrid(
+    topWords: List<TopWordUi>,
+    onTopWordClick: (String) -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    LazyHorizontalStaggeredGrid(
+        rows = StaggeredGridCells.Fixed(2),
+        modifier = modifier,
+        horizontalItemSpacing = 6.dp,
+        verticalArrangement = Arrangement.spacedBy(6.dp),
+    ) {
+        itemsIndexed(topWords, key = { _, topWord -> topWord.word }) { index, topWord ->
+            TopWordChip(
+                topWord = topWord,
+                onClick = { onTopWordClick(topWord.word) },
+                // On first appearance each item "pulls up" from below, staggered by its index so the
+                // list cascades in. Keyed by word so a word that persists keeps its identity and
+                // slides to its new position when ranks shift on a later refresh.
+                entrance = rememberTopWordEntrance(index = index, key = topWord.word),
+                modifier =
+                    Modifier.animateItem(
+                        fadeInSpec = tween(durationMillis = TOP_WORD_ANIMATE_IN_DURATION_MILLIS),
+                        placementSpec =
+                            spring(
+                                dampingRatio = Spring.DampingRatioNoBouncy,
+                                stiffness = Spring.StiffnessMediumLow,
+                            ),
+                        fadeOutSpec = tween(durationMillis = TOP_WORD_ANIMATE_OUT_DURATION_MILLIS),
+                    ),
+            )
+        }
+    }
+}
+
+/**
+ * Drives the staggered "pull up" entrance for a single top-word item. Returns a progress value
+ * 0f..1f that starts at 0 on first composition and animates to 1 after a per-[index] delay. A stable
+ * [key] keeps the progress at rest for items that already played, so only genuinely new items
+ * animate when the list refreshes.
+ */
+@Composable
+private fun rememberTopWordEntrance(
+    index: Int,
+    key: String,
+): Float {
+    val progress = remember(key) { Animatable(0f) }
+    LaunchedEffect(key) {
+        progress.snapTo(0f)
+        progress.animateTo(
+            targetValue = 1f,
+            animationSpec =
+                tween(
+                    durationMillis = TOP_WORD_ENTER_DURATION_MILLIS,
+                    delayMillis = index.coerceIn(0, MAX_TOP_WORD_STAGGER_STEPS) * TOP_WORD_STAGGER_DELAY_MILLIS,
+                    easing = LinearOutSlowInEasing,
+                ),
+        )
+    }
+    return progress.value
+}
+
+@Composable
+private fun TopWordChip(
+    topWord: TopWordUi,
+    onClick: () -> Unit,
+    entrance: Float,
+    modifier: Modifier = Modifier,
+) {
+    val pullUpPx = with(LocalDensity.current) { TOP_WORD_ENTER_OFFSET_DP.dp.toPx() }
+    val easedEntrance = entrance.coerceIn(0f, 1f)
+    Card(
+        modifier =
+            modifier
+                .graphicsLayer {
+                    translationY = pullUpPx * (1f - easedEntrance)
+                    alpha = easedEntrance
+                    val scale = 0.94f + (0.06f * easedEntrance)
+                    scaleX = scale
+                    scaleY = scale
+                }.clickable(onClick = onClick),
+        shape = RoundedCornerShape(32.dp),
+        colors = CardDefaults.cardColors(containerColor = Color.Transparent),
+        border = BorderStroke(1.dp, MaterialTheme.colorScheme.onPrimary),
+        elevation = CardDefaults.cardElevation(0.dp),
+    ) {
+        Row(
+            modifier =
+                Modifier
+                    .defaultMinSize(minHeight = 34.dp)
+                    .padding(horizontal = 16.dp),
+            horizontalArrangement = Arrangement.Center,
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Text(
+                text = "${topWord.rank}.",
+                color = MaterialTheme.colorScheme.onPrimary,
+                fontFamily = InterFontFamily,
+                fontWeight = FontWeight.Bold,
+                fontSize = 13.sp,
+            )
+            Spacer(modifier = Modifier.width(8.dp))
+            Text(
+                text = topWord.word,
+                color = MaterialTheme.colorScheme.onPrimary,
+                fontFamily = InterFontFamily,
+                fontWeight = FontWeight.Medium,
+                fontSize = 14.sp,
+            )
         }
     }
 }

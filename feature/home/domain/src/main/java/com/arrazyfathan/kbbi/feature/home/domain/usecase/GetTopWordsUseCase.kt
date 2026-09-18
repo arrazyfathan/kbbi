@@ -17,4 +17,9 @@ class GetTopWordsUseCase(
         repository.getTopWords(
             limit = limit.takeIf { it > 0 }?.coerceAtMost(MAX_TOP_WORDS_LIMIT) ?: DEFAULT_TOP_WORDS_LIMIT,
         )
+
+    suspend fun cached(limit: Int = DEFAULT_TOP_WORDS_LIMIT): List<TopWordModel> =
+        repository.getCachedTopWords(
+            limit = limit.takeIf { it > 0 }?.coerceAtMost(MAX_TOP_WORDS_LIMIT) ?: DEFAULT_TOP_WORDS_LIMIT,
+        )
 }

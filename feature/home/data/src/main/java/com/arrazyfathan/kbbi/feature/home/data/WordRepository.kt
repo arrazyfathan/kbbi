@@ -116,6 +116,46 @@ class WordRepository(
     override suspend fun getTranslation(word: String): AppResult<TranslateModel, DataError> =
         remoteDataSource.translate(word)
 
-    override suspend fun getTopWords(limit: Int): AppResult<List<TopWordModel>, DataError> =
-        topWordsRemoteDataSource.getTopWords(limit)
+    override suspend fun getTopWords(limit: Int): AppResult<List<TopWordModel>, DataError> {
+        val remoteResult = topWordsRemoteDataSource.getTopWords(limit)
+        return when (remoteResult) {
+            is AppResult.Success -> {
+                runCatching {
+                    withContext(Dispatchers.IO) {
+                        localDataSource.replaceTopWords(
+                            remoteResult.data.mapIndexed { index, topWord ->
+                                topWord.toEntity(position = index)
+                            },
+                        )
+                    }
+                }
+                remoteResult
+            }
+
+            is AppResult.Error -> {
+                val cachedTopWords =
+                    runCatching {
+                        withContext(Dispatchers.IO) { localDataSource.getTopWords() }
+                    }.getOrDefault(emptyList())
+
+                if (cachedTopWords.isNotEmpty()) {
+                    AppResult.Success(cachedTopWords.map { it.toDomain() })
+                } else {
+                    remoteResult
+                }
+            }
+        }
+    }
+
+    /**
+     * Emits the locally cached top words immediately (offline-first), falling back to an empty list
+     * when nothing is cached yet. Used to paint the UI before the network refresh completes.
+     */
+    override suspend fun getCachedTopWords(limit: Int): List<TopWordModel> =
+        withContext(Dispatchers.IO) {
+            runCatching { localDataSource.getTopWords() }
+                .getOrDefault(emptyList())
+                .take(limit)
+                .map { it.toDomain() }
+        }
 }

@@ -6,4 +6,6 @@ import com.arrazyfathan.kbbi.feature.home.domain.model.TopWordModel
 
 interface TopWordsRepository {
     suspend fun getTopWords(limit: Int): AppResult<List<TopWordModel>, DataError>
+
+    suspend fun getCachedTopWords(limit: Int): List<TopWordModel>
 }

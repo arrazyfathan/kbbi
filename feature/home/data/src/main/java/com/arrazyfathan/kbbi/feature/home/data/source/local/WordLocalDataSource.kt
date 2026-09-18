@@ -1,5 +1,6 @@
 package com.arrazyfathan.kbbi.feature.home.data.source.local
 
+import com.arrazyfathan.kbbi.feature.home.data.source.local.entity.CachedTopWordEntity
 import com.arrazyfathan.kbbi.feature.home.data.source.local.entity.HistoryEntity
 import com.arrazyfathan.kbbi.feature.home.data.source.local.entity.ListWordEntity
 import com.arrazyfathan.kbbi.feature.home.data.source.local.room.WordDao
@@ -22,4 +23,8 @@ class WordLocalDataSource(
     fun getAllHistories() = wordDao.getListHistory()
 
     suspend fun clearHistory() = wordDao.clearHistory()
+
+    suspend fun getTopWords() = wordDao.getTopWords()
+
+    suspend fun replaceTopWords(topWords: List<CachedTopWordEntity>) = wordDao.replaceTopWords(topWords)
 }

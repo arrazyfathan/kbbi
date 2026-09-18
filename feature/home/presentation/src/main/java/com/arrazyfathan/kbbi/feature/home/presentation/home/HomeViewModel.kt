@@ -18,6 +18,7 @@ import com.arrazyfathan.kbbi.core.observability.NoOpAnalyticsReporter
 import com.arrazyfathan.kbbi.core.utils.VoiceRecognitionError
 import com.arrazyfathan.kbbi.feature.home.domain.model.HistoryModel
 import com.arrazyfathan.kbbi.feature.home.domain.model.ListWordModel
+import com.arrazyfathan.kbbi.feature.home.domain.model.TopWordModel
 import com.arrazyfathan.kbbi.feature.home.domain.usecase.GetTopWordsUseCase
 import com.arrazyfathan.kbbi.feature.home.domain.usecase.GetWordEntriesUseCase
 import com.arrazyfathan.kbbi.feature.home.domain.usecase.GetWordSuggestionsUseCase
@@ -238,17 +239,22 @@ class HomeViewModel(
         if (topWordsJob != null) return
         topWordsJob =
             viewModelScope.launch {
+                // Offline-first: paint the locally cached list immediately so content shows fast.
+                val cachedTopWords = getTopWords.cached(limit = TOP_WORDS_LIMIT)
+                if (cachedTopWords.isNotEmpty()) {
+                    _state.update { it.copy(topWords = cachedTopWords.toTopWordUi()) }
+                }
+
+                // Always refresh from the network; only update state when something actually changed.
                 when (val result = getTopWords(limit = TOP_WORDS_LIMIT)) {
                     is AppResult.Success -> {
-                        _state.update {
-                            it.copy(
-                                topWords =
-                                    result.data
-                                        .take(TOP_WORDS_LIMIT)
-                                        .mapIndexed { index, topWord ->
-                                            TopWordUi(rank = index + 1, word = topWord.word)
-                                        },
-                            )
+                        val freshTopWords = result.data.take(TOP_WORDS_LIMIT).toTopWordUi()
+                        _state.update { current ->
+                            if (current.topWords == freshTopWords) {
+                                current
+                            } else {
+                                current.copy(topWords = freshTopWords)
+                            }
                         }
                     }
 
@@ -256,6 +262,9 @@ class HomeViewModel(
                 }
             }
     }
+
+    private fun List<TopWordModel>.toTopWordUi(): List<TopWordUi> =
+        mapIndexed { index, topWord -> TopWordUi(rank = index + 1, word = topWord.word) }
 
     private fun updateSearchQuery(query: String) {
         val normalizedQuery = normalizeTypedSearchQuery(query)

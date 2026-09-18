@@ -4,6 +4,7 @@ import androidx.room.Dao
 import androidx.room.Query
 import androidx.room.Transaction
 import androidx.room.Upsert
+import com.arrazyfathan.kbbi.feature.home.data.source.local.entity.CachedTopWordEntity
 import com.arrazyfathan.kbbi.feature.home.data.source.local.entity.HistoryEntity
 import com.arrazyfathan.kbbi.feature.home.data.source.local.entity.ListWordEntity
 import kotlinx.coroutines.flow.Flow
@@ -51,4 +52,19 @@ interface WordDao {
 
     @Query("DELETE FROM history_table")
     suspend fun clearHistory()
+
+    @Query("SELECT * FROM cached_top_word_table ORDER BY position ASC")
+    suspend fun getTopWords(): List<CachedTopWordEntity>
+
+    @Upsert
+    suspend fun upsertTopWords(topWords: List<CachedTopWordEntity>)
+
+    @Query("DELETE FROM cached_top_word_table")
+    suspend fun clearTopWords()
+
+    @Transaction
+    suspend fun replaceTopWords(topWords: List<CachedTopWordEntity>) {
+        clearTopWords()
+        upsertTopWords(topWords)
+    }
 }

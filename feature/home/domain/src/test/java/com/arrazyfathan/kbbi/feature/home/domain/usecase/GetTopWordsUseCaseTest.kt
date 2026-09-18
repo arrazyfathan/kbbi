@@ -45,14 +45,43 @@ class GetTopWordsUseCaseTest {
             assertEquals(25, repository.requestedLimit)
             assertSame(expected, actual)
         }
+
+    @Test
+    fun `cached uses default limit and returns repository cache`() =
+        runBlocking {
+            val expected = listOf(TopWordModel("kamus", 30))
+            repository.cached = expected
+
+            val actual = useCase.cached()
+
+            assertEquals(10, repository.requestedCachedLimit)
+            assertEquals(expected, actual)
+        }
+
+    @Test
+    fun `cached normalizes invalid and excessive limits`() =
+        runBlocking {
+            useCase.cached(0)
+            assertEquals(10, repository.requestedCachedLimit)
+
+            useCase.cached(101)
+            assertEquals(100, repository.requestedCachedLimit)
+        }
 }
 
 private class FakeTopWordsRepository : TopWordsRepository {
     var requestedLimit: Int? = null
+    var requestedCachedLimit: Int? = null
+    var cached: List<TopWordModel> = emptyList()
     var result: AppResult<List<TopWordModel>, DataError> = AppResult.Success(emptyList())
 
     override suspend fun getTopWords(limit: Int): AppResult<List<TopWordModel>, DataError> {
         requestedLimit = limit
         return result
+    }
+
+    override suspend fun getCachedTopWords(limit: Int): List<TopWordModel> {
+        requestedCachedLimit = limit
+        return cached
     }
 }

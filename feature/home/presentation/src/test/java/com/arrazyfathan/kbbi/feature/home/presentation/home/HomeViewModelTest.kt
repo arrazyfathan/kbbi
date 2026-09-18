@@ -93,16 +93,65 @@ class HomeViewModelTest {
 
             assertEquals(emptyList<TopWordUi>(), viewModel.state.value.topWords)
         }
+
+    @Test
+    fun `keeps cached top words when request fails`() =
+        runTest {
+            topWordsRepository.cached =
+                listOf(
+                    TopWordModel("kamus", 30),
+                    TopWordModel("bahasa", 20),
+                )
+            topWordsRepository.result = AppResult.Error(DataError.Remote("unavailable"))
+
+            viewModel.onAction(HomeAction.OnStarted)
+            advanceUntilIdle()
+
+            assertEquals(
+                listOf(
+                    TopWordUi(1, "kamus"),
+                    TopWordUi(2, "bahasa"),
+                ),
+                viewModel.state.value.topWords,
+            )
+        }
+
+    @Test
+    fun `refreshes cached top words with fresh network data`() =
+        runTest {
+            topWordsRepository.cached = listOf(TopWordModel("kamus", 30))
+            topWordsRepository.result =
+                AppResult.Success(
+                    listOf(
+                        TopWordModel("bahasa", 40),
+                        TopWordModel("kamus", 30),
+                    ),
+                )
+
+            viewModel.onAction(HomeAction.OnStarted)
+            advanceUntilIdle()
+
+            assertEquals(
+                listOf(
+                    TopWordUi(1, "bahasa"),
+                    TopWordUi(2, "kamus"),
+                ),
+                viewModel.state.value.topWords,
+            )
+        }
 }
 
 private class FakeTopWordsRepository : TopWordsRepository {
     var requestedLimit: Int? = null
+    var cached: List<TopWordModel> = emptyList()
     var result: AppResult<List<TopWordModel>, DataError> = AppResult.Success(emptyList())
 
     override suspend fun getTopWords(limit: Int): AppResult<List<TopWordModel>, DataError> {
         requestedLimit = limit
         return result
     }
+
+    override suspend fun getCachedTopWords(limit: Int): List<TopWordModel> = cached.take(limit)
 }
 
 private class FakeSearchHistoryRepository : SearchHistoryRepository {

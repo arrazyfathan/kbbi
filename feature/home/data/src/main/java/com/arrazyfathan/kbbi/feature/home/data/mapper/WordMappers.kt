@@ -1,5 +1,6 @@
 package com.arrazyfathan.kbbi.feature.home.data.mapper
 
+import com.arrazyfathan.kbbi.feature.home.data.source.local.entity.CachedTopWordEntity
 import com.arrazyfathan.kbbi.feature.home.data.source.local.entity.HistoryEntity
 import com.arrazyfathan.kbbi.feature.home.data.source.local.entity.ListWordEntity
 import com.arrazyfathan.kbbi.feature.home.data.source.local.entity.MeaningEntity
@@ -99,4 +100,17 @@ private fun MeaningModel.toEntity(): MeaningEntity =
     MeaningEntity(
         wordClass = wordClass,
         description = description,
+    )
+
+fun CachedTopWordEntity.toDomain(): TopWordModel =
+    TopWordModel(
+        word = word,
+        visitorCount = visitorCount,
+    )
+
+fun TopWordModel.toEntity(position: Int): CachedTopWordEntity =
+    CachedTopWordEntity(
+        word = word,
+        visitorCount = visitorCount,
+        position = position,
     )
