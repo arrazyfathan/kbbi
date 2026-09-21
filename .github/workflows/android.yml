@@ -135,6 +135,44 @@ jobs:
       - name: Make Gradle wrapper executable
         run: chmod +x ./gradlew
 
+      - name: Verify release version code increases
+        run: |
+          CURRENT_VERSION_CODE="$(sed -n 's/^VERSION_CODE=//p' app/version.properties)"
+          if ! [[ "$CURRENT_VERSION_CODE" =~ ^[1-9][0-9]*$ ]]; then
+            echo "VERSION_CODE must be a positive integer, got: ${CURRENT_VERSION_CODE:-<missing>}"
+            exit 1
+          fi
+
+          MAX_PUBLISHED_VERSION_CODE=0
+          MAX_PUBLISHED_VERSION_TAG=""
+          while IFS= read -r TAG; do
+            if [ "$TAG" = "$GITHUB_REF_NAME" ]; then
+              continue
+            fi
+
+            TAG_VERSION_CODE="$(
+              git show "${TAG}:app/version.properties" 2>/dev/null |
+                sed -n 's/^VERSION_CODE=//p' || true
+            )"
+            if ! [[ "$TAG_VERSION_CODE" =~ ^[1-9][0-9]*$ ]]; then
+              echo "Stable release tag $TAG has a missing or invalid VERSION_CODE: ${TAG_VERSION_CODE:-<missing>}"
+              exit 1
+            fi
+
+            if [ "$TAG_VERSION_CODE" -gt "$MAX_PUBLISHED_VERSION_CODE" ]; then
+              MAX_PUBLISHED_VERSION_CODE="$TAG_VERSION_CODE"
+              MAX_PUBLISHED_VERSION_TAG="$TAG"
+            fi
+          done < <(git tag --list | grep -E '^v?[0-9]+\.[0-9]+\.[0-9]+$' || true)
+
+          if [ "$CURRENT_VERSION_CODE" -le "$MAX_PUBLISHED_VERSION_CODE" ]; then
+            echo "VERSION_CODE $CURRENT_VERSION_CODE must be greater than published maximum" \
+              "$MAX_PUBLISHED_VERSION_CODE from tag $MAX_PUBLISHED_VERSION_TAG"
+            exit 1
+          fi
+
+          echo "VERSION_CODE $CURRENT_VERSION_CODE is greater than published maximum $MAX_PUBLISHED_VERSION_CODE"
+
       - name: Decode release keystore
         run: echo "${{ secrets.ANDROID_KEYSTORE_BASE64 }}" | base64 --decode > "$RUNNER_TEMP/release.keystore"
 
