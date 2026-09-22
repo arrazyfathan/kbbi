@@ -51,6 +51,7 @@ fun GraphHomeScreen() {
             onAction = {},
             onNavigateToProverb = {},
             onNavigateToSettings = {},
+            onNavigateToAiSettings = {},
         )
     }
 }

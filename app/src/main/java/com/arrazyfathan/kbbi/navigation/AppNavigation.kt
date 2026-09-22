@@ -582,6 +582,9 @@ internal fun MainApp(
                         onNavigateToSettings = {
                             navigator.navigate(Screen.Settings)
                         },
+                        onNavigateToAiSettings = {
+                            navigator.navigate(AiSettingsRouteKey)
+                        },
                     )
                 }
                 entry<Screen.WordList>(clazzContentKey = NavKey::toAppNavigationContentKey) {
@@ -614,9 +617,6 @@ internal fun MainApp(
                         },
                         onOpenSourceLicenses = {
                             navigator.navigate(OpenSourceLicensesRoute)
-                        },
-                        onOpenAiSettings = {
-                            navigator.navigate(AiSettingsRouteKey)
                         },
                     )
                 }

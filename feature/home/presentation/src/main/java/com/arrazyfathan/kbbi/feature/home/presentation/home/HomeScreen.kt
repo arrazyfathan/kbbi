@@ -223,6 +223,7 @@ fun HomeScreen(
     onNavigateToDetail: (ListWordModel) -> Unit,
     onNavigateToProverb: () -> Unit,
     onNavigateToSettings: () -> Unit,
+    onNavigateToAiSettings: () -> Unit,
 ) {
     val viewModel: HomeViewModel = koinViewModel()
     val context = LocalContext.current
@@ -352,6 +353,7 @@ fun HomeScreen(
         onHaptic = onHaptic,
         onNavigateToProverb = onNavigateToProverb,
         onNavigateToSettings = onNavigateToSettings,
+        onNavigateToAiSettings = onNavigateToAiSettings,
         modifier = modifier,
     )
 }
@@ -369,6 +371,7 @@ fun HomeContent(
     onHaptic: (KBBIHapticType) -> Unit = {},
     onNavigateToProverb: () -> Unit = {},
     onNavigateToSettings: () -> Unit = {},
+    onNavigateToAiSettings: () -> Unit = {},
 ) {
     val focusManager = LocalFocusManager.current
     val searchFocusRequester = remember { FocusRequester() }
@@ -690,6 +693,10 @@ fun HomeContent(
                 showExploreMenu = false
                 onNavigateToSettings()
             },
+            onNavigateToAiSettings = {
+                showExploreMenu = false
+                onNavigateToAiSettings()
+            },
             modifier =
                 Modifier.align(Alignment.BottomCenter).padding(
                     start = EXPLORE_TOGGLE_HORIZONTAL_MARGIN_DP.dp,
@@ -834,6 +841,7 @@ private fun ExploreToggle(
     onToggle: () -> Unit,
     onNavigateToProverb: () -> Unit,
     onNavigateToSettings: () -> Unit,
+    onNavigateToAiSettings: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     val interactionSource = remember { MutableInteractionSource() }
@@ -965,6 +973,7 @@ private fun ExploreToggle(
                         ExploreMenuContent(
                             onNavigateToProverb = onNavigateToProverb,
                             onNavigateToSettings = onNavigateToSettings,
+                            onNavigateToAiSettings = onNavigateToAiSettings,
                         )
                     } else {
                         Spacer(modifier = Modifier)

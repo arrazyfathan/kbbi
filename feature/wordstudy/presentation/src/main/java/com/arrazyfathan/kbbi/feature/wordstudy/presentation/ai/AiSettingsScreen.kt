@@ -43,6 +43,7 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.material3.TopAppBarScrollBehavior
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -51,6 +52,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
@@ -104,9 +106,12 @@ fun AiSettingsScreen(
     onNavigateBack: () -> Unit,
     onAction: (AiSettingsAction) -> Unit,
 ) {
+    val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
+
     Scaffold(
         containerColor = MaterialTheme.colorScheme.background,
-        topBar = { AiSettingsTopAppBar(onNavigateBack) },
+        modifier = Modifier.fillMaxSize().nestedScroll(scrollBehavior.nestedScrollConnection),
+        topBar = { AiSettingsTopAppBar(scrollBehavior, onNavigateBack) },
     ) { padding ->
         Column(
             modifier =
@@ -129,7 +134,12 @@ fun AiSettingsScreen(
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-private fun AiSettingsTopAppBar(onNavigateBack: () -> Unit) {
+private fun AiSettingsTopAppBar(
+    scrollBehavior: TopAppBarScrollBehavior,
+    onNavigateBack: () -> Unit,
+) {
+    val isCollapsed = scrollBehavior.state.collapsedFraction > 0.5f
+
     MediumTopAppBar(
         modifier =
             Modifier.background(
@@ -153,27 +163,31 @@ private fun AiSettingsTopAppBar(onNavigateBack: () -> Unit) {
                     fontFamily = MetropolisFontFamily,
                     fontWeight = FontWeight.ExtraBold,
                     color = MaterialTheme.colorScheme.onPrimary,
-                    fontSize = 24.sp,
+                    fontSize = if (isCollapsed) 20.sp else 24.sp,
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis,
                 )
-                Text(
-                    text = stringResource(R.string.ai_settings_menu_subtitle),
-                    fontFamily = InterFontFamily,
-                    color = MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.82f),
-                    fontSize = 13.sp,
-                    lineHeight = 18.sp,
-                    maxLines = 2,
-                    overflow = TextOverflow.Ellipsis,
-                )
-                Spacer(Modifier.height(16.dp))
+                if (!isCollapsed) {
+                    Text(
+                        text = stringResource(R.string.ai_settings_menu_subtitle),
+                        fontFamily = InterFontFamily,
+                        color = MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.82f),
+                        fontSize = 13.sp,
+                        lineHeight = 18.sp,
+                        maxLines = 2,
+                        overflow = TextOverflow.Ellipsis,
+                    )
+                    Spacer(Modifier.height(16.dp))
+                }
             }
         },
         colors =
             TopAppBarDefaults.topAppBarColors(
                 containerColor = Color.Transparent,
+                scrolledContainerColor = Color.Transparent,
                 titleContentColor = MaterialTheme.colorScheme.onPrimary,
             ),
+        scrollBehavior = scrollBehavior,
     )
 }
 

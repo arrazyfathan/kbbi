@@ -52,6 +52,7 @@ import com.arrazyfathan.kbbi.core.presentation.designsystem.TextP
 internal fun ExploreMenuContent(
     onNavigateToProverb: () -> Unit,
     onNavigateToSettings: () -> Unit,
+    onNavigateToAiSettings: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     val comingSoonMessage = stringResource(id = R.string.coming_soon)
@@ -81,7 +82,7 @@ internal fun ExploreMenuContent(
                 icon = R.drawable.ic_auto_awesome,
                 title = stringResource(id = R.string.ai_menu_title),
                 subtitle = stringResource(id = R.string.ai_menu_subtitle),
-                onClick = showComingSoon,
+                onClick = onNavigateToAiSettings,
             ),
         )
 
@@ -307,6 +308,7 @@ private fun ExploreMenuContentPreview() {
             ExploreMenuContent(
                 onNavigateToProverb = {},
                 onNavigateToSettings = {},
+                onNavigateToAiSettings = {},
                 modifier = Modifier.padding(top = 16.dp),
             )
         }

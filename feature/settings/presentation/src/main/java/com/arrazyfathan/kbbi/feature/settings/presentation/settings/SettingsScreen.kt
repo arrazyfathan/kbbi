@@ -143,7 +143,6 @@ fun SettingsRoute(
     onOpenPrivacyPolicy: () -> Unit,
     onOpenTermsConditions: () -> Unit,
     onOpenSourceLicenses: () -> Unit,
-    onOpenAiSettings: () -> Unit,
 ) {
     val viewModel: SettingsViewModel = koinViewModel()
     val analyticsReporter: AnalyticsReporter = koinInject()
@@ -297,7 +296,6 @@ fun SettingsRoute(
                 context.startActivity(Intent(Intent.ACTION_VIEW, uri.toUri()))
             },
             onOpenSourceLicenses = onOpenSourceLicenses,
-            onOpenAiSettings = onOpenAiSettings,
         )
 
         if (isLanguageTransitionActive) {
@@ -322,7 +320,6 @@ fun SettingsScreen(
     onShareApp: () -> Unit = {},
     onOpenUri: (String) -> Unit = {},
     onOpenSourceLicenses: () -> Unit = {},
-    onOpenAiSettings: () -> Unit = {},
 ) {
     var timePickerType by remember { mutableStateOf<ReminderType?>(null) }
     var isLanguageSelectionInProgress by remember { mutableStateOf(false) }
@@ -359,7 +356,6 @@ fun SettingsScreen(
             ) {
                 PermissionBanner(onOpenSystemSettings = onOpenSystemSettings)
             }
-            AiAssistantSection(onOpenAiSettings)
             ReminderSection(
                 state = state,
                 onAction = onAction,
@@ -475,18 +471,6 @@ fun SettingsScreen(
         AppIconChangeBottomSheet(
             onDismissRequest = { onAction(SettingsAction.OnAppIconChangeDismissed) },
             onConfirm = { onAction(SettingsAction.OnAppIconChangeConfirmed) },
-        )
-    }
-}
-
-@Composable
-private fun AiAssistantSection(onOpenAiSettings: () -> Unit) {
-    SettingsSectionCard(title = stringResource(R.string.ai_settings_section_title)) {
-        SettingsMenuRow(
-            title = stringResource(R.string.ai_settings_title),
-            subtitle = stringResource(R.string.ai_settings_menu_subtitle),
-            icon = R.drawable.ic_auto_awesome,
-            onClick = onOpenAiSettings,
         )
     }
 }

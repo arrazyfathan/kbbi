@@ -13,6 +13,7 @@ fun HomeRoute(
     onNavigateToDetail: (ListWordModel) -> Unit,
     onNavigateToProverb: () -> Unit,
     onNavigateToSettings: () -> Unit,
+    onNavigateToAiSettings: () -> Unit,
     externalSearchQuery: String? = null,
     externalSearchRequestKey: Long = 0L,
     onExternalSearchConsumed: () -> Unit = {},
@@ -31,6 +32,7 @@ fun HomeRoute(
         onNavigateToDetail = onNavigateToDetail,
         onNavigateToProverb = onNavigateToProverb,
         onNavigateToSettings = onNavigateToSettings,
+        onNavigateToAiSettings = onNavigateToAiSettings,
         modifier = modifier,
     )
 }
