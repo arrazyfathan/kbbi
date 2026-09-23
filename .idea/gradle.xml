@@ -30,6 +30,7 @@
             <option value="$PROJECT_DIR$/feature/figure" />
             <option value="$PROJECT_DIR$/feature/figure/data" />
             <option value="$PROJECT_DIR$/feature/figure/domain" />
+            <option value="$PROJECT_DIR$/feature/figure/presentation" />
             <option value="$PROJECT_DIR$/feature/home" />
             <option value="$PROJECT_DIR$/feature/home/data" />
             <option value="$PROJECT_DIR$/feature/home/domain" />

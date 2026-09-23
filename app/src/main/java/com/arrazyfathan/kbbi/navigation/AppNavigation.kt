@@ -103,6 +103,7 @@ import com.arrazyfathan.kbbi.core.presentation.ui.rememberAppLoadingController
 import com.arrazyfathan.kbbi.core.utils.updateSystemBarStyle
 import com.arrazyfathan.kbbi.feature.bookmark.presentation.navigation.BookmarkRoute
 import com.arrazyfathan.kbbi.feature.detail.presentation.navigation.DetailRoute
+import com.arrazyfathan.kbbi.feature.figure.presentation.navigation.FigureRoute
 import com.arrazyfathan.kbbi.feature.home.domain.model.ListWordModel
 import com.arrazyfathan.kbbi.feature.home.presentation.navigation.HomeRoute
 import com.arrazyfathan.kbbi.feature.proverb.presentation.navigation.ProverbRoute
@@ -280,6 +281,9 @@ sealed interface Screen : NavKey {
     data object Proverb : Screen
 
     @Serializable
+    data object Figures : Screen
+
+    @Serializable
     data object Settings : Screen
 
     @Serializable
@@ -299,6 +303,7 @@ private val Screen.titleResId: Int
             Screen.Home -> R.string.home_title
             Screen.WordList -> R.string.word_list_tab_title
             Screen.Proverb -> R.string.proverb_title
+            Screen.Figures -> R.string.figure_collection_title
             Screen.Settings -> R.string.settings_title
             Screen.Bookmarks -> R.string.bookmarks_title
         }
@@ -309,6 +314,7 @@ private val Screen.iconResId: Int
             Screen.Home -> R.drawable.home
             Screen.WordList -> R.drawable.word
             Screen.Proverb -> R.drawable.ic_proverb
+            Screen.Figures -> R.drawable.ic_figure
             Screen.Settings -> R.drawable.settings
             Screen.Bookmarks -> R.drawable.saved
         }
@@ -319,6 +325,7 @@ private val Screen.iconSelectedResId: Int
             Screen.Home -> R.drawable.home_selected
             Screen.WordList -> R.drawable.word_selected
             Screen.Proverb -> R.drawable.ic_proverb
+            Screen.Figures -> R.drawable.ic_figure
             Screen.Settings -> R.drawable.settings
             Screen.Bookmarks -> R.drawable.saved_selected
         }
@@ -579,6 +586,9 @@ internal fun MainApp(
                         onNavigateToProverb = {
                             navigator.navigate(Screen.Proverb)
                         },
+                        onNavigateToFigure = {
+                            navigator.navigate(Screen.Figures)
+                        },
                         onNavigateToSettings = {
                             navigator.navigate(Screen.Settings)
                         },
@@ -602,6 +612,13 @@ internal fun MainApp(
                             if (!isUiBlocked) {
                                 navigator.goBack()
                             }
+                        },
+                    )
+                }
+                entry<Screen.Figures>(clazzContentKey = NavKey::toAppNavigationContentKey) {
+                    FigureRoute(
+                        onNavigateBack = {
+                            if (!isUiBlocked) navigator.goBack()
                         },
                     )
                 }

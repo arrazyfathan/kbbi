@@ -222,6 +222,7 @@ fun HomeScreen(
     onShortcutConsumed: () -> Unit = {},
     onNavigateToDetail: (ListWordModel) -> Unit,
     onNavigateToProverb: () -> Unit,
+    onNavigateToFigure: () -> Unit,
     onNavigateToSettings: () -> Unit,
     onNavigateToAiSettings: () -> Unit,
 ) {
@@ -352,6 +353,7 @@ fun HomeScreen(
         onAction = viewModel::onAction,
         onHaptic = onHaptic,
         onNavigateToProverb = onNavigateToProverb,
+        onNavigateToFigure = onNavigateToFigure,
         onNavigateToSettings = onNavigateToSettings,
         onNavigateToAiSettings = onNavigateToAiSettings,
         modifier = modifier,
@@ -370,6 +372,7 @@ fun HomeContent(
     onAction: (HomeAction) -> Unit,
     onHaptic: (KBBIHapticType) -> Unit = {},
     onNavigateToProverb: () -> Unit = {},
+    onNavigateToFigure: () -> Unit = {},
     onNavigateToSettings: () -> Unit = {},
     onNavigateToAiSettings: () -> Unit = {},
 ) {
@@ -689,6 +692,10 @@ fun HomeContent(
                 showExploreMenu = false
                 onNavigateToProverb()
             },
+            onNavigateToFigure = {
+                showExploreMenu = false
+                onNavigateToFigure()
+            },
             onNavigateToSettings = {
                 showExploreMenu = false
                 onNavigateToSettings()
@@ -840,6 +847,7 @@ private fun ExploreToggle(
     isExpanded: Boolean,
     onToggle: () -> Unit,
     onNavigateToProverb: () -> Unit,
+    onNavigateToFigure: () -> Unit,
     onNavigateToSettings: () -> Unit,
     onNavigateToAiSettings: () -> Unit,
     modifier: Modifier = Modifier,
@@ -972,6 +980,7 @@ private fun ExploreToggle(
                     if (expanded) {
                         ExploreMenuContent(
                             onNavigateToProverb = onNavigateToProverb,
+                            onNavigateToFigure = onNavigateToFigure,
                             onNavigateToSettings = onNavigateToSettings,
                             onNavigateToAiSettings = onNavigateToAiSettings,
                         )

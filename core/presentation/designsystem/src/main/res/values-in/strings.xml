@@ -4,6 +4,10 @@
     <string name="home_title">Beranda</string>
     <string name="word_list_tab_title">Kata</string>
     <string name="proverb_title">Peribahasa</string>
+    <string name="figure_collection_kicker">TOKOH &amp; PEMIKIRAN</string>
+    <string name="figure_collection_title">Tokoh Indonesia</string>
+    <string name="figure_collection_description">Kenali tokoh yang kehidupan dan pemikirannya turut membentuk Indonesia.</string>
+    <string name="figure_collection_empty">Tokoh tidak ditemukan.</string>
     <string name="bookmarks_title">Bookmarks</string>
     <string name="explore_title">Jelajahi</string>
     <string name="explore_toggle_state_collapsed">Menu tertutup</string>

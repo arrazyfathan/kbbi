@@ -129,6 +129,10 @@
     <string name="settings_menu_subtitle">Personalize your experience</string>
     <string name="figure_menu_title">Figure</string>
     <string name="figure_menu_subtitle">Figure in Indonesia</string>
+    <string name="figure_collection_kicker">PEOPLE &amp; IDEAS</string>
+    <string name="figure_collection_title">Indonesian figures</string>
+    <string name="figure_collection_description">Meet the people whose lives and words helped shape Indonesia.</string>
+    <string name="figure_collection_empty">No figures found.</string>
     <string name="ai_menu_title">AI</string>
     <string name="ai_menu_subtitle">Configure AI</string>
     <string name="language_section_title">Language</string>

@@ -1,6 +1,5 @@
 package com.arrazyfathan.kbbi.feature.home.presentation.home
 
-import android.widget.Toast
 import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.spring
@@ -35,7 +34,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.blur
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
@@ -51,19 +49,11 @@ import com.arrazyfathan.kbbi.core.presentation.designsystem.TextP
 @Composable
 internal fun ExploreMenuContent(
     onNavigateToProverb: () -> Unit,
+    onNavigateToFigure: () -> Unit,
     onNavigateToSettings: () -> Unit,
     onNavigateToAiSettings: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    val comingSoonMessage = stringResource(id = R.string.coming_soon)
-    val context = LocalContext.current
-    val showComingSoon =
-        remember(context, comingSoonMessage) {
-            {
-                Toast.makeText(context, comingSoonMessage, Toast.LENGTH_SHORT).show()
-            }
-        }
-
     val menuItems =
         listOf(
             ExploreMenuItem(
@@ -76,7 +66,7 @@ internal fun ExploreMenuContent(
                 icon = R.drawable.ic_figure,
                 title = stringResource(id = R.string.figure_menu_title),
                 subtitle = stringResource(id = R.string.figure_menu_subtitle),
-                onClick = showComingSoon,
+                onClick = onNavigateToFigure,
             ),
             ExploreMenuItem(
                 icon = R.drawable.ic_auto_awesome,
@@ -307,6 +297,7 @@ private fun ExploreMenuContentPreview() {
         Surface(color = MaterialTheme.colorScheme.surface) {
             ExploreMenuContent(
                 onNavigateToProverb = {},
+                onNavigateToFigure = {},
                 onNavigateToSettings = {},
                 onNavigateToAiSettings = {},
                 modifier = Modifier.padding(top = 16.dp),

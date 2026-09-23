@@ -33,7 +33,7 @@ class FigureRemoteDataSourceTest {
     }
 
     @Test
-    fun `list requests versioned route and maps summary items`() =
+    fun `list requests versioned route and maps summary items with photo`() =
         runBlocking {
             var request: HttpRequestData? = null
             val dataSource =
@@ -56,7 +56,7 @@ class FigureRemoteDataSourceTest {
             assertEquals(3, page.totalPages)
             assertTrue(page.hasNextPage)
             assertEquals("Soekarno", page.items.single().name)
-            assertNull(page.items.single().photo)
+            assertEquals("https://upload.wikimedia.org/soekarno.jpg", page.items.single().photo)
         }
 
     @Test
@@ -248,7 +248,8 @@ private const val FIGURE_LIST_RESPONSE =
           {
             "name": "Soekarno",
             "slug": "Soekarno",
-            "sourceUrl": "https://id.wikiquote.org/wiki/Soekarno"
+            "sourceUrl": "https://id.wikiquote.org/wiki/Soekarno",
+            "photo": "https://upload.wikimedia.org/soekarno.jpg"
           }
         ]
       }
