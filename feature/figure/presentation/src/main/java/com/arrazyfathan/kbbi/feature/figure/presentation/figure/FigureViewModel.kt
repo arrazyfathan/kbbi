@@ -14,10 +14,14 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.update
 import kotlin.time.Duration.Companion.milliseconds
 
-data class FigureState(val searchQuery: String = "")
+data class FigureState(
+    val searchQuery: String = "",
+)
 
 sealed interface FigureAction {
-    data class OnSearchQueryChanged(val query: String) : FigureAction
+    data class OnSearchQueryChanged(
+        val query: String,
+    ) : FigureAction
 }
 
 @OptIn(FlowPreview::class, kotlinx.coroutines.ExperimentalCoroutinesApi::class)
@@ -32,7 +36,7 @@ class FigureViewModel(
             .map { it.searchQuery.trim() }
             .debounce(300.milliseconds)
             .distinctUntilChanged()
-            .flatMapLatest { query -> getFigures(query = query, includeDetails = true) }
+            .flatMapLatest { query -> getFigures(query = query, includeDetails = false) }
             .cachedIn(viewModelScope)
 
     fun onAction(action: FigureAction) {

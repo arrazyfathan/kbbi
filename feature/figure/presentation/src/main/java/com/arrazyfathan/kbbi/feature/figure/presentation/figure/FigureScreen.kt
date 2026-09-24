@@ -23,10 +23,15 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.asPaddingValues
+import androidx.compose.foundation.layout.calculateEndPadding
+import androidx.compose.foundation.layout.calculateStartPadding
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.imePadding
+import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -49,6 +54,7 @@ import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.TopAppBarScrollBehavior
+import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -69,6 +75,7 @@ import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalFocusManager
+import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextStyle
@@ -135,6 +142,7 @@ fun FigureScreen(
     modifier: Modifier = Modifier,
 ) {
     val focusManager = LocalFocusManager.current
+    val layoutDirection = LocalLayoutDirection.current
     val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
     val listState = rememberLazyListState()
     var isSearchVisible by remember { mutableStateOf(true) }
@@ -172,12 +180,34 @@ fun FigureScreen(
             )
         },
     ) { insets ->
-        Box(Modifier.fillMaxSize().padding(insets)) {
-            LazyColumn(
-                state = listState,
+        Box(
+            Modifier
+                .fillMaxSize()
+                .padding(
+                    PaddingValues(
+                        start = insets.calculateStartPadding(layoutDirection),
+                        top = insets.calculateTopPadding(),
+                        end = insets.calculateEndPadding(layoutDirection),
+                    ),
+                ),
+        ) {
+            val refresh = figures.loadState.refresh
+            PullToRefreshBox(
+                isRefreshing = refresh is LoadState.Loading && figures.itemCount > 0,
+                onRefresh = figures::refresh,
                 modifier = Modifier.fillMaxSize().nestedScroll(searchBarScrollConnection),
-                contentPadding = PaddingValues(start = 16.dp, end = 16.dp, top = 18.dp, bottom = 100.dp),
             ) {
+                LazyColumn(
+                    state = listState,
+                    modifier = Modifier.fillMaxSize(),
+                    contentPadding =
+                        PaddingValues(
+                            start = 16.dp,
+                            end = 16.dp,
+                            top = 18.dp,
+                            bottom = 100.dp + WindowInsets.navigationBars.asPaddingValues().calculateBottomPadding(),
+                        ),
+                ) {
                 item(key = "intro") {
                     Column {
                         Text(
@@ -256,6 +286,7 @@ fun FigureScreen(
                     }
 
                     is LoadState.NotLoading -> {}
+                }
                 }
             }
             FloatingFigureSearchField(

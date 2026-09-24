@@ -57,6 +57,7 @@
 - Keep full-screen feature app bars consistent with Proverb and Settings: use a `MediumTopAppBar` over the secondary-to-primary vertical gradient, the shared back icon and localized accessibility label, a Metropolis title that shrinks from 24sp to 20sp on collapse, an Inter subtitle while expanded, and `exitUntilCollapsedScrollBehavior` connected through the screen's nested scroll.
 - Verify new strings in both English and Indonesian, including accessibility labels, plural forms where applicable, and matching format placeholders. Use locale-aware formatting for displayed numbers/dates and check that translated text fits the affected UI.
 - Preserve edge-to-edge and IME inset handling, accessibility semantics, and stable lazy-list keys. Pair registered listeners/resources and app-wide loading ownership with disposal cleanup.
+- For every new full-screen Compose screen, follow the edge-to-edge pattern used by Figure and Proverb: let the screen background and scrollable content draw behind transparent system bars, apply Scaffold insets to the content edges that need protection rather than shrinking the whole screen above the navigation bar, and include navigation-bar/IME insets in scroll padding so the last items and interactive controls remain reachable. Apply `navigationBarsPadding()` and `imePadding()` to floating bottom controls as appropriate. The app enables edge-to-edge and disables navigation-bar contrast enforcement in `MainActivity`; do not add per-screen window flag changes.
 
 ## Dependency injection and configuration
 
