@@ -45,6 +45,7 @@
     <string name="proverb_screen_title">Proverbs</string>
     <string name="proverb_screen_subtitle">A collection of Indonesian proverbs and their meanings.</string>
     <string name="search_proverb_hint">Search proverbs …</string>
+    <string name="search_figure_hint">Search figures …</string>
     <string name="proverb_meaning_title">Meaning</string>
     <string name="proverb_meaning_loading">Loading meaning …</string>
     <string name="proverb_meaning_empty">Meaning is not available yet.</string>

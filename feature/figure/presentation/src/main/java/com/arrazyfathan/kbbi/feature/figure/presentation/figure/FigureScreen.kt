@@ -1,14 +1,24 @@
 package com.arrazyfathan.kbbi.feature.figure.presentation.figure
 
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.LinearEasing
 import androidx.compose.animation.core.RepeatMode
 import androidx.compose.animation.core.animateFloat
+import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.infiniteRepeatable
 import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.slideInVertically
+import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.background
+import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.interaction.collectIsFocusedAsState
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
@@ -16,10 +26,16 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.imePadding
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.KeyboardActions
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
@@ -27,30 +43,43 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.MediumTopAppBar
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextField
+import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.TopAppBarScrollBehavior
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.drawWithCache
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.input.nestedscroll.NestedScrollConnection
+import androidx.compose.ui.input.nestedscroll.NestedScrollSource
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.paging.LoadState
 import androidx.paging.PagingData
 import androidx.paging.compose.LazyPagingItems
@@ -67,11 +96,17 @@ import com.arrazyfathan.kbbi.core.presentation.designsystem.MetropolisFontFamily
 import com.arrazyfathan.kbbi.core.presentation.ui.asUiText
 import com.arrazyfathan.kbbi.feature.figure.domain.model.FigureModel
 import com.arrazyfathan.kbbi.feature.figure.domain.model.FigurePagingException
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.flow.distinctUntilChanged
 import org.koin.androidx.compose.koinViewModel
+import kotlin.time.Duration.Companion.milliseconds
 
 private const val FIGURE_INITIAL_SHIMMER_COUNT = 6
 private const val FIGURE_SHIMMER_DURATION_MILLIS = 1_100
+private const val FIGURE_SEARCH_BAR_SCROLL_VISIBILITY_THRESHOLD = 4f
+private val FIGURE_SEARCH_BAR_IDLE_SHOW_DELAY_MILLIS = 1_000L.milliseconds
 
 @Composable
 fun FigureRoot(
@@ -80,17 +115,53 @@ fun FigureRoot(
 ) {
     val viewModel: FigureViewModel = koinViewModel()
     val figures = viewModel.figures.collectAsLazyPagingItems()
-    FigureScreen(figures = figures, onNavigateBack = onNavigateBack, modifier = modifier)
+    val state by viewModel.state.collectAsStateWithLifecycle()
+    FigureScreen(
+        state = state,
+        figures = figures,
+        onAction = viewModel::onAction,
+        onNavigateBack = onNavigateBack,
+        modifier = modifier,
+    )
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun FigureScreen(
+    state: FigureState,
     figures: LazyPagingItems<FigureModel>,
+    onAction: (FigureAction) -> Unit,
     onNavigateBack: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
+    val focusManager = LocalFocusManager.current
     val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
+    val listState = rememberLazyListState()
+    var isSearchVisible by remember { mutableStateOf(true) }
+    val searchBarScrollConnection =
+        remember {
+            object : NestedScrollConnection {
+                override fun onPreScroll(
+                    available: Offset,
+                    source: NestedScrollSource,
+                ): Offset {
+                    when {
+                        available.y < -FIGURE_SEARCH_BAR_SCROLL_VISIBILITY_THRESHOLD -> isSearchVisible = false
+                        available.y > FIGURE_SEARCH_BAR_SCROLL_VISIBILITY_THRESHOLD -> isSearchVisible = true
+                    }
+                    return Offset.Zero
+                }
+            }
+        }
+
+    LaunchedEffect(listState) {
+        snapshotFlow { listState.isScrollInProgress }.distinctUntilChanged().collectLatest { isScrolling ->
+            if (!isScrolling) {
+                delay(FIGURE_SEARCH_BAR_IDLE_SHOW_DELAY_MILLIS)
+                isSearchVisible = true
+            }
+        }
+    }
     Scaffold(
         modifier = modifier.fillMaxSize().nestedScroll(scrollBehavior.nestedScrollConnection),
         containerColor = Color.White,
@@ -101,91 +172,212 @@ fun FigureScreen(
             )
         },
     ) { insets ->
-        LazyColumn(
-            modifier = Modifier.fillMaxSize().padding(insets),
-            contentPadding = PaddingValues(start = 16.dp, end = 16.dp, top = 18.dp, bottom = 32.dp),
-        ) {
-            item(key = "intro") {
-                Column {
-                    Text(
-                        text = stringResource(R.string.figure_collection_kicker),
-                        fontFamily = InterFontFamily,
-                        fontWeight = FontWeight.Bold,
-                        fontSize = 12.sp,
-                        letterSpacing = 1.8.sp,
-                        color = MaterialTheme.colorScheme.primary,
-                    )
-                    Spacer(Modifier.height(10.dp))
-                    Text(
-                        text = stringResource(R.string.figure_collection_title),
-                        fontFamily = MetropolisFontFamily,
-                        fontWeight = FontWeight.ExtraBold,
-                        fontSize = 34.sp,
-                        lineHeight = 40.sp,
-                        color = MaterialTheme.colorScheme.onBackground,
-                    )
-                    Spacer(Modifier.height(8.dp))
-                    Text(
-                        text = stringResource(R.string.figure_collection_description),
-                        fontFamily = InterFontFamily,
-                        fontSize = 14.sp,
-                        lineHeight = 21.sp,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    )
-                    Spacer(Modifier.height(22.dp))
-                    HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
-                    Spacer(Modifier.height(8.dp))
-                }
-            }
-
-            if (figures.loadState.refresh is LoadState.Loading && figures.itemCount == 0) {
-                repeat(FIGURE_INITIAL_SHIMMER_COUNT) { index ->
-                    item(key = "loading-$index") {
-                        FigureListShimmerRow(index = index + 1)
-                    }
-                }
-            }
-
-            if (figures.loadState.refresh is LoadState.Error && figures.itemCount == 0) {
-                item(key = "error") {
-                    FigureError(
-                        loadState = figures.loadState.refresh as LoadState.Error,
-                        onRetry = figures::retry,
-                    )
-                }
-            }
-
-            if (figures.loadState.refresh is LoadState.NotLoading && figures.itemCount == 0) {
-                item(key = "empty") {
-                    Text(
-                        text = stringResource(R.string.figure_collection_empty),
-                        modifier = Modifier.fillMaxWidth().padding(vertical = 48.dp),
-                        fontFamily = InterFontFamily,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    )
-                }
-            }
-
-            items(count = figures.itemCount, key = figures.itemKey { it.slug }) { index ->
-                val figure = figures[index] ?: return@items
-                FigureListRow(figure = figure, index = index + 1)
-            }
-
-            when (val append = figures.loadState.append) {
-                LoadState.Loading -> {
-                    item(key = "append-loading") {
-                        FigureListShimmerRow(index = figures.itemCount + 1)
+        Box(Modifier.fillMaxSize().padding(insets)) {
+            LazyColumn(
+                state = listState,
+                modifier = Modifier.fillMaxSize().nestedScroll(searchBarScrollConnection),
+                contentPadding = PaddingValues(start = 16.dp, end = 16.dp, top = 18.dp, bottom = 100.dp),
+            ) {
+                item(key = "intro") {
+                    Column {
+                        Text(
+                            text = stringResource(R.string.figure_collection_kicker),
+                            fontFamily = InterFontFamily,
+                            fontWeight = FontWeight.Bold,
+                            fontSize = 12.sp,
+                            letterSpacing = 1.8.sp,
+                            color = MaterialTheme.colorScheme.primary,
+                        )
+                        Spacer(Modifier.height(10.dp))
+                        Text(
+                            text = stringResource(R.string.figure_collection_title),
+                            fontFamily = MetropolisFontFamily,
+                            fontWeight = FontWeight.ExtraBold,
+                            fontSize = 34.sp,
+                            lineHeight = 40.sp,
+                            color = MaterialTheme.colorScheme.onBackground,
+                        )
+                        Spacer(Modifier.height(8.dp))
+                        Text(
+                            text = stringResource(R.string.figure_collection_description),
+                            fontFamily = InterFontFamily,
+                            fontSize = 14.sp,
+                            lineHeight = 21.sp,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        )
+                        Spacer(Modifier.height(22.dp))
+                        HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
+                        Spacer(Modifier.height(8.dp))
                     }
                 }
 
-                is LoadState.Error -> {
-                    item(key = "append-error") { FigureError(append, figures::retry) }
+                if (figures.loadState.refresh is LoadState.Loading && figures.itemCount == 0) {
+                    repeat(FIGURE_INITIAL_SHIMMER_COUNT) { index ->
+                        item(key = "loading-$index") {
+                            FigureListShimmerRow(index = index + 1)
+                        }
+                    }
                 }
 
-                is LoadState.NotLoading -> {}
+                if (figures.loadState.refresh is LoadState.Error && figures.itemCount == 0) {
+                    item(key = "error") {
+                        FigureError(
+                            loadState = figures.loadState.refresh as LoadState.Error,
+                            onRetry = figures::retry,
+                        )
+                    }
+                }
+
+                if (figures.loadState.refresh is LoadState.NotLoading && figures.itemCount == 0) {
+                    item(key = "empty") {
+                        Text(
+                            text = stringResource(R.string.figure_collection_empty),
+                            modifier = Modifier.fillMaxWidth().padding(vertical = 48.dp),
+                            fontFamily = InterFontFamily,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        )
+                    }
+                }
+
+                items(count = figures.itemCount, key = figures.itemKey { it.slug }) { index ->
+                    val figure = figures[index] ?: return@items
+                    FigureListRow(figure = figure, index = index + 1)
+                }
+
+                when (val append = figures.loadState.append) {
+                    LoadState.Loading -> {
+                        item(key = "append-loading") {
+                            FigureListShimmerRow(index = figures.itemCount + 1)
+                        }
+                    }
+
+                    is LoadState.Error -> {
+                        item(key = "append-error") { FigureError(append, figures::retry) }
+                    }
+
+                    is LoadState.NotLoading -> {}
+                }
             }
+            FloatingFigureSearchField(
+                visible = isSearchVisible,
+                value = state.searchQuery,
+                onValueChange = { onAction(FigureAction.OnSearchQueryChanged(it)) },
+                onSearch = { focusManager.clearFocus() },
+            )
         }
     }
+}
+
+@Composable
+private fun BoxScope.FloatingFigureSearchField(
+    visible: Boolean,
+    value: String,
+    onValueChange: (String) -> Unit,
+    onSearch: () -> Unit,
+) {
+    AnimatedVisibility(
+        visible = visible,
+        modifier =
+            Modifier
+                .fillMaxWidth()
+                .align(Alignment.BottomCenter)
+                .navigationBarsPadding()
+                .imePadding()
+                .padding(horizontal = 18.dp, vertical = 14.dp),
+        enter =
+            slideInVertically(animationSpec = tween(durationMillis = 180), initialOffsetY = { height -> height / 2 }) +
+                fadeIn(animationSpec = tween(durationMillis = 180)),
+        exit =
+            slideOutVertically(animationSpec = tween(durationMillis = 140), targetOffsetY = { height -> height + 32 }) +
+                fadeOut(animationSpec = tween(durationMillis = 120)),
+    ) {
+        Surface(shape = CircleShape, color = MaterialTheme.colorScheme.secondary) {
+            FigureSearchField(
+                value = value,
+                onValueChange = onValueChange,
+                onSearch = onSearch,
+                modifier = Modifier.fillMaxWidth().height(58.dp),
+            )
+        }
+    }
+}
+
+@Composable
+private fun FigureSearchField(
+    value: String,
+    onValueChange: (String) -> Unit,
+    onSearch: () -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    val interactionSource = remember { MutableInteractionSource() }
+    val isFocused by interactionSource.collectIsFocusedAsState()
+    val primaryColor = MaterialTheme.colorScheme.primary
+    val secondaryColor = MaterialTheme.colorScheme.secondary
+    val gradientAlpha by animateFloatAsState(
+        targetValue = if (isFocused) 0f else 1f,
+        animationSpec = tween(durationMillis = 420, easing = FastOutSlowInEasing),
+        label = "figure-search-gradient-alpha",
+    )
+
+    TextField(
+        value = value,
+        onValueChange = onValueChange,
+        interactionSource = interactionSource,
+        modifier =
+            modifier
+                .clip(CircleShape)
+                .background(secondaryColor)
+                .drawWithCache {
+                    val gradient = Brush.verticalGradient(colors = listOf(secondaryColor, primaryColor))
+                    onDrawBehind { drawRect(brush = gradient, alpha = gradientAlpha) }
+                },
+        placeholder = {
+            Text(
+                text = stringResource(R.string.search_figure_hint),
+                fontFamily = InterFontFamily,
+                fontWeight = FontWeight.Medium,
+                fontSize = 14.sp,
+                color = MaterialTheme.colorScheme.onSecondary.copy(alpha = 0.72f),
+            )
+        },
+        leadingIcon = {
+            Icon(
+                painter = painterResource(R.drawable.ic_search),
+                contentDescription = stringResource(R.string.button_search),
+                tint = MaterialTheme.colorScheme.onSecondary,
+                modifier = Modifier.padding(start = 10.dp).size(20.dp),
+            )
+        },
+        textStyle =
+            TextStyle(
+                fontFamily = InterFontFamily,
+                fontWeight = FontWeight.Medium,
+                fontSize = 14.sp,
+                color = MaterialTheme.colorScheme.onSecondary,
+            ),
+        keyboardOptions =
+            KeyboardOptions(
+                keyboardType = KeyboardType.Text,
+                imeAction = ImeAction.Search,
+            ),
+        keyboardActions = KeyboardActions(onSearch = { onSearch() }),
+        singleLine = true,
+        shape = CircleShape,
+        colors =
+            TextFieldDefaults.colors(
+                focusedContainerColor = Color.Transparent,
+                unfocusedContainerColor = Color.Transparent,
+                disabledContainerColor = Color.Transparent,
+                errorContainerColor = Color.Transparent,
+                focusedIndicatorColor = Color.Transparent,
+                unfocusedIndicatorColor = Color.Transparent,
+                disabledIndicatorColor = Color.Transparent,
+                errorIndicatorColor = Color.Transparent,
+                focusedTextColor = MaterialTheme.colorScheme.onSecondary,
+                unfocusedTextColor = MaterialTheme.colorScheme.onSecondary,
+                cursorColor = MaterialTheme.colorScheme.onSecondary,
+            ),
+    )
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -307,7 +499,7 @@ private fun rememberFigureShimmerBrush(): Brush {
             ),
         label = "figure-shimmer-translation",
     )
-    val baseColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.78f)
+    val baseColor = Color.Gray.copy(alpha = 0.2f)
     return Brush.linearGradient(
         colors = listOf(baseColor, MaterialTheme.colorScheme.surface, baseColor),
         start = Offset(x = translateAnimation - 1_000f, y = 0f),
@@ -322,6 +514,7 @@ private fun FigureListRow(
 ) {
     val context = LocalContext.current
     var imageFailed by remember(figure.photo) { mutableStateOf(false) }
+    var imageLoading by remember(figure.photo) { mutableStateOf(!figure.photo.isNullOrBlank()) }
     Column {
         Row(
             modifier = Modifier.fillMaxWidth().padding(vertical = 12.dp),
@@ -359,8 +552,18 @@ private fun FigureListRow(
                         contentDescription = figure.name,
                         modifier = Modifier.fillMaxSize(),
                         contentScale = ContentScale.Crop,
+                        onLoading = {
+                            imageFailed = false
+                            imageLoading = true
+                        },
+                        onSuccess = { imageLoading = false },
                         onError = { imageFailed = true },
                     )
+                    if (imageLoading && !imageFailed) {
+                        Box(
+                            modifier = Modifier.fillMaxSize().background(rememberFigureShimmerBrush()),
+                        )
+                    }
                 }
             }
             Column(modifier = Modifier.weight(1f)) {
@@ -456,7 +659,7 @@ private fun FigureScreenPreview() {
             ),
         ).collectAsLazyPagingItems()
     KBBITheme {
-        FigureScreen(figures = figures, onNavigateBack = {})
+        FigureScreen(state = FigureState(), figures = figures, onAction = {}, onNavigateBack = {})
     }
 }
 

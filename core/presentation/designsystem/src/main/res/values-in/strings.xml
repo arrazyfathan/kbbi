@@ -48,6 +48,7 @@
     <string name="proverb_screen_title">Peribahasa</string>
     <string name="proverb_screen_subtitle">Kumpulan peribahasa Indonesia beserta artinya.</string>
     <string name="search_proverb_hint">Cari peribahasa …</string>
+    <string name="search_figure_hint">Cari tokoh …</string>
     <string name="proverb_meaning_title">Arti</string>
     <string name="proverb_meaning_loading">Memuat arti …</string>
     <string name="proverb_meaning_empty">Arti belum tersedia.</string>
