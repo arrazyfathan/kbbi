@@ -454,9 +454,7 @@ internal fun MainApp(
                 )
             }
 
-            null -> {
-                Unit
-            }
+            null -> {}
         }
         when (widgetRequest) {
             WidgetLaunchRequest.QuickSearch -> {

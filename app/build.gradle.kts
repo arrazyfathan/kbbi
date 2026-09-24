@@ -18,6 +18,7 @@ plugins {
     alias(libs.plugins.google.services)
     alias(libs.plugins.firebase.app.distribution)
     alias(libs.plugins.firebase.crashlytics)
+    alias(libs.plugins.stability.analyzer)
 }
 
 val packageName = "com.arrazyfathan.kbbi"

@@ -12,6 +12,7 @@ plugins {
     alias(libs.plugins.google.services) apply false
     alias(libs.plugins.firebase.app.distribution) apply false
     alias(libs.plugins.firebase.crashlytics) apply false
+    alias(libs.plugins.stability.analyzer) apply false
 }
 
 tasks.register("clean", Delete::class) {
