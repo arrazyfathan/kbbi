@@ -1,21 +1,12 @@
 plugins {
-    alias(libs.plugins.android.library)
+    id("kbbi.android.library")
     alias(libs.plugins.kotlin.compose)
     alias(libs.plugins.kotlinx.kover)
 }
 
 android {
     namespace = "com.arrazyfathan.kbbi.feature.settings.presentation"
-    compileSdk = 37
-    defaultConfig {
-        minSdk = 23
-        testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
-    }
     buildFeatures { compose = true }
-    compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_17
-        targetCompatibility = JavaVersion.VERSION_17
-    }
 }
 
 dependencies {

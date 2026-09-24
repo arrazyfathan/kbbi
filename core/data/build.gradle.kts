@@ -2,7 +2,7 @@ import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 import java.util.Properties
 
 plugins {
-    alias(libs.plugins.android.library)
+    id("kbbi.android.library")
     alias(libs.plugins.kotlinx.kover)
 }
 
@@ -32,17 +32,9 @@ fun requiredBaseUrl(): String {
 
 android {
     namespace = "com.arrazyfathan.kbbi.core.data"
-    compileSdk = 37
 
     defaultConfig {
-        minSdk = 23
-        testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         buildConfigField("String", "BASE_URL", "\"${requiredBaseUrl()}\"")
-    }
-
-    compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_17
-        targetCompatibility = JavaVersion.VERSION_17
     }
 
     buildFeatures {

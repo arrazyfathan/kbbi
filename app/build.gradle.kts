@@ -1,3 +1,5 @@
+@file:Suppress("UnstableApiUsage")
+
 import com.android.build.api.dsl.ApplicationProductFlavor
 import com.google.firebase.appdistribution.gradle.firebaseAppDistribution
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
@@ -5,7 +7,7 @@ import java.io.FileInputStream
 import java.util.Properties
 
 plugins {
-    alias(libs.plugins.android.application)
+    id("kbbi.android.application")
     alias(libs.plugins.kotlin.parcelize)
     alias(libs.plugins.detekt)
     alias(libs.plugins.ktlint)
@@ -68,15 +70,11 @@ fun ApplicationProductFlavor.configureAppMetadata(applicationName: String) {
 
 android {
     namespace = packageName
-    compileSdk = 37
 
     defaultConfig {
         applicationId = packageName
-        minSdk = 23
         targetSdk = 37
         versionCode = versionCodeValue
-
-        testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
 
     androidResources {
@@ -146,11 +144,6 @@ android {
                 "proguard-rules.pro",
             )
         }
-    }
-
-    compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_17
-        targetCompatibility = JavaVersion.VERSION_17
     }
 
     buildFeatures {

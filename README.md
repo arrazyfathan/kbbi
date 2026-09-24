@@ -10,7 +10,7 @@ KBBI is an unofficial, AI-assisted Android dictionary for **Kamus Besar Bahasa I
 
 <p align="center">
   <a href="https://opensource.org/licenses/Apache-2.0"><img alt="License: Apache 2.0" src="https://img.shields.io/badge/License-Apache%202.0-blue.svg"/></a>
-  <a href="https://android-arsenal.com/api?level=23"><img alt="Minimum API 23" src="https://img.shields.io/badge/API-23%2B-brightgreen.svg"/></a>
+  <a href="https://android-arsenal.com/api?level=24"><img alt="Minimum API 24" src="https://img.shields.io/badge/API-24%2B-brightgreen.svg"/></a>
   <a href="https://github.com/arrazyfathan/kbbi/releases/latest"><img alt="Latest release" src="https://img.shields.io/github/v/release/arrazyfathan/kbbi"/></a>
 </p>
 
@@ -128,10 +128,15 @@ KBBI is a multi-module Android project organized by feature and layer. Dependenc
 
 Presentation follows an MVI-style unidirectional flow with immutable screen state, user actions, ViewModels, and one-shot events. Koin assembles implementations at the application boundary.
 
+### Build conventions
+
+The included [`build-logic`](build-logic/) build provides `kbbi.android.application` and `kbbi.android.library` convention plugins. Apply the matching plugin in each Android module's `plugins` block to share the compile SDK (37), minimum SDK (24), Java compatibility (17), and Android instrumentation runner. Keep module namespaces, application IDs, flavors, Compose features, and other module-specific settings in that module's build file. Dependency and plugin versions remain in [`gradle/libs.versions.toml`](gradle/libs.versions.toml).
+
 ### Module map
 
 ```text
 .
+├── build-logic/                   # Shared Android application and library conventions
 ├── app/
 │   ├── di/                         # App-level use-case and ViewModel registration
 │   ├── intent/                     # External text, sharing, and deep-link parsing
@@ -230,15 +235,15 @@ Firebase reporting requires the application's Firebase configuration. The implem
 
 | Area | Technology |
 |---|---|
-| Language | Kotlin 2.4.10, Java 17 target |
-| Build | Gradle 9.7.1, Android Gradle Plugin 9.3.1, KSP |
-| Android | Minimum SDK 23, target/compile SDK 37 |
-| UI | Jetpack Compose BOM 2026.08.00, Material 3, Lottie |
+| Language | Kotlin 2.4.20, Java 17 target |
+| Build | Gradle 9.7.1, Android Gradle Plugin 9.4.1, KSP |
+| Android | Minimum SDK 24, target/compile SDK 37 |
+| UI | Jetpack Compose BOM 2026.09.00, Material 3, Lottie |
 | Navigation | AndroidX Navigation3 |
 | State | ViewModel, StateFlow, coroutines, channel-backed events |
-| Networking | Ktor Client 3.5.2 with OkHttp and kotlinx.serialization |
-| Persistence | Room 2.8.4, Preferences DataStore 1.2.1 |
-| Background work | WorkManager 2.11.2 |
+| Networking | Ktor Client 3.6.0 with OkHttp and kotlinx.serialization |
+| Persistence | Room 2.8.5, Preferences DataStore 1.2.1 |
+| Background work | WorkManager 2.12.0 |
 | Dependency injection | Koin 4.2.2 |
 | Lists | Paging 3.5.1 |
 | Quality | Android Lint, Detekt, Ktlint, Kover |
@@ -252,7 +257,7 @@ Dependency versions are centralized in [`gradle/libs.versions.toml`](gradle/libs
 - JDK 17
 - Git
 - Access to a compatible KBBI API base URL
-- Android device or emulator running API 23 or newer
+- Android device or emulator running API 24 or newer
 
 ## Local setup
 

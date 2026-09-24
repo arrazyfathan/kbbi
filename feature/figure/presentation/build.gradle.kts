@@ -1,23 +1,13 @@
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 
 plugins {
-    alias(libs.plugins.android.library)
+    id("kbbi.android.library")
     alias(libs.plugins.kotlin.compose)
     alias(libs.plugins.kotlinx.kover)
 }
 
 android {
     namespace = "com.arrazyfathan.kbbi.feature.figure.presentation"
-    compileSdk = 37
-
-    defaultConfig {
-        minSdk = 23
-    }
-
-    compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_17
-        targetCompatibility = JavaVersion.VERSION_17
-    }
 
     buildFeatures { compose = true }
 }

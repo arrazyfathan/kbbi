@@ -65,7 +65,8 @@
 - Register home data dependencies in `HomeDataModule.kt` (`repositoryModule`/`databaseModule`) and Word Study dependencies in `WordStudyDataModule.kt`/`WordStudyPresentationModule.kt`. Follow the equivalent data/presentation modules for other features.
 - App-level use cases and most ViewModels are registered in [AppModule.kt](app/src/main/java/com/arrazyfathan/kbbi/di/AppModule.kt). [BaseApplication](app/src/main/java/com/arrazyfathan/kbbi/BaseApplication.kt) assembles modules. Inspect existing registration before creating a new module or duplicate binding.
 - Declare dependencies in the module that uses them; keep versions and aliases in `gradle/libs.versions.toml`. Prefer `implementation` unless consumers require an exported API. Tests can need their own direct `testImplementation` dependencies.
-- Use the Gradle wrapper. CI and JVM compilation use JDK 17; consult current Gradle files and the version catalog for SDK/library versions instead of copying stale version numbers.
+- Shared Android application/library defaults (compile SDK, minimum SDK, Java compatibility, and instrumentation runner) live in `build-logic`; module scripts own namespaces and module-specific Android configuration.
+- Use the Gradle wrapper. CI and JVM compilation use JDK 17; consult `build-logic` and the version catalog for SDK/library versions instead of copying stale version numbers.
 - `KBBI_BASE_URL` is required. Resolution order is Gradle property, environment variable, then `local.properties`. Respect existing configuration; do not hardcode a developer's server or filesystem path.
 - Default local verification to `developmentDebug`. Production release packaging requires configured signing credentials. Do not change version properties, signing, or distribution settings as part of ordinary feature work.
 
