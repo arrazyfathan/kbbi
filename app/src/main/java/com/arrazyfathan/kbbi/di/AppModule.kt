@@ -6,6 +6,7 @@ import com.arrazyfathan.kbbi.feature.bookmark.presentation.bookmark.BookmarksVie
 import com.arrazyfathan.kbbi.feature.detail.presentation.detail.DetailViewModel
 import com.arrazyfathan.kbbi.feature.figure.domain.usecase.GetFigureDetailUseCase
 import com.arrazyfathan.kbbi.feature.figure.domain.usecase.GetFiguresUseCase
+import com.arrazyfathan.kbbi.feature.figure.presentation.figure.FigureDetailViewModel
 import com.arrazyfathan.kbbi.feature.figure.presentation.figure.FigureViewModel
 import com.arrazyfathan.kbbi.feature.home.domain.usecase.AddSearchHistoryUseCase
 import com.arrazyfathan.kbbi.feature.home.domain.usecase.CheckWordSavedUseCase
@@ -84,6 +85,7 @@ val viewModelModule =
         viewModelOf(::WordViewModel)
         viewModelOf(::ProverbViewModel)
         viewModelOf(::FigureViewModel)
+        viewModelOf(::FigureDetailViewModel)
     }
 
 val appUpdateConfigModule =

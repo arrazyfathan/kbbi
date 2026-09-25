@@ -103,6 +103,7 @@ import com.arrazyfathan.kbbi.core.presentation.ui.rememberAppLoadingController
 import com.arrazyfathan.kbbi.core.utils.updateSystemBarStyle
 import com.arrazyfathan.kbbi.feature.bookmark.presentation.navigation.BookmarkRoute
 import com.arrazyfathan.kbbi.feature.detail.presentation.navigation.DetailRoute
+import com.arrazyfathan.kbbi.feature.figure.presentation.navigation.FigureDetailRoute
 import com.arrazyfathan.kbbi.feature.figure.presentation.navigation.FigureRoute
 import com.arrazyfathan.kbbi.feature.home.domain.model.ListWordModel
 import com.arrazyfathan.kbbi.feature.home.presentation.navigation.HomeRoute
@@ -333,6 +334,11 @@ private val Screen.iconSelectedResId: Int
 @Serializable
 data class DetailNavRoute(
     val dataJson: String,
+) : NavKey
+
+@Serializable
+data class FigureDetailNavRoute(
+    val slug: String,
 ) : NavKey
 
 @Serializable
@@ -618,6 +624,32 @@ internal fun MainApp(
                         onNavigateBack = {
                             if (!isUiBlocked) navigator.goBack()
                         },
+                        onNavigateToDetail = { slug ->
+                            analyticsReporter.log(
+                                AnalyticsEvent.ContentOpened(ContentType.Figure, EventSource.FigureList),
+                            )
+                            navigator.navigate(FigureDetailNavRoute(slug))
+                        },
+                    )
+                }
+                entry<FigureDetailNavRoute>(clazzContentKey = NavKey::toAppNavigationContentKey) { route ->
+                    FigureDetailRoute(
+                        slug = route.slug,
+                        onNavigateBack = { if (!isUiBlocked) navigator.goBack() },
+                        onOpenSourceUrl = { sourceUrl ->
+                            val uri = android.net.Uri.parse(sourceUrl)
+                            if (uri.scheme.equals("https", ignoreCase = true) ||
+                                uri.scheme.equals("http", ignoreCase = true)
+                            ) {
+                                try {
+                                    context.startActivity(
+                                        android.content.Intent(android.content.Intent.ACTION_VIEW, uri),
+                                    )
+                                } catch (_: android.content.ActivityNotFoundException) {
+                                    // No browser is installed.
+                                }
+                            }
+                        },
                     )
                 }
                 entry<Screen.Settings>(clazzContentKey = NavKey::toAppNavigationContentKey) {
@@ -780,9 +812,11 @@ private fun NavKey.toAnalyticsScreen(): AnalyticsScreen? =
         Screen.Home -> AnalyticsScreen.Home
         Screen.WordList -> AnalyticsScreen.Words
         Screen.Proverb -> AnalyticsScreen.Proverbs
+        Screen.Figures -> AnalyticsScreen.Figures
         Screen.Settings -> AnalyticsScreen.Settings
         Screen.Bookmarks -> AnalyticsScreen.Bookmarks
         is DetailNavRoute -> AnalyticsScreen.WordDetail
+        is FigureDetailNavRoute -> AnalyticsScreen.FigureDetail
         PrivacyPolicyRoute -> AnalyticsScreen.PrivacyPolicy
         TermsConditionsRoute -> AnalyticsScreen.TermsConditions
         AiSettingsRouteKey -> AnalyticsScreen.AiSettings

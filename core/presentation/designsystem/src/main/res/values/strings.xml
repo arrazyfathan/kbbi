@@ -134,6 +134,10 @@
     <string name="figure_collection_title">Indonesian figures</string>
     <string name="figure_collection_description">Meet the people whose lives and words helped shape Indonesia.</string>
     <string name="figure_collection_empty">No figures found.</string>
+    <string name="figure_detail_title">Figure</string>
+    <string name="figure_detail_quotes">Quotes</string>
+    <string name="figure_detail_source">SOURCE</string>
+    <string name="figure_detail_photo_description">Portrait of %1$s</string>
     <string name="ai_menu_title">AI</string>
     <string name="ai_menu_subtitle">Configure AI</string>
     <string name="language_section_title">Language</string>

@@ -8,6 +8,10 @@
     <string name="figure_collection_title">Tokoh Indonesia</string>
     <string name="figure_collection_description">Kenali tokoh yang kehidupan dan pemikirannya turut membentuk Indonesia.</string>
     <string name="figure_collection_empty">Tokoh tidak ditemukan.</string>
+    <string name="figure_detail_title">Tokoh</string>
+    <string name="figure_detail_quotes">Quotes</string>
+    <string name="figure_detail_source">SUMBER</string>
+    <string name="figure_detail_photo_description">Potret %1$s</string>
     <string name="bookmarks_title">Bookmarks</string>
     <string name="explore_title">Jelajahi</string>
     <string name="explore_toggle_state_collapsed">Menu tertutup</string>

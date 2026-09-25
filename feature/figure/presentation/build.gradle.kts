@@ -19,6 +19,7 @@ kotlin {
 dependencies {
     implementation(project(":core:presentation:designsystem"))
     implementation(project(":core:presentation:ui"))
+    implementation(project(":core:domain"))
     implementation(project(":feature:figure:domain"))
     implementation(libs.androidx.lifecycle.runtime.compose)
     implementation(libs.androidx.lifecycle.viewmodel.ktx)
@@ -29,4 +30,6 @@ dependencies {
     implementation(libs.coil.compose)
     implementation(libs.coil.network.okhttp)
     debugImplementation(libs.androidx.compose.ui.tooling)
+    testImplementation(libs.junit)
+    testImplementation(libs.kotlinx.coroutines.test)
 }

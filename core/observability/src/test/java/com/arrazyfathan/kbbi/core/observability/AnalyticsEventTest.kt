@@ -35,6 +35,14 @@ class AnalyticsEventTest {
     }
 
     @Test
+    fun `figure open event contains only content type and list source`() {
+        val event = AnalyticsEvent.ContentOpened(ContentType.Figure, EventSource.FigureList)
+
+        assertEquals("content_opened", event.name)
+        assertEquals(mapOf("content_type" to "figure", "source" to "figure_list"), event.parameters)
+    }
+
+    @Test
     fun `all event names and parameter names satisfy Firebase naming rules`() {
         val events =
             listOf(

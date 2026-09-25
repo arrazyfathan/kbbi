@@ -14,6 +14,7 @@ import androidx.compose.animation.fadeOut
 import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.collectIsFocusedAsState
 import androidx.compose.foundation.layout.Arrangement
@@ -118,6 +119,7 @@ private val FIGURE_SEARCH_BAR_IDLE_SHOW_DELAY_MILLIS = 1_000L.milliseconds
 @Composable
 fun FigureRoot(
     onNavigateBack: () -> Unit,
+    onNavigateToDetail: (String) -> Unit,
     modifier: Modifier = Modifier,
 ) {
     val viewModel: FigureViewModel = koinViewModel()
@@ -128,6 +130,7 @@ fun FigureRoot(
         figures = figures,
         onAction = viewModel::onAction,
         onNavigateBack = onNavigateBack,
+        onNavigateToDetail = onNavigateToDetail,
         modifier = modifier,
     )
 }
@@ -139,6 +142,7 @@ fun FigureScreen(
     figures: LazyPagingItems<FigureModel>,
     onAction: (FigureAction) -> Unit,
     onNavigateBack: () -> Unit,
+    onNavigateToDetail: (String) -> Unit,
     modifier: Modifier = Modifier,
 ) {
     val focusManager = LocalFocusManager.current
@@ -271,7 +275,11 @@ fun FigureScreen(
 
                 items(count = figures.itemCount, key = figures.itemKey { it.slug }) { index ->
                     val figure = figures[index] ?: return@items
-                    FigureListRow(figure = figure, index = index + 1)
+                    FigureListRow(
+                        figure = figure,
+                        index = index + 1,
+                        onClick = { onNavigateToDetail(figure.slug) },
+                    )
                 }
 
                 when (val append = figures.loadState.append) {
@@ -542,13 +550,14 @@ private fun rememberFigureShimmerBrush(): Brush {
 private fun FigureListRow(
     figure: FigureModel,
     index: Int,
+    onClick: () -> Unit,
 ) {
     val context = LocalContext.current
     var imageFailed by remember(figure.photo) { mutableStateOf(false) }
     var imageLoading by remember(figure.photo) { mutableStateOf(!figure.photo.isNullOrBlank()) }
     Column {
         Row(
-            modifier = Modifier.fillMaxWidth().padding(vertical = 12.dp),
+            modifier = Modifier.fillMaxWidth().clickable(onClick = onClick).padding(vertical = 12.dp),
             verticalAlignment = Alignment.Top,
             horizontalArrangement = Arrangement.spacedBy(16.dp),
         ) {
@@ -690,7 +699,13 @@ private fun FigureScreenPreview() {
             ),
         ).collectAsLazyPagingItems()
     KBBITheme {
-        FigureScreen(state = FigureState(), figures = figures, onAction = {}, onNavigateBack = {})
+        FigureScreen(
+            state = FigureState(),
+            figures = figures,
+            onAction = {},
+            onNavigateBack = {},
+            onNavigateToDetail = {},
+        )
     }
 }
 

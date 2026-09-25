@@ -117,6 +117,8 @@ enum class AnalyticsScreen(val value: String) {
     Home("home"),
     Words("words"),
     Proverbs("proverbs"),
+    Figures("figures"),
+    FigureDetail("figure_detail"),
     Bookmarks("bookmarks"),
     Settings("settings"),
     AiSettings("ai_settings"),
@@ -134,6 +136,7 @@ enum class EventSource(val value: String) {
     RandomWord("random_word"),
     WordList("word_list"),
     ProverbList("proverb_list"),
+    FigureList("figure_list"),
     Bookmarks("bookmarks"),
     ExternalIntent("external_intent"),
     Shortcut("shortcut"),
@@ -162,6 +165,7 @@ enum class EventOutcome(val value: String) {
 enum class ContentType(val value: String) {
     Word("word"),
     Proverb("proverb"),
+    Figure("figure"),
 }
 
 enum class BookmarkAction(val value: String) {
