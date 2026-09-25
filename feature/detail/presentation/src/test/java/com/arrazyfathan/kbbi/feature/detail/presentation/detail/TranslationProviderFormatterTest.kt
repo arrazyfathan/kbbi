@@ -7,6 +7,11 @@ import org.junit.Test
 
 class TranslationProviderFormatterTest {
     @Test
+    fun `ai provider uses uppercase attribution`() {
+        assertEquals("AI", translationProviderDisplayName("ai"))
+    }
+
+    @Test
     fun `known provider names use branded capitalization`() {
         assertEquals("Google", translationProviderDisplayName("google"))
         assertEquals("Lara", translationProviderDisplayName("LARA"))

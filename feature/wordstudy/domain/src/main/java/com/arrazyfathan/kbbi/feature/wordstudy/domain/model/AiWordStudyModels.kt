@@ -64,6 +64,7 @@ data class WordStudyEntryModel(
 data class WordStudySourceModel(
     val word: String,
     val entries: List<WordStudyEntryModel>,
+    val aiGenerated: Boolean = false,
 )
 
 data class WordStudyRequestModel(
@@ -72,6 +73,7 @@ data class WordStudyRequestModel(
     val entries: List<WordStudyEntryModel>,
     val provider: String? = null,
     val model: String? = null,
+    val aiGenerated: Boolean = false,
 )
 
 data class WordStudyModel(

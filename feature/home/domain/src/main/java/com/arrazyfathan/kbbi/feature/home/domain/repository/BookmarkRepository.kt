@@ -9,6 +9,7 @@ interface BookmarkRepository {
         word: String,
         result: List<WordModel>,
         visitorCount: Int? = null,
+        aiGenerated: Boolean = false,
     ): Boolean
 
     suspend fun deleteWord(word: String)

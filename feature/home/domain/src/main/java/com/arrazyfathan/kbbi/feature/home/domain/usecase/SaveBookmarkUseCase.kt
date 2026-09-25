@@ -10,10 +10,12 @@ class SaveBookmarkUseCase(
         word: String,
         wordList: List<WordModel>,
         visitorCount: Int? = null,
+        aiGenerated: Boolean = false,
     ): Boolean =
         bookmarkRepository.bookmarkWord(
             word = word,
             result = wordList,
             visitorCount = visitorCount,
+            aiGenerated = aiGenerated,
         )
 }

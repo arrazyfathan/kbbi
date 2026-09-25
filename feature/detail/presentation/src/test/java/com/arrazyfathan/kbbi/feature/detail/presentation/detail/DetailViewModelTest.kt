@@ -376,6 +376,7 @@ private class FakeBookmarkRepository : BookmarkRepository {
         word: String,
         result: List<WordModel>,
         visitorCount: Int?,
+        aiGenerated: Boolean,
     ): Boolean {
         saved.value = saved.value + word
         return true

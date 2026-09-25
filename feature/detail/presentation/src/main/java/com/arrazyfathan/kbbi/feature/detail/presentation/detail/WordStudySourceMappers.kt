@@ -8,6 +8,7 @@ import com.arrazyfathan.kbbi.feature.wordstudy.domain.model.WordStudySourceModel
 internal fun ListWordModel.toWordStudySourceModel(): WordStudySourceModel =
     WordStudySourceModel(
         word = word.trim(),
+        aiGenerated = aiGenerated,
         entries = listWords.map { entry ->
             WordStudyEntryModel(
                 headword = entry.entry,

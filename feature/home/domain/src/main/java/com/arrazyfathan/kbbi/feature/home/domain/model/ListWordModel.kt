@@ -10,4 +10,5 @@ data class ListWordModel(
     val word: String,
     val listWords: List<WordModel>,
     val visitorCount: Int? = null,
+    val aiGenerated: Boolean = false,
 )

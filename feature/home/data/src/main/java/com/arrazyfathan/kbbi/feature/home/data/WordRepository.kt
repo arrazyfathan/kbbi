@@ -51,6 +51,7 @@ class WordRepository(
                         listWords = remoteWord.listWords.toWordEntities(),
                         visitorCount = remoteWord.visitorCount,
                         isSaved = existingWord?.isSaved ?: false,
+                        aiGenerated = remoteWord.aiGenerated,
                     ),
                 )
             }
@@ -73,6 +74,7 @@ class WordRepository(
         word: String,
         result: List<WordModel>,
         visitorCount: Int?,
+        aiGenerated: Boolean,
     ): Boolean =
         withContext(Dispatchers.IO) {
             localDataSource.insertWord(
@@ -81,6 +83,7 @@ class WordRepository(
                     listWords = result.toWordEntities(),
                     visitorCount = visitorCount,
                     isSaved = true,
+                    aiGenerated = aiGenerated,
                 ),
             )
             true

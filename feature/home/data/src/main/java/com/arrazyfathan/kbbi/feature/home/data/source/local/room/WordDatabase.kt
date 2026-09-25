@@ -11,7 +11,7 @@ import com.arrazyfathan.kbbi.feature.home.data.source.local.entity.ListWordEntit
     entities = [
         ListWordEntity::class, HistoryEntity::class, CachedTopWordEntity::class,
     ],
-    version = 10,
+    version = 11,
     exportSchema = false,
 )
 @TypeConverters(Converters::class)

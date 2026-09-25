@@ -42,11 +42,13 @@ class WordMappersTest {
                 listWords = listOf(wordEntity),
                 visitorCount = 9,
                 isSaved = true,
+                aiGenerated = true,
             )
 
         val domainListWord = listWordEntity.toDomain()
 
         assertEquals("indah", domainListWord.word)
+        assertEquals(true, domainListWord.aiGenerated)
         assertEquals(9, domainListWord.visitorCount)
         assertEquals(1, domainListWord.listWords.size)
         assertEquals("indah", domainListWord.listWords[0].entry)

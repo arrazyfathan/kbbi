@@ -463,6 +463,7 @@ private fun SwipeableBookmarkListItem(
             BookmarkCardContent(
                 model = model,
                 modifier = Modifier.padding(16.dp),
+                descriptionMaxLines = 1,
             )
         }
     }
@@ -502,7 +503,7 @@ fun BookmarkItem(
         ) {
             BookmarkCardContent(
                 model = model,
-                modifier = Modifier.padding(start = 16.dp, top = 16.dp, end = 16.dp, bottom = 32.dp),
+                modifier = Modifier.padding(16.dp),
                 verticalArrangement = Arrangement.Top,
             )
         }
@@ -555,30 +556,49 @@ private fun BookmarkCardContent(
     model: ListWordModel,
     modifier: Modifier = Modifier,
     verticalArrangement: Arrangement.Vertical = Arrangement.Center,
+    descriptionMaxLines: Int = 2,
 ) {
+    val aiSourceDescription = stringResource(R.string.ai_definition_badge)
     Column(
         modifier = modifier.fillMaxSize(),
         verticalArrangement = verticalArrangement,
     ) {
-        Text(
-            text = model.word.replaceFirstChar { it.uppercase() },
-            color = TextH1,
-            fontFamily = InterFontFamily,
-            fontWeight = FontWeight.SemiBold,
-            fontSize = 20.sp,
-            maxLines = 1,
-            overflow = TextOverflow.Ellipsis,
-        )
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            Text(
+                text = model.word.replaceFirstChar { it.uppercase() },
+                color = TextH1,
+                fontFamily = InterFontFamily,
+                fontWeight = FontWeight.SemiBold,
+                fontSize = 20.sp,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
+                modifier = Modifier.weight(1f),
+            )
+            if (model.aiGenerated) {
+                Spacer(modifier = Modifier.width(8.dp))
+                Text(
+                    text = stringResource(R.string.ai_definition_compact_badge),
+                    color = MaterialTheme.colorScheme.primary,
+                    style = MaterialTheme.typography.labelSmall,
+                    fontWeight = FontWeight.Bold,
+                    modifier = Modifier.clip(RoundedCornerShape(100.dp))
+                        .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.09f))
+                        .semantics { contentDescription = aiSourceDescription }
+                        .padding(horizontal = 9.dp, vertical = 4.dp),
+                )
+            }
+        }
 
         Spacer(modifier = Modifier.height(4.dp))
 
         Text(
-            text = model.listWords.firstOrNull()?.entry ?: "",
+            text = model.listWords.firstOrNull()?.meanings?.firstOrNull()?.description
+                ?.takeIf(String::isNotBlank) ?: model.listWords.firstOrNull()?.entry.orEmpty(),
             color = TextP,
             fontFamily = InterFontFamily,
             fontWeight = FontWeight.Normal,
             fontSize = 14.sp,
-            maxLines = 1,
+            maxLines = descriptionMaxLines,
             overflow = TextOverflow.Ellipsis,
         )
     }

@@ -51,7 +51,9 @@ class WordDatabaseTest {
         runBlocking {
             val meaning = MeaningEntity(wordClass = "adj", description = "sangat indah")
             val word = WordEntity(entry = "cantik", meanings = listOf(meaning))
-            val listWordEntity = ListWordEntity(word = "cantik", listWords = listOf(word), isSaved = true)
+            val listWordEntity = ListWordEntity(
+                word = "cantik", listWords = listOf(word), isSaved = true, aiGenerated = true,
+            )
 
             wordDao.insertWord(listWordEntity)
 
@@ -59,6 +61,7 @@ class WordDatabaseTest {
             assertEquals(1, allWords.size)
             assertEquals("cantik", allWords[0].word)
             assertTrue(allWords[0].isSaved)
+            assertTrue(allWords[0].aiGenerated)
             assertEquals(1, allWords[0].listWords.size)
             assertEquals("cantik", allWords[0].listWords[0].entry)
         }
@@ -69,7 +72,9 @@ class WordDatabaseTest {
         runBlocking {
             val meaning = MeaningEntity(wordClass = "n", description = "benda cair")
             val word = WordEntity(entry = "air", meanings = listOf(meaning))
-            val listWordEntity = ListWordEntity(word = "air", listWords = listOf(word), isSaved = true)
+            val listWordEntity = ListWordEntity(
+                word = "air", listWords = listOf(word), isSaved = true, aiGenerated = true,
+            )
 
             wordDao.insertWord(listWordEntity)
             assertTrue(wordDao.checkWordIsExist("air").first())
@@ -83,6 +88,7 @@ class WordDatabaseTest {
             val cachedWord = wordDao.getWord("air")
             assertEquals("air", cachedWord?.word)
             assertFalse(cachedWord?.isSaved ?: true)
+            assertTrue(cachedWord?.aiGenerated ?: false)
             assertEquals(
                 "benda cair",
                 cachedWord?.listWords?.firstOrNull()?.meanings?.firstOrNull()?.description,

@@ -16,6 +16,7 @@ import io.ktor.http.headersOf
 import kotlinx.coroutines.runBlocking
 import kotlinx.serialization.json.Json
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Test
@@ -44,6 +45,7 @@ class WordRemoteDataSourceTest {
             assertTrue(result is AppResult.Success)
             val word = (result as AppResult.Success).data
             assertEquals("demokrasi", word.word)
+            assertFalse(word.aiGenerated)
             assertEquals(12, word.visitorCount)
             assertEquals("demokrasi", word.listWords.single().entry)
             assertEquals("n[Nomina]", word.listWords.single().meanings.single().wordClass)
@@ -66,6 +68,23 @@ class WordRemoteDataSourceTest {
 
             assertTrue(result is AppResult.Success)
             assertNull((result as AppResult.Success).data.visitorCount)
+            assertFalse(result.data.aiGenerated)
+        }
+
+    @Test
+    fun searchMapsAiFallbackSource() =
+        runBlocking {
+            val dataSource = WordRemoteDataSource(
+                httpClient = httpClientWithMockEngine {
+                    respondJson(WORD_SEARCH_RESPONSE.replace("\"visitorCount\": 12,", "\"visitorCount\": 12, \"aiGenerated\": true, \"notice\": \"AI notice\","))
+                },
+                visitorIdProvider = FakeVisitorIdProvider("mobile-visitor-1"),
+            )
+
+            val result = dataSource.getMeaningOfWord("demokrasi")
+
+            assertTrue(result is AppResult.Success)
+            assertTrue((result as AppResult.Success).data.aiGenerated)
         }
 
     @Test
@@ -155,6 +174,21 @@ class WordRemoteDataSourceTest {
         }
 
     @Test
+    fun translateAcceptsAiProvider() = runBlocking {
+        val dataSource = WordRemoteDataSource(
+            httpClient = httpClientWithMockEngine {
+                respondJson(TRANSLATE_RESPONSE.replace("\"provider\": \"google\"", "\"provider\": \"ai\""))
+            },
+            visitorIdProvider = FakeVisitorIdProvider("mobile-visitor-1"),
+        )
+
+        val result = dataSource.translate("belajar")
+
+        assertTrue(result is AppResult.Success)
+        assertEquals("ai", (result as AppResult.Success).data.provider)
+    }
+
+    @Test
     fun translateMapsMissingDataToNotFound() =
         runBlocking {
             val dataSource =
@@ -224,6 +258,7 @@ private const val WORD_SEARCH_NULL_COUNT_RESPONSE =
       "data": {
         "word": "ajar",
         "visitorCount": null,
+        "aiGenerated": null,
         "entries": [
           {
             "headword": "ajar",

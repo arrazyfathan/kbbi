@@ -7,6 +7,7 @@ internal fun translationProviderDisplayName(provider: String): String =
             when (normalizedProvider.lowercase()) {
                 "google" -> "Google"
                 "lara" -> "Lara"
+                "ai" -> "AI"
                 else -> normalizedProvider.replaceFirstChar { it.uppercase() }
             }
     }

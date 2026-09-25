@@ -109,6 +109,7 @@ private class FakeBookmarkRepository : BookmarkRepository {
         word: String,
         result: List<WordModel>,
         visitorCount: Int?,
+        aiGenerated: Boolean,
     ): Boolean = true
 
     override suspend fun deleteWord(word: String) {

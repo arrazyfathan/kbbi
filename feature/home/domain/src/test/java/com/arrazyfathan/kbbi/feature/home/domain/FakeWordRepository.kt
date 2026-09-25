@@ -41,8 +41,9 @@ class FakeWordRepository :
         word: String,
         result: List<WordModel>,
         visitorCount: Int?,
+        aiGenerated: Boolean,
     ): Boolean {
-        bookmarks.value = bookmarks.value + (word to ListWordModel(word, result, visitorCount))
+        bookmarks.value = bookmarks.value + (word to ListWordModel(word, result, visitorCount, aiGenerated))
         return true
     }
 

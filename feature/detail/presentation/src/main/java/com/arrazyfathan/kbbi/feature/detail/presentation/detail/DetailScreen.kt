@@ -8,6 +8,7 @@ import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.spring
 import androidx.compose.foundation.background
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.collectIsPressedAsState
@@ -60,10 +61,13 @@ import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.tooling.preview.Preview
@@ -178,6 +182,7 @@ fun DetailContent(
 ) {
     val context = LocalContext.current
     val sharedFromKbbi = stringResource(R.string.shared_from_kbbi)
+    val aiSourceLabel = stringResource(R.string.ai_definition_source_label)
     val lazyListState = rememberLazyListState()
     val translatedWord =
         remember(state.translation, state.isTranslationEnabled) {
@@ -246,6 +251,9 @@ fun DetailContent(
                         modifier = Modifier.padding(horizontal = 16.dp).padding(bottom = 20.dp),
                     )
                 } ?: Spacer(modifier = Modifier.height(20.dp))
+                if (listWordModel.aiGenerated) {
+                    AiDefinitionNotice(modifier = Modifier.padding(horizontal = 16.dp).padding(bottom = 12.dp))
+                }
                 TranslateToggleRow(
                     isEnabled = state.isTranslationEnabled,
                     isLoading = state.isTranslationLoading,
@@ -266,13 +274,20 @@ fun DetailContent(
                 WordEntryCard(
                     index = index,
                     wordModel = wordModel,
+                    aiGenerated = listWordModel.aiGenerated,
                     translatedWord = translatedWord,
                     isTranslationEnabled = state.isTranslationEnabled,
                     translationProvider = state.translation?.provider,
                     translationsByHeadword = translationsByHeadword,
                     onCopyClick = {
                         val clipboardManager = context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
-                        val clip = ClipData.newPlainText("meaning", wordModel.toDefinitionCopyText())
+                        val clip =
+                            ClipData.newPlainText(
+                                "meaning",
+                                wordModel.toDefinitionCopyText(
+                                    sourceLabel = aiSourceLabel.takeIf { listWordModel.aiGenerated },
+                                ),
+                            )
                         clipboardManager.setPrimaryClip(clip)
                         onShowAlert(UiText.StringResource(R.string.copy_success), AppAlertType.Success)
                         onHaptic(KBBIHapticType.Confirm)
@@ -282,7 +297,7 @@ fun DetailContent(
                             text =
                                 wordModel.toDefinitionShareText(
                                     rootWord = listWordModel.word,
-                                    sourceLabel = sharedFromKbbi,
+                                    sourceLabel = if (listWordModel.aiGenerated) aiSourceLabel else sharedFromKbbi,
                                 ),
                         )
                         onHaptic(KBBIHapticType.ContextClick)
@@ -293,6 +308,7 @@ fun DetailContent(
             item(key = "ai-word-study") {
                 AiWordStudyCard(
                     state = state,
+                    aiGenerated = listWordModel.aiGenerated,
                     onAction = onAction,
                     modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp),
                 )
@@ -346,6 +362,7 @@ fun DetailContent(
                                 listWordModel.word.lowercase(),
                                 listWordModel.listWords,
                                 listWordModel.visitorCount,
+                                listWordModel.aiGenerated,
                             ),
                         )
                     }.padding(horizontal = 20.dp),
@@ -381,6 +398,7 @@ fun DetailContent(
 @Composable
 private fun AiWordStudyCard(
     state: DetailState,
+    aiGenerated: Boolean,
     onAction: (DetailAction) -> Unit,
     modifier: Modifier = Modifier,
 ) {
@@ -497,7 +515,7 @@ private fun AiWordStudyCard(
                     }
                 }
             }
-            AiDisclaimer()
+            AiDisclaimer(aiGenerated)
         }
     }
 }
@@ -641,7 +659,7 @@ private fun RelatedWords(values: List<String>) {
 }
 
 @Composable
-private fun AiDisclaimer() {
+private fun AiDisclaimer(aiGenerated: Boolean) {
     Row(
         modifier =
             Modifier
@@ -659,7 +677,9 @@ private fun AiDisclaimer() {
         )
         Spacer(Modifier.width(8.dp))
         Text(
-            text = stringResource(R.string.ai_word_study_disclaimer),
+            text = stringResource(
+                if (aiGenerated) R.string.ai_word_study_disclaimer_ai_source else R.string.ai_word_study_disclaimer,
+            ),
             style = MaterialTheme.typography.bodySmall,
             color = TextP,
         )
@@ -667,9 +687,52 @@ private fun AiDisclaimer() {
 }
 
 @Composable
+private fun AiDefinitionNotice(modifier: Modifier = Modifier) {
+    Surface(
+        modifier = modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(16.dp),
+        color = MaterialTheme.colorScheme.surface,
+        border = BorderStroke(1.dp, MaterialTheme.colorScheme.primary.copy(alpha = 0.14f)),
+    ) {
+        Row(
+            modifier = Modifier.padding(horizontal = 14.dp, vertical = 13.dp),
+            verticalAlignment = Alignment.Top,
+        ) {
+            Box(
+                modifier = Modifier.size(32.dp).clip(CircleShape)
+                    .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.09f)),
+                contentAlignment = Alignment.Center,
+            ) {
+                Icon(
+                    painter = painterResource(R.drawable.ic_auto_awesome),
+                    contentDescription = null,
+                    tint = MaterialTheme.colorScheme.primary,
+                    modifier = Modifier.size(18.dp),
+                )
+            }
+            Spacer(modifier = Modifier.width(12.dp))
+            Column(verticalArrangement = Arrangement.spacedBy(3.dp)) {
+                Text(
+                    text = stringResource(R.string.ai_definition_badge),
+                    style = MaterialTheme.typography.labelMedium,
+                    color = TextH1,
+                    fontWeight = FontWeight.SemiBold,
+                )
+                Text(
+                    text = stringResource(R.string.ai_definition_notice),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = TextP,
+                )
+            }
+        }
+    }
+}
+
+@Composable
 fun WordEntryCard(
     index: Int,
     wordModel: WordModel,
+    aiGenerated: Boolean = false,
     translatedWord: String?,
     isTranslationEnabled: Boolean,
     translationProvider: String?,
@@ -714,7 +777,14 @@ fun WordEntryCard(
                     fontFamily = InterFontFamily,
                     fontWeight = FontWeight.SemiBold,
                     fontSize = 18.sp,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                    modifier = Modifier.weight(1f),
                 )
+                if (aiGenerated) {
+                    Spacer(modifier = Modifier.width(8.dp))
+                    AiSourceChip()
+                }
             }
 
             Spacer(modifier = Modifier.height(8.dp))
@@ -825,6 +895,24 @@ fun WordEntryCard(
                 }
             }
         }
+    }
+}
+
+@Composable
+private fun AiSourceChip() {
+    val aiSourceDescription = stringResource(R.string.ai_definition_badge)
+    Surface(
+        modifier = Modifier.semantics { contentDescription = aiSourceDescription },
+        shape = RoundedCornerShape(100.dp),
+        color = MaterialTheme.colorScheme.primary.copy(alpha = 0.09f),
+    ) {
+        Text(
+            text = stringResource(R.string.ai_definition_compact_badge),
+            color = MaterialTheme.colorScheme.primary,
+            style = MaterialTheme.typography.labelSmall,
+            fontWeight = FontWeight.Bold,
+            modifier = Modifier.padding(horizontal = 9.dp, vertical = 4.dp),
+        )
     }
 }
 
@@ -949,11 +1037,11 @@ fun buildMeaningText(
     }
 }
 
-private fun WordModel.toDefinitionCopyText(): String =
+private fun WordModel.toDefinitionCopyText(sourceLabel: String? = null): String =
     meanings
         .mapIndexed { index, meaning ->
             meaning.toDefinitionLine(position = index)
-        }.joinToString(separator = "\n\n")
+        }.joinToString(separator = "\n\n") + (sourceLabel?.let { "\n\n$it" } ?: "")
 
 private fun WordModel.toDefinitionShareText(
     rootWord: String,

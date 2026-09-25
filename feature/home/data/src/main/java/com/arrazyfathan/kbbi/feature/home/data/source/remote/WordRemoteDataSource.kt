@@ -51,6 +51,7 @@ class WordRemoteDataSource(
                         word = searchData.word,
                         listWords = words.map { it.toDomain() },
                         visitorCount = searchData.visitorCount,
+                        aiGenerated = searchData.aiGenerated == true,
                     ),
                 )
             !success -> AppResult.Error(DataError.Remote(message))

@@ -85,6 +85,11 @@
     <string name="show_original">Tampilkan asli</string>
     <string name="show_english_translation">Tampilkan terjemahan Inggris</string>
     <string name="translated_by_provider">Diterjemahkan oleh %1$s</string>
+    <string name="ai_definition_badge">Definisi buatan AI</string>
+    <string name="ai_definition_compact_badge">AI</string>
+    <string name="ai_definition_source_label">Definisi buatan AI (mungkin tidak akurat)</string>
+    <string name="ai_definition_notice">Entri tidak ditemukan pada sumber KBBI yang dikonfigurasi. Definisi ini dibuat oleh AI dan mungkin tidak akurat.</string>
+    <string name="ai_word_study_disclaimer_ai_source">Definisi dan materi belajar ini dibuat oleh AI dan mungkin tidak akurat.</string>
     <string name="translate_failed">Terjemahan sedang tidak tersedia.</string>
     <string name="number_item">1</string>
     <string name="error_empty_query">Kata tidak boleh kosong</string>
@@ -210,11 +215,11 @@
     <string name="update_check_failed">Gagal memeriksa pembaruan</string>
     <string name="clear">Hapus</string>
     <string name="new_badge">BARU</string>
-    <string name="legal_effective_date">Berlaku 7 September 2026</string>
+    <string name="legal_effective_date">Berlaku 25 September 2026</string>
     <string name="privacy_intro_title">1. Ikhtisar</string>
     <string name="privacy_intro_body">KBBI adalah aplikasi kamus bahasa Indonesia tidak resmi yang dikembangkan oleh Ar Razy Fathan Rabbani. Kebijakan ini menjelaskan informasi yang ditangani aplikasi, tujuan penggunaannya, dan pilihan yang tersedia bagi Anda.</string>
     <string name="privacy_data_title">2. Informasi yang ditangani aplikasi</string>
-    <string name="privacy_data_body">Saat Anda mencari kata, peribahasa, atau terjemahan, kueri dikirim ke layanan kamus yang dikonfigurasi. Jika Anda meminta materi belajar AI, lema, kelas kata, definisi yang tampil, dan bahasa keluaran dikirim ke penyedia AI yang dikelola server KBBI atau langsung ke penyedia khusus yang Anda pilih. URL, model, dan materi kunci API penyedia khusus disimpan terenkripsi di perangkat serta dikecualikan dari pencadangan dan transfer perangkat Android. Aplikasi menyimpan riwayat, kata tersimpan, konten cache, preferensi, dan pilihan pelaporan di perangkat. Aplikasi tidak mengirim kata pencarian, definisi, terjemahan, materi belajar AI, rincian penyedia khusus, atau pengenal pengunjung kamus ke Firebase.</string>
+    <string name="privacy_data_body">Saat Anda mencari kata, peribahasa, atau terjemahan, kueri dikirim ke layanan kamus yang dikonfigurasi. Jika sumber KBBI tidak memiliki entri, layanan tersebut dapat membuat definisi secara otomatis dengan AI. Terjemahan Inggris bersifat opsional dan juga dapat dibuat oleh AI. Jika Anda meminta materi belajar AI, lema, kelas kata, definisi yang tampil, dan bahasa keluaran dikirim ke penyedia AI yang dikelola server KBBI atau langsung ke penyedia khusus yang Anda pilih. URL, model, dan materi kunci API penyedia khusus disimpan terenkripsi di perangkat serta dikecualikan dari pencadangan dan transfer perangkat Android. Aplikasi menyimpan riwayat, kata tersimpan, konten cache, preferensi, dan pilihan pelaporan di perangkat. Aplikasi tidak mengirim kata pencarian, definisi, terjemahan, materi belajar AI, rincian penyedia khusus, atau pengenal pengunjung kamus ke Firebase.</string>
     <string name="privacy_use_title">3. Cara informasi digunakan</string>
     <string name="privacy_use_body">Informasi digunakan untuk menyediakan fitur aplikasi, menemukan masalah stabilitas, dan, hanya saat diaktifkan, memahami penggunaan layar dan fitur secara anonim atau meningkatkan kinerja. Pengumpulan ID iklan dinonaktifkan dan aplikasi tidak memiliki SDK iklan. Layanan kamus dapat memproses informasi teknis jaringan, seperti alamat IP, sesuai infrastrukturnya.</string>
     <string name="privacy_storage_title">4. Penyimpanan dan retensi</string>
@@ -222,7 +227,7 @@
     <string name="privacy_permissions_title">5. Izin</string>
     <string name="privacy_permissions_body">Akses mikrofon hanya diminta saat Anda menggunakan pencarian suara. Pengenalan suara disediakan Android atau layanan pengenalan yang dipilih di perangkat Anda dan dapat memproses audio di luar aplikasi. Akses notifikasi hanya diminta saat Anda mengaktifkan pengingat harian. Anda dapat menolak atau mencabut kedua izin tersebut melalui pengaturan Android.</string>
     <string name="privacy_services_title">6. Layanan eksternal</string>
-    <string name="privacy_services_body">Aplikasi berkomunikasi dengan API kamus, pemroses AI yang dikelola server saat Anda memakai KBBI AI, layanan kompatibel OpenAI yang Anda atur saat memilih Penyedia Khusus, Google Firebase untuk diagnostik yang dibatasi preferensi, serta GitHub untuk pembaruan dan tautan proyek. Permintaan khusus hanya dikirim ke layanan khusus dan tidak pernah dialihkan ke KBBI AI. Setiap layanan diatur oleh syarat dan kebijakan privasinya sendiri.</string>
+    <string name="privacy_services_body">Aplikasi berkomunikasi dengan API kamus yang dapat membuat definisi dan terjemahan cadangan dengan AI, pemroses AI yang dikelola server saat Anda memakai KBBI AI, layanan kompatibel OpenAI yang Anda atur saat memilih Penyedia Khusus, Google Firebase untuk diagnostik yang dibatasi preferensi, serta GitHub untuk pembaruan dan tautan proyek. Permintaan khusus hanya dikirim ke layanan khusus dan tidak pernah dialihkan ke KBBI AI. Setiap layanan diatur oleh syarat dan kebijakan privasinya sendiri.</string>
     <string name="privacy_choices_title">7. Pilihan Anda</string>
     <string name="privacy_choices_body">Pelaporan kerusakan aktif secara bawaan, sedangkan analitik penggunaan dan diagnostik kinerja nonaktif secara bawaan. Anda dapat mengaturnya secara terpisah pada Privasi &amp; diagnostik di Pengaturan. Penonaktifan laporan kerusakan berlaku sepenuhnya setelah aplikasi dimulai ulang dan laporan yang belum terkirim akan dihapus. Anda juga dapat menghapus riwayat, kata tersimpan, pengingat, izin, data aplikasi, atau aplikasi.</string>
     <string name="privacy_children_title">8. Anak-anak</string>
@@ -234,7 +239,7 @@
     <string name="terms_acceptance_title">1. Penerimaan</string>
     <string name="terms_acceptance_body">Dengan memasang atau menggunakan KBBI, Anda menyetujui Syarat &amp; Ketentuan ini. Jika Anda tidak setuju, jangan gunakan aplikasi. Anda wajib mematuhi hukum yang berlaku saat menggunakan aplikasi.</string>
     <string name="terms_service_title">2. Layanan</string>
-    <string name="terms_service_body">KBBI menyediakan fitur kamus, terjemahan, peribahasa, kata tersimpan, riwayat, pencarian suara, pengingat, bantuan belajar berbasis AI opsional, dan fitur terkait. Hasil AI mungkin tidak akurat dan tidak menggantikan definisi resmi yang ditampilkan aplikasi. Aplikasi ini adalah proyek tidak resmi dan tidak berafiliasi dengan pemerintah Indonesia maupun penerbit resmi KBBI.</string>
+    <string name="terms_service_body">KBBI menyediakan fitur kamus, terjemahan, peribahasa, kata tersimpan, riwayat, pencarian suara, pengingat, bantuan belajar berbasis AI opsional, dan fitur terkait. Definisi, terjemahan, dan materi belajar buatan AI mungkin tidak akurat. Definisi cadangan AI diberi label dan bukan entri resmi KBBI. Aplikasi ini adalah proyek tidak resmi dan tidak berafiliasi dengan pemerintah Indonesia maupun penerbit resmi KBBI.</string>
     <string name="terms_content_title">3. Konten dan keakuratan</string>
     <string name="terms_content_body">Konten kamus dan peribahasa dapat berasal dari data bawaan atau layanan jarak jauh dan mungkin tidak lengkap, terlambat, atau tidak akurat. Gunakan aplikasi sebagai referensi dan pembelajaran, bukan pengganti nasihat profesional, hukum, medis, atau resmi. Kami dapat mengubah, menghapus, atau membatasi konten dan fitur kapan saja.</string>
     <string name="terms_user_responsibilities_title">4. Tanggung jawab Anda</string>

@@ -32,7 +32,7 @@ KBBI is an unofficial, AI-assisted Android dictionary for **Kamus Besar Bahasa I
 
 This repository contains the Android client for KBBI. It combines a remote dictionary service with a bundled local word index, on-device Room caches, and optional AI-assisted study tools. A successful lookup is cached so previously opened content can remain available when the network is unavailable.
 
-The app does not require an account. Bookmarks, search history, cached content, AI provider configuration, reminder preferences, language selection, and haptic preferences are stored locally on the device. AI study is generated only when requested and can use either a provider managed by the KBBI backend or an OpenAI-compatible provider configured by the user.
+The app does not require an account. Bookmarks, search history, cached content, AI provider configuration, reminder preferences, language selection, and haptic preferences are stored locally on the device. The configured dictionary service may automatically provide an AI-generated definition when its KBBI source has no entry; the app labels this content and retains its source when cached or bookmarked. AI study is generated only when requested and can use either a provider managed by the KBBI backend or an OpenAI-compatible provider configured by the user.
 
 KBBI is an unofficial project and is not operated by or affiliated with the Indonesian government or the official KBBI publisher.
 
@@ -44,13 +44,13 @@ KBBI is an unofficial project and is not operated by or affiliated with the Indo
 - Get suggestions from the bundled local word index before submitting a search.
 - Browse and filter the complete bundled word-entry list.
 - Use Android speech recognition for voice search.
-- Show optional word and meaning translations in the detail screen.
+- Show optional English word and meaning translations in the detail screen, including AI-backed translations when provided by the dictionary service.
 - Copy or share formatted definitions through Android's share sheet.
 
 ### AI-assisted word study
 
 - Turn an opened dictionary entry into a simpler explanation, natural examples, usage notes, and related words.
-- Generate study content in English or Indonesian while keeping the official dictionary definitions as the primary reference.
+- Generate study content in English or Indonesian from the displayed definition, with its AI origin identified when applicable.
 - Use KBBI AI without entering personal provider credentials, subject to provider availability on the configured backend.
 - Optionally connect directly to one or more custom OpenAI-compatible providers and choose a model for each provider.
 - Test, select, edit, and remove custom provider configurations from **Settings → AI word study**.

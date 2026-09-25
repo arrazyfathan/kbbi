@@ -72,5 +72,5 @@ internal fun WordStudySourceModel.toWordStudyRequest(language: String): WordStud
             WordStudyEntryModel(headword, definitions)
         }
     if (combinedDescriptionLength > 12_000) return null
-    return WordStudyRequestModel(normalizedWord, normalizedLanguage, entries)
+    return WordStudyRequestModel(normalizedWord, normalizedLanguage, entries, aiGenerated = aiGenerated)
 }

@@ -58,6 +58,7 @@ sealed interface DetailAction {
         val word: String,
         val wordList: List<WordModel>,
         val visitorCount: Int?,
+        val aiGenerated: Boolean = false,
     ) : DetailAction
 
     data class OnTranslateToggled(
@@ -166,7 +167,7 @@ class DetailViewModel(
             }
 
             is DetailAction.OnBookmarkClick -> {
-                toggleBookmark(action.word, action.wordList, action.visitorCount)
+                toggleBookmark(action.word, action.wordList, action.visitorCount, action.aiGenerated)
             }
 
             is DetailAction.OnTranslateToggled -> {
@@ -234,6 +235,7 @@ class DetailViewModel(
         word: String,
         wordList: List<WordModel>,
         visitorCount: Int?,
+        aiGenerated: Boolean,
     ) {
         viewModelScope.launch {
             if (state.value.isSaved) {
@@ -248,7 +250,7 @@ class DetailViewModel(
                     ),
                 )
             } else {
-                val isSaved = saveBookmark(word, wordList, visitorCount)
+                val isSaved = saveBookmark(word, wordList, visitorCount, aiGenerated)
                 if (isSaved) {
                     analyticsReporter.log(
                         AnalyticsEvent.BookmarkChanged(BookmarkAction.Added, AnalyticsScreen.WordDetail),
