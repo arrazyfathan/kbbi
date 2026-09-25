@@ -413,9 +413,6 @@ Release secrets:
 Fastlane currently provides `bundle exec fastlane android test`, which delegates to Gradle tests.
 
 ## Project documentation
-
-- [Future development roadmap](docs/future-development.md)
-- [Architecture evolution notes](planning.md)
 - [Fastlane configuration](fastlane/README.md)
 - [GitHub releases](https://github.com/arrazyfathan/kbbi/releases)
 - [Issue tracker](https://github.com/arrazyfathan/kbbi/issues)
