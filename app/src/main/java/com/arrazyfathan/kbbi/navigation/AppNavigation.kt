@@ -714,7 +714,12 @@ internal fun MainApp(
         )
 
     CompositionLocalProvider(LocalAppLoadingController provides loadingController) {
-        Box(modifier = Modifier.fillMaxSize()) {
+        Box(
+            modifier =
+                Modifier
+                    .fillMaxSize()
+                    .background(MaterialTheme.colorScheme.background),
+        ) {
             NavDisplay(
                 entries = entries,
                 onBack = {
