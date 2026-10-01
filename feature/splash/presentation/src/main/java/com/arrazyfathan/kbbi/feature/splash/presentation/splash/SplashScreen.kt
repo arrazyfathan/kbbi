@@ -11,8 +11,8 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.Text
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -53,22 +53,22 @@ fun SplashScreen(
         launch {
             logoTranslationY.animateTo(
                 targetValue = 100f,
-                animationSpec = tween(durationMillis = 2000, easing = { it }), // Linear
+                animationSpec = tween(durationMillis = 300, easing = { it }), // Linear
             )
         }
         launch {
             readingAlpha.animateTo(
                 targetValue = 1f,
-                animationSpec = tween(durationMillis = 2000, easing = { it }),
+                animationSpec = tween(durationMillis = 300, easing = { it }),
             )
         }
         launch {
             readingTranslationY.animateTo(
                 targetValue = -80f,
-                animationSpec = tween(durationMillis = 2000, easing = { it }),
+                animationSpec = tween(durationMillis = 300, easing = { it }),
             )
         }
-        delay(3000.milliseconds)
+        delay(2000.milliseconds)
         onTimeout()
     }
 
