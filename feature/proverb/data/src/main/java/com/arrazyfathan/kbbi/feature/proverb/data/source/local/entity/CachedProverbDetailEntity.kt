@@ -1,6 +1,7 @@
 package com.arrazyfathan.kbbi.feature.proverb.data.source.local.entity
 
 import androidx.room.Entity
+import androidx.room.ColumnInfo
 import androidx.room.PrimaryKey
 
 @Entity(tableName = "cached_proverb_detail_table")
@@ -11,4 +12,7 @@ data class CachedProverbDetailEntity(
     val letter: String,
     val sourceUrl: String?,
     val meaning: String?,
+    @ColumnInfo(defaultValue = "0")
+    val aiGenerated: Boolean = false,
+    val notice: String? = null,
 )

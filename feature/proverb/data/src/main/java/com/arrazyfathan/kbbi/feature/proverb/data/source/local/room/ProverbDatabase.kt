@@ -10,7 +10,7 @@ import com.arrazyfathan.kbbi.feature.proverb.data.source.local.entity.CachedProv
         CachedProverbEntity::class,
         CachedProverbDetailEntity::class,
     ],
-    version = 1,
+    version = 2,
     exportSchema = false,
 )
 abstract class ProverbDatabase : RoomDatabase() {

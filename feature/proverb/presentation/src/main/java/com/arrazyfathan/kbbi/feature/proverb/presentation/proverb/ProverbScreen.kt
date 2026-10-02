@@ -16,6 +16,7 @@ import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.collectIsFocusedAsState
@@ -27,6 +28,7 @@ import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.calculateEndPadding
 import androidx.compose.foundation.layout.calculateStartPadding
@@ -732,12 +734,57 @@ private fun ProverbMeaningSheet(
                 )
             }
         } else {
+            if (proverb.aiGenerated) {
+                ProverbAiMeaningNotice(modifier = Modifier.padding(bottom = 14.dp))
+            }
             ProverbMeaningContent(
                 meaning = proverb.meaning,
                 emptyText = stringResource(id = R.string.proverb_meaning_empty),
             )
         }
         Spacer(modifier = Modifier.height(34.dp))
+    }
+}
+
+@Composable
+private fun ProverbAiMeaningNotice(modifier: Modifier = Modifier) {
+    Surface(
+        modifier = modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(16.dp),
+        color = MaterialTheme.colorScheme.surface,
+        border = BorderStroke(1.dp, MaterialTheme.colorScheme.primary.copy(alpha = 0.14f)),
+    ) {
+        Row(
+            modifier = Modifier.padding(horizontal = 14.dp, vertical = 13.dp),
+            verticalAlignment = Alignment.Top,
+        ) {
+            Box(
+                modifier = Modifier.size(32.dp).clip(CircleShape)
+                    .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.09f)),
+                contentAlignment = Alignment.Center,
+            ) {
+                Icon(
+                    painter = painterResource(R.drawable.ic_auto_awesome),
+                    contentDescription = null,
+                    tint = MaterialTheme.colorScheme.primary,
+                    modifier = Modifier.size(18.dp),
+                )
+            }
+            Spacer(modifier = Modifier.width(12.dp))
+            Column(verticalArrangement = Arrangement.spacedBy(3.dp)) {
+                Text(
+                    text = stringResource(R.string.proverb_ai_meaning_badge),
+                    style = MaterialTheme.typography.labelMedium,
+                    color = TextH1,
+                    fontWeight = FontWeight.SemiBold,
+                )
+                Text(
+                    text = stringResource(R.string.proverb_ai_meaning_notice),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = TextP,
+                )
+            }
+        }
     }
 }
 
@@ -967,6 +1014,7 @@ private fun ProverbMeaningSheetPreview() {
                         slug = "Air_beriak_tanda_tak_dalam",
                         sourceUrl = null,
                         meaning = "Orang yang sombong biasanya bodoh.; Siapa yang banyak bicara ilmunya.",
+                        aiGenerated = true,
                     ),
                 isLoading = false,
                 modifier = Modifier.padding(20.dp),

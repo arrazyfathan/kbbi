@@ -56,6 +56,8 @@
     <string name="proverb_meaning_title">Arti</string>
     <string name="proverb_meaning_loading">Memuat arti …</string>
     <string name="proverb_meaning_empty">Arti belum tersedia.</string>
+    <string name="proverb_ai_meaning_badge">Arti buatan AI</string>
+    <string name="proverb_ai_meaning_notice">Arti ini dibuat oleh AI karena tidak tersedia di Wikiquote dan mungkin tidak akurat.</string>
     <string name="proverb_empty_message">Peribahasa tidak ditemukan.</string>
     <string name="retry">Coba lagi</string>
     <string name="version_label">Versi %1$s</string>

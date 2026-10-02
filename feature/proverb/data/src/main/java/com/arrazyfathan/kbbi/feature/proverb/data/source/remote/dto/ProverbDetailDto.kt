@@ -15,4 +15,8 @@ data class ProverbDetailDto(
     val sourceUrl: String? = null,
     @SerialName("meaning")
     val meaning: String? = null,
+    @SerialName("aiGenerated")
+    val aiGenerated: Boolean = false,
+    @SerialName("notice")
+    val notice: String? = null,
 )

@@ -24,6 +24,8 @@ fun ProverbDetailDto.toProverbDetail(): ProverbDetailModel =
         slug = slug,
         sourceUrl = sourceUrl,
         meaning = meaning,
+        aiGenerated = aiGenerated,
+        notice = notice,
     )
 
 fun ProverbPageDto.toProverbPage(): ProverbPageModel =
@@ -64,6 +66,8 @@ fun ProverbDetailModel.toCachedProverbDetail(): CachedProverbDetailEntity =
         slug = slug,
         sourceUrl = sourceUrl,
         meaning = meaning,
+        aiGenerated = aiGenerated,
+        notice = notice,
     )
 
 fun CachedProverbDetailEntity.toProverbDetail(): ProverbDetailModel =
@@ -73,6 +77,8 @@ fun CachedProverbDetailEntity.toProverbDetail(): ProverbDetailModel =
         slug = slug,
         sourceUrl = sourceUrl,
         meaning = meaning,
+        aiGenerated = aiGenerated,
+        notice = notice,
     )
 
 private fun CachedProverbEntity.toProverb(): ProverbModel =
