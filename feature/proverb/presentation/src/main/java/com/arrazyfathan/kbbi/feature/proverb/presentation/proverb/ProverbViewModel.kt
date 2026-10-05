@@ -1,18 +1,19 @@
 package com.arrazyfathan.kbbi.feature.proverb.presentation.proverb
 
+import androidx.compose.runtime.Immutable
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.paging.PagingData
 import androidx.paging.cachedIn
 import com.arrazyfathan.kbbi.core.domain.model.AppResult
-import com.arrazyfathan.kbbi.core.presentation.ui.UiText
-import com.arrazyfathan.kbbi.core.presentation.ui.asUiText
 import com.arrazyfathan.kbbi.core.observability.AnalyticsEvent
 import com.arrazyfathan.kbbi.core.observability.AnalyticsReporter
 import com.arrazyfathan.kbbi.core.observability.ContentType
 import com.arrazyfathan.kbbi.core.observability.EventOutcome
 import com.arrazyfathan.kbbi.core.observability.EventSource
 import com.arrazyfathan.kbbi.core.observability.NoOpAnalyticsReporter
+import com.arrazyfathan.kbbi.core.presentation.ui.UiText
+import com.arrazyfathan.kbbi.core.presentation.ui.asUiText
 import com.arrazyfathan.kbbi.feature.proverb.domain.model.ProverbDetailModel
 import com.arrazyfathan.kbbi.feature.proverb.domain.model.ProverbModel
 import com.arrazyfathan.kbbi.feature.proverb.domain.usecase.GetListProverbsUseCase
@@ -32,6 +33,7 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlin.time.Duration.Companion.milliseconds
 
+@Immutable
 data class ProverbState(
     val searchQuery: String = "",
     val selectedProverb: ProverbDetailModel? = null,
@@ -39,6 +41,10 @@ data class ProverbState(
 )
 
 sealed interface ProverbAction {
+    data class OnSlugRequested(
+        val slug: String,
+    ) : ProverbAction
+
     data class OnSearchQueryChanged(
         val query: String,
     ) : ProverbAction
@@ -82,6 +88,10 @@ class ProverbViewModel(
 
     fun onAction(action: ProverbAction) {
         when (action) {
+            is ProverbAction.OnSlugRequested -> {
+                loadMeaningBySlug(action.slug)
+            }
+
             is ProverbAction.OnSearchQueryChanged -> {
                 _state.update { it.copy(searchQuery = action.query) }
             }
@@ -137,6 +147,26 @@ class ProverbViewModel(
 
                     is AppResult.Error -> {
                         analyticsReporter.log(AnalyticsEvent.ProverbOpened(EventOutcome.Error))
+                        _state.update { it.copy(isMeaningLoading = false) }
+                        _events.send(ProverbEvent.ShowMessage(result.error.asUiText()))
+                    }
+                }
+            }
+    }
+
+    private fun loadMeaningBySlug(slug: String) {
+        if (slug.isBlank()) return
+        meaningJob?.cancel()
+        meaningJob =
+            viewModelScope.launch {
+                _state.update { it.copy(isMeaningLoading = true) }
+                when (val result = getProverbMeaning(slug)) {
+                    is AppResult.Success -> {
+                        _state.update { it.copy(selectedProverb = result.data, isMeaningLoading = false) }
+                        _events.send(ProverbEvent.MeaningLoaded)
+                    }
+
+                    is AppResult.Error -> {
                         _state.update { it.copy(isMeaningLoading = false) }
                         _events.send(ProverbEvent.ShowMessage(result.error.asUiText()))
                     }

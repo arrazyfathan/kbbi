@@ -250,6 +250,8 @@ dependencies {
     implementation(project(":feature:wordstudy:domain"))
     implementation(project(":feature:wordstudy:presentation"))
 
+    implementation(platform(libs.firebase.bom))
+    implementation(libs.firebase.messaging)
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.appcompat)
     implementation(libs.material)

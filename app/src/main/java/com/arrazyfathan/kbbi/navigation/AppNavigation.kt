@@ -382,6 +382,7 @@ internal fun MainApp(
     val shortcutRequest = launchRequests.shortcutRequest
     val shortcutRequestKey = launchRequests.shortcutRequestKey
     val notificationRequest = launchRequests.notificationRequest
+    var pendingCampaignProverbSlug by remember { mutableStateOf<String?>(null) }
     val notificationRequestKey = launchRequests.notificationRequestKey
     val widgetRequest = launchRequests.widgetRequest
     val widgetRequestKey = launchRequests.widgetRequestKey
@@ -510,11 +511,16 @@ internal fun MainApp(
 
     LaunchedEffect(notificationRequestKey) {
         when (notificationRequest) {
+            is NotificationLaunchRequest.Word -> {
+                navigator.navigateToRoot(Screen.Home)
+                onNotificationRequestConsumed()
+            }
             is NotificationLaunchRequest.Proverb -> {
+                pendingCampaignProverbSlug = notificationRequest.slug
                 analyticsReporter.log(AnalyticsEvent.NotificationOpened(ReminderKind.DailyProverb))
                 navigator.navigateToRoot(Screen.Home)
                 navigator.navigate(Screen.Proverb)
-                onNotificationRequestConsumed()
+                if (notificationRequest.slug == null) onNotificationRequestConsumed()
             }
 
             NotificationLaunchRequest.Bookmarks -> {
@@ -612,6 +618,11 @@ internal fun MainApp(
                 entry<Screen.Proverb>(clazzContentKey = NavKey::toAppNavigationContentKey) {
                     ProverbRoute(
                         onHaptic = performHaptic,
+                        campaignSlug = pendingCampaignProverbSlug,
+                        onCampaignRequestConsumed = {
+                            pendingCampaignProverbSlug = null
+                            onNotificationRequestConsumed()
+                        },
                         onNavigateBack = {
                             if (!isUiBlocked) {
                                 navigator.goBack()

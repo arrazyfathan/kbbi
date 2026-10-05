@@ -9,6 +9,10 @@ private const val PROVERB_DEEP_LINK_HOST = "proverb"
 private const val BOOKMARKS_DEEP_LINK_HOST = "bookmarks"
 
 sealed interface NotificationLaunchRequest {
+    data class Word(
+        val term: String,
+    ) : NotificationLaunchRequest
+
     data class Proverb(
         val slug: String?,
     ) : NotificationLaunchRequest
@@ -50,6 +54,11 @@ internal fun Intent.extractExternalSearchQuery(): String? {
 }
 
 internal fun Intent.extractNotificationLaunchRequest(): NotificationLaunchRequest? {
+    val campaignValue = getStringExtra("editorial_destination_value")?.takeIf { it.isNotBlank() }
+    when (getStringExtra("editorial_destination_kind")) {
+        "word" -> return campaignValue?.let(NotificationLaunchRequest::Word)
+        "proverb" -> return campaignValue?.let(NotificationLaunchRequest::Proverb)
+    }
     if (action != Intent.ACTION_VIEW || data?.scheme != KBBI_DEEP_LINK_SCHEME) return null
     return when (data?.host) {
         PROVERB_DEEP_LINK_HOST -> NotificationLaunchRequest.Proverb(data?.pathSegments?.firstOrNull())

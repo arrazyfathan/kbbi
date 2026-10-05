@@ -1,6 +1,11 @@
 package com.arrazyfathan.kbbi
 
 import android.app.Application
+import androidx.work.Constraints
+import androidx.work.ExistingWorkPolicy
+import androidx.work.NetworkType
+import androidx.work.OneTimeWorkRequestBuilder
+import androidx.work.WorkManager
 import com.arrazyfathan.kbbi.core.appupdate.di.appUpdateModule
 import com.arrazyfathan.kbbi.core.di.networkModule
 import com.arrazyfathan.kbbi.core.logging.AppLogger
@@ -16,18 +21,22 @@ import com.arrazyfathan.kbbi.feature.home.data.di.databaseModule
 import com.arrazyfathan.kbbi.feature.home.data.di.repositoryModule
 import com.arrazyfathan.kbbi.feature.proverb.data.di.proverbDataModule
 import com.arrazyfathan.kbbi.feature.settings.data.di.settingsDataModule
+import com.arrazyfathan.kbbi.feature.settings.domain.repository.NotificationSettingsRepository
 import com.arrazyfathan.kbbi.feature.settings.domain.service.NotificationPermissionGateway
 import com.arrazyfathan.kbbi.feature.settings.domain.service.ReminderScheduler
 import com.arrazyfathan.kbbi.feature.settings.presentation.di.settingsPresentationModule
 import com.arrazyfathan.kbbi.feature.wordstudy.data.di.wordStudyDataModule
 import com.arrazyfathan.kbbi.feature.wordstudy.presentation.di.wordStudyPresentationModule
 import com.arrazyfathan.kbbi.notifications.AndroidNotificationPermissionGateway
+import com.arrazyfathan.kbbi.notifications.EditorialTopicWorker
 import com.arrazyfathan.kbbi.notifications.WorkManagerReminderScheduler
 import com.arrazyfathan.kbbi.widgets.BookmarkWidgetCoordinator
 import com.arrazyfathan.kbbi.widgets.WidgetRefreshScheduler
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import org.koin.android.ext.koin.androidContext
 import org.koin.android.ext.koin.androidLogger
@@ -86,6 +95,24 @@ class BaseApplication : Application() {
 
         applicationScope.launch {
             koinApplication.koin.get<ReportingCoordinator>().initialize()
+        }
+        applicationScope.launch {
+            koinApplication.koin
+                .get<NotificationSettingsRepository>()
+                .settings
+                .map { it.campaignNotificationsEnabled to it.permissionGranted }
+                .distinctUntilChanged()
+                .collect {
+                    val work =
+                        OneTimeWorkRequestBuilder<EditorialTopicWorker>()
+                            .setConstraints(Constraints.Builder().setRequiredNetworkType(NetworkType.CONNECTED).build())
+                            .build()
+                    WorkManager.getInstance(this@BaseApplication).enqueueUniqueWork(
+                        "editorial-topic-reconcile",
+                        ExistingWorkPolicy.REPLACE,
+                        work,
+                    )
+                }
         }
 
         try {

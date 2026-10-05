@@ -16,15 +16,16 @@ import org.koin.dsl.module
 class FigureDetailDiTest {
     @Test
     fun `figure detail ViewModel resolves through app registrations`() {
-        val application = koinApplication {
-            modules(
-                useCaseModule,
-                viewModelModule,
-                module {
-                    single<FigureRepository> { FakeFigureRepository() }
-                },
-            )
-        }
+        val application =
+            koinApplication {
+                modules(
+                    useCaseModule,
+                    viewModelModule,
+                    module {
+                        single<FigureRepository> { FakeFigureRepository() }
+                    },
+                )
+            }
 
         try {
             assertNotNull(application.koin.get<FigureDetailViewModel>())
@@ -35,7 +36,10 @@ class FigureDetailDiTest {
 }
 
 private class FakeFigureRepository : FigureRepository {
-    override fun getFigures(query: String, includeDetails: Boolean): Flow<PagingData<FigureModel>> = emptyFlow()
+    override fun getFigures(
+        query: String,
+        includeDetails: Boolean,
+    ): Flow<PagingData<FigureModel>> = emptyFlow()
 
     override suspend fun getFigure(slug: String): AppResult<FigureModel, DataError> =
         AppResult.Error(DataError.NotFound)

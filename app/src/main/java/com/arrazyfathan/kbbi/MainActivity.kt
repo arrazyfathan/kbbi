@@ -2,8 +2,8 @@ package com.arrazyfathan.kbbi
 
 import android.content.Intent
 import android.graphics.Color
-import android.os.Bundle
 import android.os.Build
+import android.os.Bundle
 import androidx.activity.SystemBarStyle
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
@@ -26,6 +26,7 @@ import com.arrazyfathan.kbbi.intent.extractNotificationLaunchRequest
 import com.arrazyfathan.kbbi.navigation.AppShortcutRequest
 import com.arrazyfathan.kbbi.navigation.MainApp
 import com.arrazyfathan.kbbi.navigation.MainAppLaunchRequests
+import com.arrazyfathan.kbbi.notifications.EditorialMessagingService
 import com.arrazyfathan.kbbi.ui.AppUiViewModel
 import com.arrazyfathan.kbbi.widgets.WidgetLaunchRequest
 import com.arrazyfathan.kbbi.widgets.extractWidgetLaunchRequest
@@ -40,6 +41,11 @@ class MainActivity : AppCompatActivity() {
     private var notificationRequestKey by mutableLongStateOf(0L)
     private var widgetRequest by mutableStateOf<WidgetLaunchRequest?>(null)
     private var widgetRequestKey by mutableLongStateOf(0L)
+
+    override fun onResume() {
+        super.onResume()
+        EditorialMessagingService.enqueueReconciliation(this)
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         enableEdgeToEdge(
@@ -112,8 +118,13 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun handleLaunchIntent(intent: Intent) {
-        val query = intent.extractExternalSearchQuery()
-        val notification = intent.extractNotificationLaunchRequest()
+        val campaignRequest = intent.extractNotificationLaunchRequest()
+        val query =
+            when (campaignRequest) {
+                is NotificationLaunchRequest.Word -> campaignRequest.term
+                else -> intent.extractExternalSearchQuery()
+            }
+        val notification = campaignRequest?.takeUnless { it is NotificationLaunchRequest.Word }
         val shortcut = AppShortcutRequest.fromAction(intent.action)
         val widget = intent.extractWidgetLaunchRequest()
         when {

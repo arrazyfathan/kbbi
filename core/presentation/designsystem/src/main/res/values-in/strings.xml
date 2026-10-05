@@ -149,6 +149,8 @@
     <string name="notification_settings_subtitle">Bangun kebiasaan kosakata bahasa Indonesia dengan pengingat yang Anda pilih.</string>
     <string name="notification_settings_kicker">JADIKAN KEBIASAAN</string>
     <string name="notification_reminders_section">Pengingat Anda</string>
+    <string name="notification_editorial_title">Notifikasi editorial</string>
+    <string name="notification_editorial_description">Terima kabar tentang kata, kata populer, dan peribahasa.</string>
     <string name="notification_daily_word_description">Satu kata kecil untuk menemani hari Anda.</string>
     <string name="notification_daily_proverb_description">Sedikit hikmah untuk jeda siang Anda.</string>
     <string name="notification_bookmark_review_description">Dekatkan kembali kata-kata yang Anda simpan.</string>
@@ -227,9 +229,9 @@
     <string name="privacy_storage_title">4. Penyimpanan dan retensi</string>
     <string name="privacy_storage_body">Kata tersimpan, riwayat, konten cache, preferensi, pilihan pelaporan, dan pengenal pengunjung tetap berada di penyimpanan lokal Android sampai Anda menghapusnya, menghapus data aplikasi, mencopot pemasangan aplikasi, atau sistem operasi menghapusnya. Informasi kerusakan dan analitik disimpan sesuai konfigurasi proyek Firebase dan ketentuan Google yang berlaku. Cadangan Android dapat mencakup data aplikasi. Aplikasi tidak mengendalikan retensi pada layanan jarak jauh.</string>
     <string name="privacy_permissions_title">5. Izin</string>
-    <string name="privacy_permissions_body">Akses mikrofon hanya diminta saat Anda menggunakan pencarian suara. Pengenalan suara disediakan Android atau layanan pengenalan yang dipilih di perangkat Anda dan dapat memproses audio di luar aplikasi. Akses notifikasi hanya diminta saat Anda mengaktifkan pengingat harian. Anda dapat menolak atau mencabut kedua izin tersebut melalui pengaturan Android.</string>
+    <string name="privacy_permissions_body">Akses mikrofon hanya diminta saat Anda menggunakan pencarian suara. Pengenalan suara disediakan Android atau layanan pengenalan yang dipilih di perangkat Anda dan dapat memproses audio di luar aplikasi. Akses notifikasi hanya diminta saat Anda mengaktifkan pengingat harian atau notifikasi editorial. Anda dapat menolak atau mencabut kedua izin tersebut melalui pengaturan Android.</string>
     <string name="privacy_services_title">6. Layanan eksternal</string>
-    <string name="privacy_services_body">Aplikasi berkomunikasi dengan API kamus yang dapat membuat definisi dan terjemahan cadangan dengan AI, pemroses AI yang dikelola server saat Anda memakai KBBI AI, layanan kompatibel OpenAI yang Anda atur saat memilih Penyedia Khusus, Google Firebase untuk diagnostik yang dibatasi preferensi, serta GitHub untuk pembaruan dan tautan proyek. Permintaan khusus hanya dikirim ke layanan khusus dan tidak pernah dialihkan ke KBBI AI. Setiap layanan diatur oleh syarat dan kebijakan privasinya sendiri.</string>
+    <string name="privacy_services_body">Aplikasi berkomunikasi dengan API kamus yang dapat membuat definisi dan terjemahan cadangan dengan AI, pemroses AI yang dikelola server saat Anda memakai KBBI AI, layanan kompatibel OpenAI yang Anda atur saat memilih Penyedia Khusus, Google Firebase untuk diagnostik yang dibatasi preferensi dan notifikasi editorial yang Anda aktifkan, serta GitHub untuk pembaruan dan tautan proyek. Permintaan khusus hanya dikirim ke layanan khusus dan tidak pernah dialihkan ke KBBI AI. Setiap layanan diatur oleh syarat dan kebijakan privasinya sendiri.</string>
     <string name="privacy_choices_title">7. Pilihan Anda</string>
     <string name="privacy_choices_body">Pelaporan kerusakan aktif secara bawaan, sedangkan analitik penggunaan dan diagnostik kinerja nonaktif secara bawaan. Anda dapat mengaturnya secara terpisah pada Privasi &amp; diagnostik di Pengaturan. Penonaktifan laporan kerusakan berlaku sepenuhnya setelah aplikasi dimulai ulang dan laporan yang belum terkirim akan dihapus. Anda juga dapat menghapus riwayat, kata tersimpan, pengingat, izin, data aplikasi, atau aplikasi.</string>
     <string name="privacy_children_title">8. Anak-anak</string>

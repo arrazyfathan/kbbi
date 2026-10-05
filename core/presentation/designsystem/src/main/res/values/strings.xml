@@ -156,6 +156,8 @@
     <string name="notification_settings_subtitle">Build a daily Indonesian vocabulary habit with reminders you choose.</string>
     <string name="notification_settings_kicker">MAKE IT A HABIT</string>
     <string name="notification_reminders_section">Your reminders</string>
+    <string name="notification_editorial_title">Editorial notifications</string>
+    <string name="notification_editorial_description">Receive updates about words, trending words, and proverbs.</string>
     <string name="notification_daily_word_description">A small word to carry into your day.</string>
     <string name="notification_daily_proverb_description">A little wisdom for a midday pause.</string>
     <string name="notification_bookmark_review_description">Keep the words you saved close.</string>
@@ -240,9 +242,9 @@
     <string name="privacy_storage_title">4. Storage and retention</string>
     <string name="privacy_storage_body">Bookmarks, history, cached content, preferences, reporting choices, and the visitor identifier remain in local Android storage until you delete them, clear app data, uninstall the app, or the operating system removes them. Crash and analytics information is retained according to the Firebase project configuration and Google\'s applicable terms. Android device backup may include app data. The app does not control retention on remote services.</string>
     <string name="privacy_permissions_title">5. Permissions</string>
-    <string name="privacy_permissions_body">Microphone access is requested only when you use voice search. Speech recognition is provided by Android or the recognition service selected on your device and may process audio outside the app. Notification access is requested only when you enable daily reminders. You can deny or later revoke either permission in Android settings.</string>
+    <string name="privacy_permissions_body">Microphone access is requested only when you use voice search. Speech recognition is provided by Android or the recognition service selected on your device and may process audio outside the app. Notification access is requested only when you enable daily reminders or editorial notifications. You can deny or later revoke either permission in Android settings.</string>
     <string name="privacy_services_title">6. External services</string>
-    <string name="privacy_services_body">The app communicates with its configured dictionary API, which may generate fallback definitions and translations with AI, its server-managed AI processor when you use KBBI AI, the OpenAI-compatible service you configure when you explicitly select Custom Provider, Google Firebase for gated diagnostics, and GitHub for release updates and project links. Custom requests go only to the configured custom service and never fall back to KBBI AI. Each service is governed by its own terms and privacy policy.</string>
+    <string name="privacy_services_body">The app communicates with its configured dictionary API, which may generate fallback definitions and translations with AI, its server-managed AI processor when you use KBBI AI, the OpenAI-compatible service you configure when you explicitly select Custom Provider, Google Firebase for gated diagnostics and opted-in editorial notifications, and GitHub for release updates and project links. Custom requests go only to the configured custom service and never fall back to KBBI AI. Each service is governed by its own terms and privacy policy.</string>
     <string name="privacy_choices_title">7. Your choices</string>
     <string name="privacy_choices_body">Crash reporting is enabled by default, while usage analytics and performance diagnostics are disabled by default. You can control them independently under Privacy &amp; diagnostics in Settings. Disabling crash reporting fully applies after restarting the app and unsent reports are deleted. You can also clear history, remove bookmarks, disable reminders, deny permissions, clear app data, or uninstall the app.</string>
     <string name="privacy_children_title">8. Children</string>

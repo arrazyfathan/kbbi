@@ -11,4 +11,6 @@ interface NotificationSettingsRepository {
     suspend fun setEnabled(type: ReminderType, enabled: Boolean)
 
     suspend fun setTime(type: ReminderType, time: ReminderTime)
+
+    suspend fun setCampaignNotificationsEnabled(enabled: Boolean) = Unit
 }

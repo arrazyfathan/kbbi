@@ -161,10 +161,13 @@ fun SettingsRoute(
     val languageOverlayAlpha = remember { Animatable(0f) }
     var isLanguageTransitionActive by remember { mutableStateOf(false) }
     var permissionType by remember { mutableStateOf<ReminderType?>(null) }
+    var campaignPermissionPending by remember { mutableStateOf(false) }
     var permissionDenied by remember { mutableStateOf(false) }
     val permissionLauncher =
         rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) { granted ->
             permissionType?.let { viewModel.onAction(SettingsAction.OnPermissionResult(it, granted)) }
+            if (campaignPermissionPending) viewModel.onAction(SettingsAction.OnCampaignPermissionResult(granted))
+            campaignPermissionPending = false
             permissionType = null
         }
 
@@ -216,6 +219,16 @@ fun SettingsRoute(
                         permissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
                     } else {
                         viewModel.onAction(SettingsAction.OnPermissionResult(event.type, true))
+                    }
+                }
+
+                SettingsEvent.RequestCampaignNotificationPermission -> {
+                    campaignPermissionPending = true
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                        permissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
+                    } else {
+                        campaignPermissionPending = false
+                        viewModel.onAction(SettingsAction.OnCampaignPermissionResult(true))
                     }
                 }
 
@@ -1334,6 +1347,12 @@ private fun ReminderSection(
                 color = TextH1,
                 modifier = Modifier.padding(horizontal = 16.dp, vertical = 14.dp),
             )
+            SettingsSwitchRow(
+                title = stringResource(R.string.notification_editorial_title),
+                description = stringResource(R.string.notification_editorial_description),
+                checked = state.notifications.campaignNotificationsEnabled,
+                onCheckedChange = { onAction(SettingsAction.OnCampaignNotificationsToggled(it)) },
+            )
             HorizontalDivider(
                 modifier = Modifier.padding(horizontal = 18.dp),
                 color = MaterialTheme.colorScheme.background,
@@ -1386,6 +1405,25 @@ private fun ReminderSection(
                 onTimeClick = { onTimeClick(ReminderType.BOOKMARK_REVIEW) },
             )
         }
+    }
+}
+
+@Composable
+private fun SettingsSwitchRow(
+    title: String,
+    description: String,
+    checked: Boolean,
+    onCheckedChange: (Boolean) -> Unit,
+) {
+    Row(
+        modifier = Modifier.fillMaxWidth().padding(horizontal = 18.dp, vertical = 16.dp),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Column(modifier = Modifier.weight(1f)) {
+            Text(title, style = MaterialTheme.typography.titleSmall, color = TextH1)
+            Text(description, style = MaterialTheme.typography.bodySmall, color = TextP)
+        }
+        Switch(checked = checked, onCheckedChange = onCheckedChange)
     }
 }
 

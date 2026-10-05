@@ -9,23 +9,23 @@ import com.arrazyfathan.kbbi.core.appupdate.domain.AppUpdateConfig
 import com.arrazyfathan.kbbi.core.appupdate.domain.AppUpdateRepository
 import com.arrazyfathan.kbbi.core.domain.model.AppResult
 import com.arrazyfathan.kbbi.core.domain.model.AppTheme
-import com.arrazyfathan.kbbi.core.presentation.ui.UiText
 import com.arrazyfathan.kbbi.core.observability.AnalyticsEvent
 import com.arrazyfathan.kbbi.core.observability.AnalyticsReporter
 import com.arrazyfathan.kbbi.core.observability.DefaultReportingPreferencesRepository
 import com.arrazyfathan.kbbi.core.observability.NoOpAnalyticsReporter
 import com.arrazyfathan.kbbi.core.observability.ReminderKind
 import com.arrazyfathan.kbbi.core.observability.ReportingPreferencesRepository
+import com.arrazyfathan.kbbi.core.presentation.ui.UiText
 import com.arrazyfathan.kbbi.feature.home.domain.usecase.ClearSearchHistoryUseCase
-import com.arrazyfathan.kbbi.feature.settings.domain.model.NotificationSettings
 import com.arrazyfathan.kbbi.feature.settings.domain.model.AppIcon
+import com.arrazyfathan.kbbi.feature.settings.domain.model.NotificationSettings
 import com.arrazyfathan.kbbi.feature.settings.domain.model.ReminderTime
 import com.arrazyfathan.kbbi.feature.settings.domain.model.ReminderType
 import com.arrazyfathan.kbbi.feature.settings.domain.repository.NotificationSettingsRepository
 import com.arrazyfathan.kbbi.feature.settings.domain.repository.UiPreferencesRepository
-import com.arrazyfathan.kbbi.feature.settings.domain.service.ReminderScheduler
 import com.arrazyfathan.kbbi.feature.settings.domain.service.AppIconChangeResult
 import com.arrazyfathan.kbbi.feature.settings.domain.service.AppIconManager
+import com.arrazyfathan.kbbi.feature.settings.domain.service.ReminderScheduler
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -85,6 +85,14 @@ sealed interface SettingsAction {
         val enabled: Boolean,
     ) : SettingsAction
 
+    data class OnCampaignNotificationsToggled(
+        val enabled: Boolean,
+    ) : SettingsAction
+
+    data class OnCampaignPermissionResult(
+        val granted: Boolean,
+    ) : SettingsAction
+
     data class OnHapticsToggled(
         val enabled: Boolean,
     ) : SettingsAction
@@ -132,6 +140,8 @@ sealed interface SettingsEvent {
     data class RequestNotificationPermission(
         val type: ReminderType,
     ) : SettingsEvent
+
+    data object RequestCampaignNotificationPermission : SettingsEvent
 
     data object PermissionDenied : SettingsEvent
 
@@ -210,6 +220,25 @@ class SettingsViewModel(
 
     fun onAction(action: SettingsAction) {
         when (action) {
+            is SettingsAction.OnCampaignNotificationsToggled -> {
+                viewModelScope.launch {
+                    if (action.enabled && state.value.notifications.permissionRequired &&
+                        !state.value.notifications.permissionGranted
+                    ) {
+                        _events.send(SettingsEvent.RequestCampaignNotificationPermission)
+                    } else {
+                        repository.setCampaignNotificationsEnabled(action.enabled)
+                    }
+                }
+            }
+
+            is SettingsAction.OnCampaignPermissionResult -> {
+                viewModelScope.launch {
+                    repository.setCampaignNotificationsEnabled(action.granted)
+                    if (!action.granted) _events.send(SettingsEvent.PermissionDenied)
+                }
+            }
+
             is SettingsAction.OnStarted -> {
                 _state.update { it.copy(selectedLanguage = action.currentLanguage) }
                 reconcilePermission()

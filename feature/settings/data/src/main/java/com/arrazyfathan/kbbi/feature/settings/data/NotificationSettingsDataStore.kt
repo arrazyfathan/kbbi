@@ -23,6 +23,7 @@ class DataStoreNotificationSettingsRepository(
     override val settings: Flow<NotificationSettings> =
         context.notificationSettingsDataStore.data.map { preferences ->
             NotificationSettings(
+                campaignNotificationsEnabled = preferences[campaignNotificationsEnabledKey] ?: false,
                 dailyWord = preference(preferences, ReminderType.DAILY_WORD, ReminderTime.DailyWord),
                 dailyProverb = preference(preferences, ReminderType.DAILY_PROVERB, ReminderTime.DailyProverb),
                 bookmarkReview = preference(preferences, ReminderType.BOOKMARK_REVIEW, ReminderTime.BookmarkReview),
@@ -31,16 +32,28 @@ class DataStoreNotificationSettingsRepository(
             )
         }
 
-    override suspend fun setEnabled(type: ReminderType, enabled: Boolean) {
+    override suspend fun setEnabled(
+        type: ReminderType,
+        enabled: Boolean,
+    ) {
         context.notificationSettingsDataStore.edit { preferences ->
             preferences[enabledKey(type)] = enabled
         }
     }
 
-    override suspend fun setTime(type: ReminderType, time: ReminderTime) {
+    override suspend fun setTime(
+        type: ReminderType,
+        time: ReminderTime,
+    ) {
         context.notificationSettingsDataStore.edit { preferences ->
             preferences[hourKey(type)] = time.hour
             preferences[minuteKey(type)] = time.minute
+        }
+    }
+
+    override suspend fun setCampaignNotificationsEnabled(enabled: Boolean) {
+        context.notificationSettingsDataStore.edit { preferences ->
+            preferences[campaignNotificationsEnabledKey] = enabled
         }
     }
 
@@ -64,3 +77,5 @@ class DataStoreNotificationSettingsRepository(
 
     private fun minuteKey(type: ReminderType) = intPreferencesKey("${type.name.lowercase()}_minute")
 }
+
+private val campaignNotificationsEnabledKey = booleanPreferencesKey("campaign_notifications_enabled")
