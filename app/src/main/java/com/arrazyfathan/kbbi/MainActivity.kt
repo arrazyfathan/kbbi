@@ -1,6 +1,7 @@
 package com.arrazyfathan.kbbi
 
 import android.Manifest
+import android.annotation.SuppressLint
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.graphics.Color
@@ -235,6 +236,7 @@ private fun shouldPromptForUpdateNotifications(
     sdkInt: Int,
 ) = isProductionFlavor && sdkInt >= Build.VERSION_CODES.TIRAMISU
 
+@SuppressLint("NewApi")
 private fun Window.disableNavigationBarContrastEnforcement(sdkInt: Int) {
     if (sdkInt >= Build.VERSION_CODES.Q) isNavigationBarContrastEnforced = false
 }

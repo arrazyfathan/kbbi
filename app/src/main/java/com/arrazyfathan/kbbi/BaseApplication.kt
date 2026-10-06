@@ -124,16 +124,21 @@ class BaseApplication : Application() {
                     )
                 }.distinctUntilChanged()
                 .collect {
-                    val work =
-                        OneTimeWorkRequestBuilder<EditorialTopicWorker>()
-                            .setConstraints(Constraints.Builder().setRequiredNetworkType(NetworkType.CONNECTED).build())
-                            .build()
-                    WorkManager.getInstance(this@BaseApplication).enqueueUniqueWork(
-                        "editorial-topic-reconcile",
-                        ExistingWorkPolicy.REPLACE,
-                        work,
-                    )
-                    AppUpdateTopicWorker.enqueue(this@BaseApplication)
+                    try {
+                        val work =
+                            OneTimeWorkRequestBuilder<EditorialTopicWorker>()
+                                .setConstraints(
+                                    Constraints.Builder().setRequiredNetworkType(NetworkType.CONNECTED).build(),
+                                ).build()
+                        WorkManager.getInstance(this@BaseApplication).enqueueUniqueWork(
+                            "editorial-topic-reconcile",
+                            ExistingWorkPolicy.REPLACE,
+                            work,
+                        )
+                        AppUpdateTopicWorker.enqueue(this@BaseApplication)
+                    } catch (_: IllegalStateException) {
+                        // Some host-side render tests intentionally start the app without WorkManager.
+                    }
                 }
         }
     }

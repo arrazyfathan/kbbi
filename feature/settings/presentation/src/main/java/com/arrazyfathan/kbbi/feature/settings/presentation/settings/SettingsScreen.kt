@@ -1448,7 +1448,11 @@ private fun SettingsSwitchRow(
             Text(title, style = MaterialTheme.typography.titleSmall, color = TextH1)
             Text(description, style = MaterialTheme.typography.bodySmall, color = TextP)
         }
-        Switch(checked = checked, onCheckedChange = onCheckedChange)
+        Switch(
+            modifier = Modifier.scale(0.7f),
+            checked = checked,
+            onCheckedChange = onCheckedChange,
+        )
     }
 }
 
