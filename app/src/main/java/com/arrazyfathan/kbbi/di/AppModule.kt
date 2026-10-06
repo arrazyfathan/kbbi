@@ -35,6 +35,7 @@ import com.arrazyfathan.kbbi.feature.wordstudy.domain.usecase.SelectAiProviderMo
 import com.arrazyfathan.kbbi.feature.wordstudy.domain.usecase.SelectBackendAiProviderUseCase
 import com.arrazyfathan.kbbi.feature.wordstudy.domain.usecase.SelectCustomAiProviderUseCase
 import com.arrazyfathan.kbbi.feature.wordstudy.domain.usecase.TestAiConnectionUseCase
+import com.arrazyfathan.kbbi.isProductionFlavor
 import com.arrazyfathan.kbbi.settings.AndroidAppIconManager
 import com.arrazyfathan.kbbi.ui.AppUiViewModel
 import org.koin.android.ext.koin.androidContext
@@ -93,7 +94,7 @@ val appUpdateConfigModule =
         single {
             AppUpdateConfig(
                 currentVersion = BuildConfig.VERSION_NAME,
-                isUpdateCheckEnabled = BuildConfig.FLAVOR == "production",
+                isUpdateCheckEnabled = androidContext().isProductionFlavor(),
             )
         }
     }

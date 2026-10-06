@@ -27,7 +27,9 @@ import com.arrazyfathan.kbbi.feature.settings.domain.service.ReminderScheduler
 import com.arrazyfathan.kbbi.feature.settings.presentation.di.settingsPresentationModule
 import com.arrazyfathan.kbbi.feature.wordstudy.data.di.wordStudyDataModule
 import com.arrazyfathan.kbbi.feature.wordstudy.presentation.di.wordStudyPresentationModule
+import com.arrazyfathan.kbbi.isProductionFlavor
 import com.arrazyfathan.kbbi.notifications.AndroidNotificationPermissionGateway
+import com.arrazyfathan.kbbi.notifications.AppUpdateTopicWorker
 import com.arrazyfathan.kbbi.notifications.EditorialTopicWorker
 import com.arrazyfathan.kbbi.notifications.WorkManagerReminderScheduler
 import com.arrazyfathan.kbbi.widgets.BookmarkWidgetCoordinator
@@ -40,6 +42,7 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import org.koin.android.ext.koin.androidContext
 import org.koin.android.ext.koin.androidLogger
+import org.koin.core.KoinApplication
 import org.koin.core.context.startKoin
 import org.koin.dsl.module
 
@@ -48,60 +51,78 @@ class BaseApplication : Application() {
 
     override fun onCreate() {
         super.onCreate()
-        if (BuildConfig.DEBUG) {
-            AppLogger.plantDebugTree()
+        initializeLogging()
+        val koinApplication = initializeKoin()
+        initializeReporting(koinApplication)
+        observeNotificationSettings(koinApplication)
+        reconcileWidgets()
+        observeBookmarkChanges(koinApplication)
+    }
+
+    private fun initializeLogging() {
+        if (BuildConfig.DEBUG) AppLogger.plantDebugTree()
+    }
+
+    private fun initializeKoin() =
+        startKoin {
+            androidLogger()
+            androidContext(this@BaseApplication)
+            modules(
+                listOf(
+                    databaseModule,
+                    repositoryModule,
+                    figureDataModule,
+                    proverbDataModule,
+                    appUpdateConfigModule,
+                    appIconModule,
+                    appUpdateModule,
+                    viewModelModule,
+                    networkModule,
+                    useCaseModule,
+                    settingsDataModule,
+                    settingsPresentationModule,
+                    wordStudyDataModule,
+                    wordStudyPresentationModule,
+                    observabilityModule(
+                        AppBuildInfo(
+                            flavor = BuildConfig.FLAVOR,
+                            buildType = BuildConfig.BUILD_TYPE,
+                            versionName = BuildConfig.VERSION_NAME,
+                            isProductionFlavor = isProductionFlavor(),
+                        ),
+                    ),
+                    module {
+                        single<NotificationPermissionGateway> {
+                            AndroidNotificationPermissionGateway(
+                                androidContext(),
+                            )
+                        }
+                        single<ReminderScheduler> {
+                            WorkManagerReminderScheduler(androidContext())
+                        }
+                    },
+                ),
+            )
         }
 
-        val koinApplication =
-            startKoin {
-                androidLogger()
-                androidContext(this@BaseApplication)
-                modules(
-                    listOf(
-                        databaseModule,
-                        repositoryModule,
-                        figureDataModule,
-                        proverbDataModule,
-                        appUpdateConfigModule,
-                        appIconModule,
-                        appUpdateModule,
-                        viewModelModule,
-                        networkModule,
-                        useCaseModule,
-                        settingsDataModule,
-                        settingsPresentationModule,
-                        wordStudyDataModule,
-                        wordStudyPresentationModule,
-                        observabilityModule(
-                            AppBuildInfo(
-                                flavor = BuildConfig.FLAVOR,
-                                buildType = BuildConfig.BUILD_TYPE,
-                                versionName = BuildConfig.VERSION_NAME,
-                            ),
-                        ),
-                        module {
-                            single<NotificationPermissionGateway> {
-                                AndroidNotificationPermissionGateway(
-                                    androidContext(),
-                                )
-                            }
-                            single<ReminderScheduler> {
-                                WorkManagerReminderScheduler(androidContext())
-                            }
-                        },
-                    ),
-                )
-            }
-
+    private fun initializeReporting(koinApplication: KoinApplication) {
         applicationScope.launch {
             koinApplication.koin.get<ReportingCoordinator>().initialize()
         }
+    }
+
+    private fun observeNotificationSettings(koinApplication: KoinApplication) {
         applicationScope.launch {
             koinApplication.koin
                 .get<NotificationSettingsRepository>()
                 .settings
-                .map { it.campaignNotificationsEnabled to it.permissionGranted }
-                .distinctUntilChanged()
+                .map {
+                    Triple(
+                        it.campaignNotificationsEnabled,
+                        it.updateNotificationsEnabled,
+                        it.permissionGranted,
+                    )
+                }.distinctUntilChanged()
                 .collect {
                     val work =
                         OneTimeWorkRequestBuilder<EditorialTopicWorker>()
@@ -112,14 +133,20 @@ class BaseApplication : Application() {
                         ExistingWorkPolicy.REPLACE,
                         work,
                     )
+                    AppUpdateTopicWorker.enqueue(this@BaseApplication)
                 }
         }
+    }
 
+    private fun reconcileWidgets() {
         try {
             WidgetRefreshScheduler.reconcile(this)
         } catch (_: IllegalStateException) {
             // Some host-side render tests intentionally start the app without WorkManager.
         }
+    }
+
+    private fun observeBookmarkChanges(koinApplication: KoinApplication) {
         applicationScope.launch {
             BookmarkWidgetCoordinator(
                 context = this@BaseApplication,

@@ -308,3 +308,20 @@ jobs:
             app/build/outputs/apk/production/release/*.apk
             ${{ runner.temp }}/kbbi-update-policy.json
           body: ${{ env.RELEASE_NOTES }}
+
+      - name: Send production update notification
+        env:
+          FCM_PROJECT_ID: ${{ vars.FCM_PROJECT_ID }}
+          FCM_SERVICE_ACCOUNT_JSON: ${{ secrets.FCM_SERVICE_ACCOUNT_JSON }}
+        run: |
+          if [ -z "$FCM_PROJECT_ID" ] || [ -z "$FCM_SERVICE_ACCOUNT_JSON" ]; then
+            echo "FCM_PROJECT_ID variable and FCM_SERVICE_ACCOUNT_JSON secret are required"
+            exit 1
+          fi
+          RELEASE_VERSION_NAME="${GITHUB_REF_NAME#v}"
+          RELEASE_VERSION_NAME="${RELEASE_VERSION_NAME#V}"
+          RELEASE_VERSION_CODE="$(sed -n 's/^VERSION_CODE=//p' app/version.properties)"
+          RELEASE_EXPIRES_AT="$(date -u -d '+7 days' '+%Y-%m-%dT%H:%M:%SZ')"
+          export RELEASE_VERSION_NAME RELEASE_VERSION_CODE RELEASE_EXPIRES_AT
+          python -m pip install --disable-pip-version-check 'google-auth[requests]'
+          python .github/scripts/send_release_notification.py

@@ -75,6 +75,7 @@ android {
         applicationId = packageName
         targetSdk = 37
         versionCode = versionCodeValue
+        resValue("bool", "is_production_flavor", "false")
     }
 
     androidResources {
@@ -114,6 +115,7 @@ android {
                 }
             resValue("string", "version_name", versionName.orEmpty())
             configureAppMetadata(appAliasName)
+            resValue("bool", "is_production_flavor", "true")
         }
     }
 

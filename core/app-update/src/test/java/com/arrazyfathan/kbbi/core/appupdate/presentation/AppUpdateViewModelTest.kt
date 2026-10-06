@@ -67,6 +67,19 @@ class AppUpdateViewModelTest {
             assertEquals(0, repository.checkCount)
         }
 
+    @Test
+    fun `opening update notification forces a fresh check and suppresses startup duplicate`() =
+        runTest {
+            val repository = FakeAppUpdateRepository(AppResult.Success(null))
+            val viewModel = AppUpdateViewModel(repository, AppUpdateConfig("5.24", true))
+
+            viewModel.onAction(AppUpdateAction.OnUpdateNotificationOpened)
+            viewModel.onAction(AppUpdateAction.OnAppStarted)
+
+            assertEquals(1, repository.checkCount)
+            assertEquals(listOf(true), repository.forceValues)
+        }
+
     private fun update(requirement: AppUpdateRequirement) =
         AppUpdate(
             latestVersion = "6.0",
@@ -81,12 +94,14 @@ private class FakeAppUpdateRepository(
     private val result: AppResult<AppUpdate?, DataError>,
 ) : AppUpdateRepository {
     var checkCount = 0
+    val forceValues = mutableListOf<Boolean>()
 
     override suspend fun checkForUpdate(
         currentVersion: String,
         force: Boolean,
     ): AppResult<AppUpdate?, DataError> {
         checkCount += 1
+        forceValues += force
         return result
     }
 }

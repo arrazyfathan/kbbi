@@ -11,10 +11,11 @@ data class AppBuildInfo(
     val flavor: String,
     val buildType: String,
     val versionName: String,
+    val isProductionFlavor: Boolean,
 )
 
 private val AppBuildInfo.performanceMonitoringEligible: Boolean
-    get() = flavor == "production" && buildType == "release"
+    get() = isProductionFlavor && buildType == "release"
 
 fun observabilityModule(buildInfo: AppBuildInfo) =
     module {

@@ -150,6 +150,15 @@
     <string name="notification_settings_kicker">JADIKAN KEBIASAAN</string>
     <string name="notification_reminders_section">Pengingat Anda</string>
     <string name="notification_editorial_title">Notifikasi editorial</string>
+    <string name="notification_app_updates_title">Pembaruan aplikasi</string>
+    <string name="notification_app_updates_description">Dapatkan pemberitahuan saat versi KBBI baru dirilis</string>
+    <string name="notification_app_update_channel">Pembaruan aplikasi</string>
+    <string name="notification_app_update_title">Pembaruan KBBI tersedia</string>
+    <string name="notification_app_update_body">Versi %1$s telah tersedia. Ketuk untuk melihat pembaruan.</string>
+    <string name="update_notification_permission_title">Terima pemberitahuan pembaruan KBBI?</string>
+    <string name="update_notification_permission_description">KBBI dapat memberi tahu saat versi aplikasi baru tersedia. Pengaturan ini dapat diubah kapan saja.</string>
+    <string name="update_notification_permission_allow">Lanjutkan</string>
+    <string name="update_notification_permission_later">Nanti</string>
     <string name="notification_editorial_description">Terima kabar tentang kata, kata populer, dan peribahasa.</string>
     <string name="notification_daily_word_description">Satu kata kecil untuk menemani hari Anda.</string>
     <string name="notification_daily_proverb_description">Sedikit hikmah untuk jeda siang Anda.</string>

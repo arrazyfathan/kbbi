@@ -36,6 +36,7 @@ import kotlinx.coroutines.launch
 
 @Immutable
 data class SettingsState(
+    val updateNotificationsAvailable: Boolean = false,
     val notifications: NotificationSettings = NotificationSettings(),
     val hapticsEnabled: Boolean = true,
     val selectedTheme: AppTheme = AppTheme.ROYAL_OCEAN,
@@ -87,6 +88,14 @@ sealed interface SettingsAction {
 
     data class OnCampaignNotificationsToggled(
         val enabled: Boolean,
+    ) : SettingsAction
+
+    data class OnUpdateNotificationsToggled(
+        val enabled: Boolean,
+    ) : SettingsAction
+
+    data class OnUpdatePermissionResult(
+        val granted: Boolean,
     ) : SettingsAction
 
     data class OnCampaignPermissionResult(
@@ -143,6 +152,8 @@ sealed interface SettingsEvent {
 
     data object RequestCampaignNotificationPermission : SettingsEvent
 
+    data object RequestUpdateNotificationPermission : SettingsEvent
+
     data object PermissionDenied : SettingsEvent
 
     data class ReminderChanged(
@@ -174,7 +185,12 @@ class SettingsViewModel(
     private val reportingPreferencesRepository: ReportingPreferencesRepository = DefaultReportingPreferencesRepository,
     private val analyticsReporter: AnalyticsReporter = NoOpAnalyticsReporter,
 ) : ViewModel() {
-    private val _state = MutableStateFlow(SettingsState(appVersion = appUpdateConfig.currentVersion))
+    private val _state = MutableStateFlow(
+        SettingsState(
+            appVersion = appUpdateConfig.currentVersion,
+            updateNotificationsAvailable = appUpdateConfig.isUpdateCheckEnabled,
+        ),
+    )
     val state = _state.asStateFlow()
 
     private val _events = Channel<SettingsEvent>(Channel.BUFFERED)
@@ -235,6 +251,25 @@ class SettingsViewModel(
             is SettingsAction.OnCampaignPermissionResult -> {
                 viewModelScope.launch {
                     repository.setCampaignNotificationsEnabled(action.granted)
+                    if (!action.granted) _events.send(SettingsEvent.PermissionDenied)
+                }
+            }
+
+            is SettingsAction.OnUpdateNotificationsToggled -> {
+                viewModelScope.launch {
+                    if (action.enabled && state.value.notifications.permissionRequired &&
+                        !state.value.notifications.permissionGranted
+                    ) {
+                        _events.send(SettingsEvent.RequestUpdateNotificationPermission)
+                    } else {
+                        repository.setUpdateNotificationsEnabled(action.enabled)
+                    }
+                }
+            }
+
+            is SettingsAction.OnUpdatePermissionResult -> {
+                viewModelScope.launch {
+                    repository.setUpdateNotificationsEnabled(action.granted)
                     if (!action.granted) _events.send(SettingsEvent.PermissionDenied)
                 }
             }

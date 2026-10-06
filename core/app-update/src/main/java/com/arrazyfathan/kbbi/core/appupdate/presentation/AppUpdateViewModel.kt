@@ -13,6 +13,7 @@ import com.arrazyfathan.kbbi.core.observability.EventOutcome
 import com.arrazyfathan.kbbi.core.observability.NoOpAnalyticsReporter
 import com.arrazyfathan.kbbi.core.observability.UpdateAction
 import com.arrazyfathan.kbbi.core.observability.UpdateRequirement
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
@@ -26,6 +27,8 @@ data class AppUpdateState(
 sealed interface AppUpdateAction {
     data object OnAppStarted : AppUpdateAction
 
+    data object OnUpdateNotificationOpened : AppUpdateAction
+
     data object OnPromptDismissed : AppUpdateAction
 }
 
@@ -37,6 +40,7 @@ class AppUpdateViewModel(
     private val _state = MutableStateFlow(AppUpdateState(currentVersion = config.currentVersion))
     val state = _state.asStateFlow()
     private var hasStarted = false
+    private var updateCheckJob: Job? = null
 
     fun onAction(action: AppUpdateAction) {
         when (action) {
@@ -45,6 +49,11 @@ class AppUpdateViewModel(
                     hasStarted = true
                     checkForUpdate()
                 }
+            }
+
+            AppUpdateAction.OnUpdateNotificationOpened -> {
+                hasStarted = true
+                checkForUpdate(force = true)
             }
 
             AppUpdateAction.OnPromptDismissed -> {
@@ -64,11 +73,12 @@ class AppUpdateViewModel(
         }
     }
 
-    private fun checkForUpdate() {
+    private fun checkForUpdate(force: Boolean = false) {
         if (!config.isUpdateCheckEnabled) return
 
-        viewModelScope.launch {
-            when (val result = repository.checkForUpdate(config.currentVersion)) {
+        updateCheckJob?.cancel()
+        updateCheckJob = viewModelScope.launch {
+            when (val result = repository.checkForUpdate(config.currentVersion, force = force)) {
                 is AppResult.Success -> {
                     val update = result.data
                     if (update != null) {

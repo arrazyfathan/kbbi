@@ -157,6 +157,15 @@
     <string name="notification_settings_kicker">MAKE IT A HABIT</string>
     <string name="notification_reminders_section">Your reminders</string>
     <string name="notification_editorial_title">Editorial notifications</string>
+    <string name="notification_app_updates_title">App updates</string>
+    <string name="notification_app_updates_description">Get an alert when a new KBBI version is released</string>
+    <string name="notification_app_update_channel">App updates</string>
+    <string name="notification_app_update_title">KBBI update available</string>
+    <string name="notification_app_update_body">Version %1$s is ready. Tap to see what’s new.</string>
+    <string name="update_notification_permission_title">Get KBBI update alerts?</string>
+    <string name="update_notification_permission_description">KBBI can notify you when a new app version is available. You can change this anytime in Settings.</string>
+    <string name="update_notification_permission_allow">Continue</string>
+    <string name="update_notification_permission_later">Later</string>
     <string name="notification_editorial_description">Receive updates about words, trending words, and proverbs.</string>
     <string name="notification_daily_word_description">A small word to carry into your day.</string>
     <string name="notification_daily_proverb_description">A little wisdom for a midday pause.</string>

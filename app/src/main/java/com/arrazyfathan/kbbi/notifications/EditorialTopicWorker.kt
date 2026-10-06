@@ -4,8 +4,8 @@ import android.content.Context
 import androidx.core.app.NotificationManagerCompat
 import androidx.work.CoroutineWorker
 import androidx.work.WorkerParameters
-import com.arrazyfathan.kbbi.BuildConfig
 import com.arrazyfathan.kbbi.feature.settings.domain.repository.NotificationSettingsRepository
+import com.arrazyfathan.kbbi.isProductionFlavor
 import com.google.android.gms.tasks.Task
 import com.google.firebase.messaging.FirebaseMessaging
 import kotlinx.coroutines.CancellationException
@@ -31,7 +31,7 @@ class EditorialTopicWorker(
                     NotificationManagerCompat.from(applicationContext).cancel(key.hashCode())
                 }
             }
-            val prefix = if (BuildConfig.FLAVOR == "development") "development_" else "production_"
+            val prefix = if (applicationContext.isProductionFlavor()) "production_" else "development_"
             listOf("word_of_day", "trending_words", "proverbs").forEach { topic ->
                 val task =
                     if (enabled) {

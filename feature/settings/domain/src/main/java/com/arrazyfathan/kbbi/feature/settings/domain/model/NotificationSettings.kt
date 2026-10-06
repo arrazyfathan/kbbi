@@ -6,6 +6,7 @@ data class ReminderPreference(
 )
 
 data class NotificationSettings(
+    val updateNotificationsEnabled: Boolean = true,
     val campaignNotificationsEnabled: Boolean = false,
     val dailyWord: ReminderPreference = ReminderPreference(false, ReminderTime.DailyWord),
     val dailyProverb: ReminderPreference = ReminderPreference(false, ReminderTime.DailyProverb),

@@ -23,6 +23,7 @@ class DataStoreNotificationSettingsRepository(
     override val settings: Flow<NotificationSettings> =
         context.notificationSettingsDataStore.data.map { preferences ->
             NotificationSettings(
+                updateNotificationsEnabled = preferences[updateNotificationsEnabledKey] ?: true,
                 campaignNotificationsEnabled = preferences[campaignNotificationsEnabledKey] ?: false,
                 dailyWord = preference(preferences, ReminderType.DAILY_WORD, ReminderTime.DailyWord),
                 dailyProverb = preference(preferences, ReminderType.DAILY_PROVERB, ReminderTime.DailyProverb),
@@ -57,6 +58,12 @@ class DataStoreNotificationSettingsRepository(
         }
     }
 
+    override suspend fun setUpdateNotificationsEnabled(enabled: Boolean) {
+        context.notificationSettingsDataStore.edit { preferences ->
+            preferences[updateNotificationsEnabledKey] = enabled
+        }
+    }
+
     private fun preference(
         preferences: androidx.datastore.preferences.core.Preferences,
         type: ReminderType,
@@ -79,3 +86,4 @@ class DataStoreNotificationSettingsRepository(
 }
 
 private val campaignNotificationsEnabledKey = booleanPreferencesKey("campaign_notifications_enabled")
+private val updateNotificationsEnabledKey = booleanPreferencesKey("update_notifications_enabled")

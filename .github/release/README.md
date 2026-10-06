@@ -18,6 +18,12 @@ also compares `VERSION_CODE` with every prior stable release tag and stops befor
 invalid, reused, or lower. A mismatched tag or a `FORCE_UPDATE` value other than `true` or `false` also stops the
 release.
 
+After publishing a stable GitHub release, the workflow sends an FCM update alert to the `production_app_updates`
+topic. Configure the repository variable `FCM_PROJECT_ID` and secret `FCM_SERVICE_ACCOUNT_JSON` with a Google
+service account that has the Firebase Cloud Messaging API Admin role. The alert is high priority and expires after
+seven days. Devices must install and open a release containing the update-notification support before they can
+subscribe to the topic.
+
 ## App behavior
 
 - A newer major version is always a required update, regardless of `forceUpdate`.

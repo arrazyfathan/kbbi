@@ -18,6 +18,8 @@ sealed interface NotificationLaunchRequest {
     ) : NotificationLaunchRequest
 
     data object Bookmarks : NotificationLaunchRequest
+
+    data object AppUpdate : NotificationLaunchRequest
 }
 
 internal fun Intent.extractExternalSearchQuery(): String? {
@@ -55,17 +57,26 @@ internal fun Intent.extractExternalSearchQuery(): String? {
 
 internal fun Intent.extractNotificationLaunchRequest(): NotificationLaunchRequest? {
     val campaignValue = getStringExtra("editorial_destination_value")?.takeIf { it.isNotBlank() }
-    when (getStringExtra("editorial_destination_kind")) {
-        "word" -> return campaignValue?.let(NotificationLaunchRequest::Word)
-        "proverb" -> return campaignValue?.let(NotificationLaunchRequest::Proverb)
+    val campaignRequest =
+        when (getStringExtra("editorial_destination_kind")) {
+            "word" -> campaignValue?.let(NotificationLaunchRequest::Word)
+            "proverb" -> campaignValue?.let(NotificationLaunchRequest::Proverb)
+            else -> null
+        }
+    return when {
+        getBooleanExtra("app_update_notification", false) -> NotificationLaunchRequest.AppUpdate
+        campaignRequest != null -> campaignRequest
+        action == Intent.ACTION_VIEW && data?.scheme == KBBI_DEEP_LINK_SCHEME -> extractDeepLinkNotification()
+        else -> null
     }
-    if (action != Intent.ACTION_VIEW || data?.scheme != KBBI_DEEP_LINK_SCHEME) return null
-    return when (data?.host) {
+}
+
+private fun Intent.extractDeepLinkNotification(): NotificationLaunchRequest? =
+    when (data?.host) {
         PROVERB_DEEP_LINK_HOST -> NotificationLaunchRequest.Proverb(data?.pathSegments?.firstOrNull())
         BOOKMARKS_DEEP_LINK_HOST -> NotificationLaunchRequest.Bookmarks
         else -> null
     }
-}
 
 internal fun extractWordDeepLinkQuery(
     scheme: String?,

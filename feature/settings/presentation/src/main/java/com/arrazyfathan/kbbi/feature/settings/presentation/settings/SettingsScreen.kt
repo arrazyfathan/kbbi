@@ -162,12 +162,15 @@ fun SettingsRoute(
     var isLanguageTransitionActive by remember { mutableStateOf(false) }
     var permissionType by remember { mutableStateOf<ReminderType?>(null) }
     var campaignPermissionPending by remember { mutableStateOf(false) }
+    var updatePermissionPending by remember { mutableStateOf(false) }
     var permissionDenied by remember { mutableStateOf(false) }
     val permissionLauncher =
         rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) { granted ->
             permissionType?.let { viewModel.onAction(SettingsAction.OnPermissionResult(it, granted)) }
             if (campaignPermissionPending) viewModel.onAction(SettingsAction.OnCampaignPermissionResult(granted))
+            if (updatePermissionPending) viewModel.onAction(SettingsAction.OnUpdatePermissionResult(granted))
             campaignPermissionPending = false
+            updatePermissionPending = false
             permissionType = null
         }
 
@@ -229,6 +232,16 @@ fun SettingsRoute(
                     } else {
                         campaignPermissionPending = false
                         viewModel.onAction(SettingsAction.OnCampaignPermissionResult(true))
+                    }
+                }
+
+                SettingsEvent.RequestUpdateNotificationPermission -> {
+                    updatePermissionPending = true
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                        permissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
+                    } else {
+                        updatePermissionPending = false
+                        viewModel.onAction(SettingsAction.OnUpdatePermissionResult(true))
                     }
                 }
 
@@ -1353,6 +1366,18 @@ private fun ReminderSection(
                 checked = state.notifications.campaignNotificationsEnabled,
                 onCheckedChange = { onAction(SettingsAction.OnCampaignNotificationsToggled(it)) },
             )
+            if (state.updateNotificationsAvailable) {
+                HorizontalDivider(
+                    modifier = Modifier.padding(horizontal = 18.dp),
+                    color = MaterialTheme.colorScheme.background,
+                )
+                SettingsSwitchRow(
+                    title = stringResource(R.string.notification_app_updates_title),
+                    description = stringResource(R.string.notification_app_updates_description),
+                    checked = state.notifications.updateNotificationsEnabled,
+                    onCheckedChange = { onAction(SettingsAction.OnUpdateNotificationsToggled(it)) },
+                )
+            }
             HorizontalDivider(
                 modifier = Modifier.padding(horizontal = 18.dp),
                 color = MaterialTheme.colorScheme.background,

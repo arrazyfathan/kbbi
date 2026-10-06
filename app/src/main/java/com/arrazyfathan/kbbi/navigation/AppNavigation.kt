@@ -529,6 +529,11 @@ internal fun MainApp(
                 onNotificationRequestConsumed()
             }
 
+            NotificationLaunchRequest.AppUpdate -> {
+                appUpdateViewModel.onAction(AppUpdateAction.OnUpdateNotificationOpened)
+                onNotificationRequestConsumed()
+            }
+
             null -> {
                 return@LaunchedEffect
             }
