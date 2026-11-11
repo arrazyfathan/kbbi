@@ -9,6 +9,59 @@
 - Follow explicit user requirements over defaults in this document. Update this guidance when an intentional architecture change makes it inaccurate.
 - Keep this file focused on durable conventions. Record temporary failures in issues or task notes, and revise affected guidance and reference links when the architecture intentionally changes.
 
+## Conventional Commit messages
+
+Use this format for ordinary commits, separating the optional body and footer with blank lines:
+
+```text
+<type>(<optional scope>): <description>
+
+<optional body>
+
+<optional footer>
+```
+
+- Choose the type by the change's intent:
+  - `feat`: add, adjust, or remove an API or UI feature.
+  - `fix`: fix an API or UI bug introduced by a feature.
+  - `refactor`: rewrite or restructure code without changing API or UI behavior.
+  - `perf`: improve performance without changing API or UI behavior; a specialized refactor.
+  - `style`: change code formatting or style without affecting behavior.
+  - `test`: add missing tests or correct existing tests.
+  - `docs`: change documentation only.
+  - `build`: change build tools, dependencies, or project versions.
+  - `ops`: change infrastructure, deployment, CI/CD, backups, monitoring, or recovery.
+  - `chore`: perform maintenance such as updating `.gitignore` or initializing the repository.
+- Scope is optional. When useful, name the affected feature or component, such as `home`, `wordstudy`, or `navigation`. Do not use issue identifiers as scopes.
+- Description is required. Use imperative, present-tense wording, start with a lowercase letter, and omit the final period (for example, `fix(bookmarks): preserve cached meanings when removing bookmarks`).
+- An optional body explains the motivation and how behavior changes from before. Use imperative, present-tense wording.
+- Use optional footers for issue references, such as `Closes #123` or `Fixes JIRA-456`.
+- For breaking changes, add `!` immediately before the subject's colon and include a footer starting with `BREAKING CHANGE:`. Put a single-line explanation after a space, or separate a multiline explanation from the marker with a blank line.
+- Use `chore: init` for an initial commit. Preserve Git's default merge subject (`Merge branch '<branch name>'`) and revert subject (`Revert "<reverted commit subject line>"`).
+- When determining the next release version, increment the major version for breaking API/UI changes, the minor version for other `feat` changes, and the patch version otherwise. This convention does not authorize version bumps during unrelated work.
+
+Examples:
+
+```text
+feat(wordstudy): add provider settings
+fix(home): handle empty search results
+perf(home): reduce word index memory usage
+docs: document commit message conventions
+build: update dependencies
+```
+
+```text
+feat(api)!: remove the legacy word endpoint
+
+Use the versioned word endpoint for lookups.
+
+Closes #123
+
+BREAKING CHANGE: clients must use the versioned word endpoint
+```
+
+Reference: [Conventional Commits](https://www.conventionalcommits.org/). Adapted from [Bengt Brodersen's Conventional Commit Messages cheatsheet](https://gist.github.com/qoomon/5dfcdf8eec66a051ecd85625518cfd13), provided under the MIT License.
+
 ## Module boundaries
 
 - `:app` owns application startup, module assembly, Navigation3 integration, external intents, and Android adapters such as notifications, widgets, and app icons.
