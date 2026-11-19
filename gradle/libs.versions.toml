@@ -1,7 +1,7 @@
 [versions]
 agp = "9.5.1"
-firebaseBom = "35.1.0"
-googleServices = "4.5.0"
+firebaseBom = "35.2.0"
+googleServices = "4.6.0"
 firebaseAppDistribution = "5.3.1"
 firebaseCrashlytics = "3.0.8"
 kotlin = "2.4.21"
@@ -15,7 +15,7 @@ espressoCore = "3.7.0"
 material = "1.14.0"
 nav3Core = "1.2.1"
 lifecycleViewmodelNav3 = "2.11.0"
-kotlinxSerializationCore = "1.12.0"
+kotlinxSerializationCore = "1.13.0"
 room = "2.8.5"
 ktor = "3.6.1"
 coroutines = "1.11.0"
@@ -80,6 +80,7 @@ koin-core = { group = "io.insert-koin", name = "koin-core", version.ref = "koin"
 koin-android = { group = "io.insert-koin", name = "koin-android", version.ref = "koin" }
 lottie = { group = "com.airbnb.android", name = "lottie", version.ref = "lottie" }
 timber = { module = "com.jakewharton.timber:timber", version.ref = "timber" }
+
 # Compose Libraries
 androidx-activity-compose = { group = "androidx.activity", name = "activity-compose", version = "1.13.0" }
 androidx-compose-bom = { group = "androidx.compose", name = "compose-bom", version.ref = "composeBom" }
@@ -92,14 +93,12 @@ androidx-compose-ui-test-manifest = { group = "androidx.compose.ui", name = "ui-
 androidx-compose-material3 = { group = "androidx.compose.material3", name = "material3" }
 androidx-compose-material-icons-core = { group = "androidx.compose.material", name = "material-icons-core" }
 koin-androidx-compose = { group = "io.insert-koin", name = "koin-androidx-compose", version.ref = "koin" }
-# koin-androidx-workmanager = { group = "io.insert-koin", name = "koin-androidx-workmanager", version.ref = "koin" }
 lottie-compose = { group = "com.airbnb.android", name = "lottie-compose", version.ref = "lottie" }
 aboutlibraries-compose-m3 = { module = "com.mikepenz:aboutlibraries-compose-m3", version.ref = "aboutLibraries" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }
 android-library = { id = "com.android.library", version.ref = "agp" }
-# kotlin-android = { id = "org.jetbrains.kotlin.android", version.ref = "kotlin" }
 kotlin-jvm = { id = "org.jetbrains.kotlin.jvm", version.ref = "kotlin" }
 kotlin-parcelize = { id = "org.jetbrains.kotlin.plugin.parcelize", version.ref = "kotlin" }
 google-devtools-ksp = { id = "com.google.devtools.ksp", version.ref = "ksp" }
