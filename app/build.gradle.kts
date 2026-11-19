@@ -2,6 +2,9 @@
 
 import com.android.build.api.dsl.ApplicationProductFlavor
 import com.google.firebase.appdistribution.gradle.firebaseAppDistribution
+import dev.detekt.gradle.Detekt
+import dev.detekt.gradle.DetektCreateBaselineTask
+import dev.detekt.gradle.extensions.FailOnSeverity
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 import java.io.FileInputStream
 import java.util.Properties
@@ -193,8 +196,17 @@ detekt {
     buildUponDefaultConfig = true
     allRules = false
     parallel = true
+    failOnSeverity = FailOnSeverity.Info
     config.setFrom(rootProject.files("detekt.yml"))
-    basePath = rootDir.absolutePath
+    basePath.set(rootProject.layout.projectDirectory)
+}
+
+tasks.withType<Detekt>().configureEach {
+    jvmTarget.set(JvmTarget.JVM_17.target)
+}
+
+tasks.withType<DetektCreateBaselineTask>().configureEach {
+    jvmTarget.set(JvmTarget.JVM_17.target)
 }
 
 ktlint {

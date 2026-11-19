@@ -1,12 +1,12 @@
-import org.jetbrains.kotlin.gradle.dsl.JvmTarget
-
 plugins {
     alias(libs.plugins.kotlin.jvm)
     alias(libs.plugins.kotlin.serialization)
     alias(libs.plugins.kotlinx.kover)
 }
 
-kotlin { compilerOptions { jvmTarget = JvmTarget.JVM_17 } }
+kotlin {
+    jvmToolchain(17)
+}
 
 dependencies {
     implementation(project(":core:domain"))

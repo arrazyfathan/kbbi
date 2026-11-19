@@ -1,16 +1,13 @@
-build:
-  maxIssues: 0
-
 config:
   validation: true
 
 complexity:
   LongParameterList:
-    functionThreshold: 8
-    constructorThreshold: 8
+    allowedFunctionParameters: 8
+    allowedConstructorParameters: 8
   TooManyFunctions:
-    thresholdInFiles: 12
-    thresholdInClasses: 12
+    allowedFunctionsPerFile: 12
+    allowedFunctionsPerClass: 12
   LongMethod:
     ignoreAnnotated:
       - Composable

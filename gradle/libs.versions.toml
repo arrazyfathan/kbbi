@@ -23,7 +23,7 @@ lifecycle = "2.11.0"
 koin = "4.2.2"
 lottie = "6.7.1"
 timber = "5.0.1"
-detekt = "1.23.8"
+detekt = "2.0.0-alpha.6"
 ktlint = "14.2.0"
 kover = "0.9.11"
 composeBom = "2026.09.00"
@@ -107,7 +107,7 @@ google-services = { id = "com.google.gms.google-services", version.ref = "google
 firebase-app-distribution = { id = "com.google.firebase.appdistribution", version.ref = "firebaseAppDistribution" }
 firebase-crashlytics = { id = "com.google.firebase.crashlytics", version.ref = "firebaseCrashlytics" }
 navgraph = { id = "com.github.skydoves.navgraph", version.ref = "navgraph" }
-detekt = { id = "io.gitlab.arturbosch.detekt", version.ref = "detekt" }
+detekt = { id = "dev.detekt", version.ref = "detekt" }
 ktlint = { id = "org.jlleitschuh.gradle.ktlint", version.ref = "ktlint" }
 kotlinx-kover = { id = "org.jetbrains.kotlinx.kover", version.ref = "kover" }
 kotlin-compose = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "kotlin" }
